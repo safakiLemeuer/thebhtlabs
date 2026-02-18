@@ -1,0 +1,1572 @@
+'use client';
+import { useState, useEffect, useRef } from "react";
+
+/* ═══════════════ DESIGN SYSTEM — Light / Stripe-Linear Aesthetic ═══════════════ */
+const C = {
+  bg: "#FFFFFF", bgSoft: "#F8FAFC", bgMuted: "#F1F5F9",
+  card: "#FFFFFF", cardHover: "#FEFEFE",
+  navy: "#0F172A", navyLight: "#1E293B",
+  text: "#0F172A", textSoft: "#334155", textMuted: "#64748B", textFaint: "#94A3B8",
+  teal: "#0D9488", tealLight: "#CCFBF1", tealDark: "#0F766E", tealBg: "rgba(13,148,136,.04)",
+  coral: "#F97316", coralBg: "rgba(249,115,22,.04)",
+  blue: "#3B82F6", blueBg: "rgba(59,130,246,.04)",
+  violet: "#7C3AED", violetBg: "rgba(124,58,237,.04)",
+  rose: "#E11D48", roseBg: "rgba(225,29,72,.04)",
+  border: "#E2E8F0", borderLight: "#F1F5F9",
+  shadow: "0 1px 3px rgba(15,23,42,.04), 0 1px 2px rgba(15,23,42,.02)",
+  shadowMd: "0 4px 12px rgba(15,23,42,.06), 0 2px 4px rgba(15,23,42,.03)",
+  shadowLg: "0 10px 32px rgba(15,23,42,.08), 0 4px 8px rgba(15,23,42,.03)",
+};
+const F = {
+  h: "'Plus Jakarta Sans', sans-serif",
+  m: "'IBM Plex Mono', monospace",
+  b: "'Plus Jakarta Sans', sans-serif",
+};
+
+/* ═══════════════ MICRO COMPONENTS ═══════════════ */
+const Tag = ({children, color = C.teal, bg}) => (
+  <span style={{padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:600,fontFamily:F.h,
+    background:bg||color+"0D",color:color,letterSpacing:".2px"}}>{children}</span>
+);
+const Badge = ({children, color = C.teal}) => (
+  <span style={{display:"inline-flex",alignItems:"center",gap:6,padding:"3px 10px",borderRadius:20,
+    fontSize:11,fontWeight:600,fontFamily:F.m,background:color+"0A",color:color}}>
+    <span style={{width:6,height:6,borderRadius:"50%",background:color}}/>
+    {children}
+  </span>
+);
+const SH = ({tag, title, desc, align="center"}) => (
+  <div style={{textAlign:align,marginBottom:56,maxWidth:700,margin:align==="center"?"0 auto 56px":"0 0 56px"}}>
+    {tag && <div style={{marginBottom:12}}><Tag>{tag}</Tag></div>}
+    <h2 style={{color:C.navy,fontSize:"clamp(28px,3.5vw,42px)",fontWeight:800,fontFamily:F.h,lineHeight:1.12,letterSpacing:"-0.02em"}}>{title}</h2>
+    {desc && <p style={{color:C.textMuted,fontSize:16,marginTop:14,lineHeight:1.7,fontFamily:F.b}}>{desc}</p>}
+  </div>
+);
+
+/* ═══════════════ DATA ═══════════════ */
+const AQ = [
+  {d:"Data Foundation",icon:"◈",q:["Is your business data centralized in a single system (CRM, ERP, cloud)?","Do you have clean, structured data that's less than 6 months old?","Are there defined data governance policies (who owns, accesses, updates)?","Can your data be exported in standard formats (CSV, API, database)?","Do you track customer interactions digitally (emails, calls, transactions)?"]},
+  {d:"Process Maturity",icon:"⬡",q:["Are your core workflows documented and repeatable?","Do you have processes that involve repetitive manual data entry?","Are there bottlenecks where tasks wait on a single person?","Do you measure process cycle times and error rates?","Have you automated any workflows (email sequences, approvals, reports)?"]},
+  {d:"Technology Readiness",icon:"△",q:["Are you using cloud-based tools (M365, Google Workspace, AWS)?","Can your systems integrate with third-party APIs?","Do you have a cybersecurity baseline (MFA, endpoint protection)?","Are your systems on supported/current software versions?","Do employees have access to collaboration tools (Teams, Slack)?"]},
+  {d:"People & Culture",icon:"○",q:["Is leadership open to experimenting with AI tools?","Do employees currently use any AI tools (ChatGPT, Copilot)?","Is there budget allocated for technology training?","Would your team embrace AI assistance or resist change?","Do you have someone who understands AI basics?"]},
+  {d:"Strategy & ROI",icon:"□",q:["Can you identify 3+ tasks consuming >5 hrs/week that are repetitive?","Do you have clear KPIs for operational efficiency?","Would saving 10-20 hrs/week per team member impact revenue?","Are competitors in your industry already adopting AI?","Do you have budget flexibility for a 3-6 month pilot?"]},
+  {d:"Governance & Compliance",icon:"⬢",q:["Do you handle sensitive data (PII, PHI, financial)?","Are there industry compliance requirements you must meet?","Do you have data retention and privacy policies?","Would AI decisions need to be explainable or auditable?","Are you aware of AI regulations in your state/industry?"]},
+  {d:"Use Case Clarity",icon:"◇",q:["Can you name a specific pain point AI could address today?","Have you evaluated any AI tools in the past 12 months?","Do you have 1-2 high-impact, low-risk AI use cases identified?","Would automating customer-facing tasks benefit you?","Are there reporting/analytics tasks that take too long?"]},
+];
+const CASES = [
+  {client:"Defense Contractor",subtitle:"CMMC Level 2 Certification",industry:"Defense · 200 employees",color:C.teal,
+    tags:["CMMC L2","GCC-High","Copilot Studio"],
+    challenge:"Zero NIST 800-171 documentation, consumer M365 with mixed CUI data. Needed certification in 90 days to maintain DoD contract.",
+    solution:"GCC-High tenant, Intune MDM (200+ devices), Purview DLP with CUI labels, Copilot Studio compliance agent, PowerShell continuous monitoring.",
+    results:[{m:"90",u:"days",l:"To Certification"},{m:"110",u:"/110",l:"NIST Practices"},{m:"$2.1M",u:"",l:"Contract Saved"},{m:"0",u:"",l:"Audit Findings"}],
+    refs:[{t:"NIST SP 800-171",u:"https://csrc.nist.gov/publications/detail/sp/800-171/rev-2/final"},{t:"CMMC Program",u:"https://dodcio.defense.gov/CMMC/"},{t:"M365 GCC-High",u:"https://learn.microsoft.com/en-us/office365/servicedescriptions/office-365-platform-service-description/office-365-us-government/gcc-high-and-dod"}]},
+  {client:"Regional Logistics Co.",subtitle:"AI-Powered Operations",industry:"Small Business · 45 employees",color:C.coral,
+    tags:["Copilot Studio","Power Automate","AI Readiness"],
+    challenge:"3+ hrs/day on route emails, 200+ status calls/week, 2 FTEs for invoicing. Owner didn't know where to start.",
+    solution:"35-Point Assessment → Copilot Studio customer agent → Power Automate invoice OCR → Copilot dispatch planning.",
+    results:[{m:"67",u:"%",l:"Calls Deflected"},{m:"32",u:"hrs/wk",l:"Manual Work Cut"},{m:"$145K",u:"/yr",l:"Savings"},{m:"<6",u:"mo",l:"ROI Payback"}],
+    refs:[{t:"Copilot Studio",u:"https://www.microsoft.com/en-us/microsoft-365-copilot/microsoft-copilot-studio/"},{t:"Power Automate",u:"https://learn.microsoft.com/en-us/power-automate/"},{t:"SBA AI Guide",u:"https://www.sba.gov/blog/how-small-businesses-can-harness-power-ai"}]},
+  {client:"Healthcare Network",subtitle:"AI Governance Framework",industry:"Healthcare · 1,200 employees",color:C.rose,
+    tags:["AI Governance","HIPAA","NIST AI RMF"],
+    challenge:"23+ AI tools with zero governance. PHI in non-compliant systems. Pending audit.",
+    solution:"AI inventory audit, NIST AI RMF risk assessment, governance council, 1,200-person training, Copilot Studio approval agent.",
+    results:[{m:"23",u:"",l:"Tools Inventoried"},{m:"7",u:"",l:"Gaps Remediated"},{m:"100",u:"%",l:"Training Done"},{m:"Clean",u:"",l:"Audit Result"}],
+    refs:[{t:"NIST AI RMF",u:"https://www.nist.gov/artificial-intelligence"},{t:"HIPAA",u:"https://www.hhs.gov/hipaa/index.html"}]},
+  {client:"Energy Corporation",subtitle:"M&A Tenant Consolidation",industry:"Energy · 5,200 users",color:C.violet,
+    tags:["M&A","Multi-Tenant","Entra ID"],
+    challenge:"12 M365 tenants post-acquisition, inconsistent security, no unified identity for 5,200 users.",
+    solution:"Phased cross-tenant migration, Entra policies, license reconciliation agent, Copilot Studio comms, Power BI dashboards.",
+    results:[{m:"12→1",u:"",l:"Tenants"},{m:"5,200",u:"",l:"Users Migrated"},{m:"$800K",u:"/yr",l:"License Savings"},{m:"99.9",u:"%",l:"Success Rate"}],
+    refs:[{t:"Cross-Tenant Migration",u:"https://learn.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration"},{t:"Entra Cross-Tenant",u:"https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-overview"}]},
+];
+const PKGS = [
+  {name:"AI Discovery",price:"Free",per:"",color:C.teal,pop:false,desc:"Not sure where to start? Let's talk.",feats:["30-min strategy call","Quick AI readiness check","2-3 use case ideas","No commitment"],cta:"Book Free Call"},
+  {name:"AI Readiness Sprint",price:"$2,500",per:"/engagement",color:C.blue,pop:false,desc:"Full 35-point assessment with roadmap.",feats:["Complete 35-point assessment","Data & process audit","Prioritized AI roadmap","Tool recommendations","Executive briefing","90-day action plan"],cta:"Start Sprint"},
+  {name:"AI Launchpad",price:"$7,500",per:"/month",color:C.violet,pop:true,desc:"End-to-end implementation.",feats:["Everything in Sprint","Copilot Studio agents","1-2 custom automations","Staff training (20 people)","Monthly reviews","Priority support"],cta:"Launch Now"},
+  {name:"AI Transformation",price:"Custom",per:"",color:C.coral,pop:false,desc:"Enterprise & federal. Full-scale.",feats:["Everything in Launchpad","GCC-High / compliance","CMMC / FedRAMP","Multi-agent orchestration","AI governance framework","Managed services"],cta:"Contact Us"},
+];
+const PROMPTS = [
+  {cat:"Business",title:"AI Use Case Identifier",color:C.teal,prompt:"I run a [INDUSTRY] business with [X] employees. Top 3 time-consuming tasks: [list]. Current tools: [list]. Budget: [RANGE]. Identify top 5 AI use cases ranked by: (1) time savings, (2) difficulty, (3) 90-day ROI. For each, recommend specific tools and 2-sentence plan."},
+  {cat:"Copilot",title:"IT Helpdesk Agent",color:C.blue,prompt:"You are an IT support agent for [Company]. Access: SharePoint KB, ServiceNow, Graph API, Intune. For each request: (1) classify P1-P4, (2) check KB, (3) attempt auto-resolution, (4) if unresolved create ticket with diagnostics, (5) provide ticket # and SLA."},
+  {cat:"Career",title:"AI Skills Gap Analyzer",color:C.coral,prompt:"I am a [TITLE] with [X] years in [INDUSTRY]. Skills: [list]. Based on 2026 trends: (1) Rate my automation risk 1-10, (2) Top 5 AI skills by career impact, (3) For each: 1 free + 1 paid resource, (4) 90-day learning plan, (5) 3 AI-augmented job titles I could target."},
+  {cat:"Governance",title:"AI Policy Generator",color:C.violet,prompt:"Draft an AI Acceptable Use Policy for a [SIZE] company in [INDUSTRY]. Include: (1) Approved tools, (2) Prohibited uses, (3) Data classification before AI processing, (4) Training requirements, (5) Incident reporting, (6) Vendor evaluation, (7) Annual review."},
+  {cat:"Business",title:"AI Vendor Scorecard",color:C.teal,prompt:"Create a weighted scorecard for comparing AI vendors for [INDUSTRY]. Criteria: (1) Integration with [TOOLS], (2) Data security, (3) Scalability, (4) 12-month TCO, (5) Vendor stability, (6) Adoption difficulty, (7) Time to value. Weight each, 1-5 rubric."},
+  {cat:"Copilot",title:"Weekly BI Report Agent",color:C.blue,prompt:"Every Monday 8 AM: (1) Pull last week's sales from [SOURCE], (2) Compare vs prior week + same week last year, (3) Top 3 and bottom 3 products, (4) Flag >20% deviations, (5) Generate exec summary, (6) Post to [Teams/email]. Clean HTML."},
+];
+const TRACKS = [
+  {title:"AI for Business Leaders",level:"Beginner",dur:"4 weeks",color:C.teal,desc:"Understand what AI can and can't do. Evaluate vendors, avoid hype, make smart decisions.",skills:["AI landscape","Vendor evaluation","Business cases","Risk assessment"],stat:"62% of workers believe AI skills improve job security"},
+  {title:"Copilot & Automation Mastery",level:"Intermediate",dur:"6 weeks",color:C.blue,desc:"Hands-on with M365 Copilot, Power Automate, and Copilot Studio. Build production agents.",skills:["M365 Copilot","Power Automate","Agent building","Teams integration"],stat:"29% of hiring managers only hire AI-proficient candidates"},
+  {title:"AI Governance & Compliance",level:"Advanced",dur:"8 weeks",color:C.violet,desc:"NIST AI RMF, EU AI Act, state regulations. For CISOs, compliance officers, and IT leads.",skills:["NIST AI RMF","EU AI Act","Policy development","Bias auditing"],stat:"Companies with skills readiness 12x more likely to upskill"},
+  {title:"Prompt Engineering & AI Tools",level:"All Levels",dur:"Self-paced",color:C.coral,desc:"Master getting great results from Claude, ChatGPT, Copilot, and more.",skills:["Advanced prompting","Chain-of-thought","System prompts","Multi-tool workflows"],stat:"3-6 months of consistent practice makes candidates job-ready"},
+];
+
+
+/* ═══════════════ RSS FEED ENGINE — Powers ALL dynamic sections ═══════════════ */
+const P = "https://api.rss2json.com/v1/api.json?rss_url=";
+
+// 15+ sources across 4 categories
+const SOURCES = [
+  // AI / Tech News
+  {url:"https://techcrunch.com/category/artificial-intelligence/feed/",cat:"AI News",color:C.teal,type:"news"},
+  {url:"https://feeds.feedburner.com/TheHackersNews",cat:"Cybersecurity",color:C.rose,type:"news"},
+  {url:"https://www.wired.com/feed/tag/ai/latest/rss",cat:"AI/Wired",color:C.teal,type:"news"},
+  {url:"https://venturebeat.com/category/ai/feed/",cat:"VentureBeat AI",color:C.teal,type:"news"},
+  // Federal / Government
+  {url:"https://federalnewsnetwork.com/category/technology/feed/",cat:"Federal IT",color:C.blue,type:"news"},
+  {url:"https://fedscoop.com/feed/",cat:"FedScoop",color:C.blue,type:"news"},
+  {url:"https://www.govtech.com/rss",cat:"GovTech",color:C.blue,type:"news"},
+  {url:"https://www.nextgov.com/rss/all/",cat:"NextGov",color:C.blue,type:"news"},
+  // Case Study / Business Analysis sources
+  {url:"https://hbr.org/topic/technology.rss",cat:"HBR",color:C.coral,type:"case"},
+  {url:"https://cloud.google.com/blog/topics/customers/rss",cat:"Google Cloud",color:C.teal,type:"case"},
+  {url:"https://aws.amazon.com/blogs/machine-learning/feed/",cat:"AWS ML",color:C.coral,type:"case"},
+  {url:"https://blogs.microsoft.com/blog/feed/",cat:"Microsoft",color:C.violet,type:"case"},
+  {url:"https://www.mckinsey.com/featured-insights/artificial-intelligence/rss",cat:"McKinsey",color:C.coral,type:"case"},
+  // Copilot / Microsoft
+  {url:"https://www.microsoft.com/en-us/microsoft-copilot/blog/feed/",cat:"Copilot",color:C.violet,type:"news"},
+  // Security
+  {url:"https://krebsonsecurity.com/feed/",cat:"Krebs",color:C.rose,type:"news"},
+  {url:"https://www.schneier.com/feed/",cat:"Schneier",color:C.rose,type:"news"},
+];
+
+// Keywords for AI-relevance filtering
+const KW_NEWS = ['ai','artificial intelligence','copilot','automation','machine learning','agent','gpt','llm','claude','gemini','chatgpt','robot','neural','deepfake','generative','federal','government','cyber','compliance','breach','nist','zero trust','cmmc','fedramp','defense','pentagon','layoff','upskill','workforce','hiring'];
+const KW_CASE = ['case study','implementation','deployed','saved','million','billion','reduced','improved','automated','transformed','roi','results','outcome','success','adoption','pilot','enterprise','agency','company','hospital','bank'];
+
+/* ═══════════════ MAIN EXPORT ═══════════════ */
+export default function TheBHTLabs() {
+  const [nav, setNav] = useState("assess");
+  // All RSS data
+  const [newsItems, setNewsItems] = useState([]);
+  const [caseItems, setCaseItems] = useState([]);
+  const [feedStatus, setFeedStatus] = useState({live:false,loading:true,count:0,lastUpdate:null});
+
+  // ═══ MASTER RSS LOADER ═══
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAllFeeds() {
+      const news = [], cases = [];
+      let loaded = 0;
+
+      const promises = SOURCES.map(async (src) => {
+        try {
+          const r = await fetch(P + encodeURIComponent(src.url));
+          const d = await r.json();
+          if (d.status === "ok" && d.items) {
+            loaded++;
+            d.items.slice(0, 10).forEach(item => {
+              const title = (item.title || "").replace(/<[^>]+>/g, "").trim();
+              const desc = (item.description || "").replace(/<[^>]+>/g, "").substring(0, 220).trim();
+              const txt = (title + " " + desc).toLowerCase();
+              const entry = {
+                title, link: item.link, desc,
+                date: item.pubDate || new Date().toISOString(),
+                dateFmt: item.pubDate ? new Date(item.pubDate).toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "Recent",
+                cat: src.cat, color: src.color,
+                source: (() => { try { return new URL(item.link || src.url).hostname.replace("www.",""); } catch(e) { return src.cat; } })(),
+              };
+              // Route to news or case study based on source type + keywords
+              if (src.type === "case" || KW_CASE.some(k => txt.includes(k))) {
+                cases.push(entry);
+              }
+              if (src.type === "news" || KW_NEWS.some(k => txt.includes(k))) {
+                news.push(entry);
+              }
+            });
+          }
+        } catch(e) { /* skip failed */ }
+      });
+
+      await Promise.allSettled(promises);
+      if (cancelled) return;
+
+      // Sort by date
+      news.sort((a,b) => new Date(b.date) - new Date(a.date));
+      cases.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+      setNewsItems(news.slice(0, 30));
+      setCaseItems(cases.slice(0, 20));
+      setFeedStatus({live: news.length > 0, loading: false, count: loaded, lastUpdate: new Date().toISOString()});
+    }
+    loadAllFeeds();
+    const iv = setInterval(loadAllFeeds, 10 * 60 * 1000); // refresh every 10 min
+    return () => { cancelled = true; clearInterval(iv); };
+  }, []);
+
+  const scrollTo = id => { document.getElementById(id)?.scrollIntoView({behavior:"smooth"}); setNav(id); };
+
+  return (
+    <div style={{background:C.bg,color:C.text,fontFamily:F.b,lineHeight:1.6,WebkitFontSmoothing:"antialiased"}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        html{scroll-behavior:smooth}
+        ::selection{background:rgba(13,148,136,.15)}
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#F8FAFC}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        @media(max-width:900px){.g4{grid-template-columns:1fr 1fr!important}.g3{grid-template-columns:1fr!important}.g2{grid-template-columns:1fr!important}}
+        @media(max-width:540px){.g4{grid-template-columns:1fr!important}.snav{display:none!important}.hero-t{font-size:34px!important}}
+      `}</style>
+      <Hero scrollTo={scrollTo} nav={nav} />
+      <ValueProps />
+      <Assessment id="assess" />
+      <LiveCaseStudies id="cases" items={caseItems} loading={feedStatus.loading} />
+      <ROICalculator id="roi" />
+      <PolicyGenerator id="policy" />
+      <ComplianceCountdown />
+      <Packages id="packages" />
+      <Learning id="learn" />
+      <AIRiskChecker />
+      <Radar id="insights" items={newsItems} status={feedStatus} />
+      <OpsDashboard status={feedStatus} newsCount={newsItems.length} caseCount={caseItems.length} />
+      <Partner id="partner" />
+      <ProofBar />
+      <About />
+      <Footer />
+      <ChatWidget />
+    </div>
+  );
+}
+function Hero({scrollTo, nav}) {
+  const navItems = [{id:"assess",l:"Assessment"},{id:"cases",l:"Results"},{id:"roi",l:"ROI Calc"},{id:"policy",l:"AI Policy"},{id:"packages",l:"Packages"},{id:"learn",l:"Upskill"},{id:"insights",l:"Radar"},{id:"partner",l:"Work With Us"}];
+  return (
+    <header style={{borderBottom:`1px solid ${C.border}`,background:`linear-gradient(180deg, ${C.bg} 0%, ${C.bgSoft} 100%)`}}>
+      {/* Top nav */}
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"16px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:36,height:36,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${C.teal},${C.tealDark})`,color:"#fff",fontWeight:800,fontSize:16,fontFamily:F.m}}>λ</div>
+          <div>
+            <span style={{fontWeight:800,fontSize:17,fontFamily:F.h,color:C.navy}}>TheBHT<span style={{color:C.teal}}>Labs</span></span>
+            <div style={{fontSize:10,color:C.textFaint,fontFamily:F.m,letterSpacing:1}}>SKUNKWORKS · BHT SOLUTIONS</div>
+          </div>
+        </div>
+        <div className="snav" style={{display:"flex",gap:2}}>
+          {navItems.map(n=>(
+            <button key={n.id} onClick={()=>scrollTo(n.id)} style={{padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,border:"none",transition:"all .15s",
+              background:nav===n.id?C.tealBg:"transparent",color:nav===n.id?C.tealDark:C.textMuted}}>{n.l}</button>
+          ))}
+        </div>
+        <button onClick={()=>scrollTo("assess")} style={{padding:"9px 20px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 2px 8px ${C.teal}33`,transition:"all .2s"}}>
+          Free Assessment →
+        </button>
+      </div>
+      {/* Hero content */}
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"60px 24px 48px",textAlign:"center"}}>
+        <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.12)",marginBottom:20}}>
+          <div style={{width:6,height:6,borderRadius:"50%",background:C.rose,animation:"pulse 2s infinite"}} />
+          <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>91% of orgs lack AI governance. We fix that.</span>
+        </div>
+        <h1 className="hero-t" style={{fontSize:"clamp(36px,5vw,58px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:C.navy,letterSpacing:"-0.03em",maxWidth:800,margin:"0 auto"}}>
+          Stop talking about AI.<br/><span style={{color:C.teal}}>Start shipping it.</span>
+        </h1>
+        <p style={{color:C.textMuted,fontSize:18,lineHeight:1.7,maxWidth:620,margin:"20px auto 14px",fontFamily:F.b}}>
+          We took 20 years of Fortune 500 and federal IT experience, added a lab, and built the tools to make your organization AI-ready in weeks, not quarters.
+        </p>
+        <p style={{color:C.textFaint,fontSize:13,fontFamily:F.m,maxWidth:500,margin:"0 auto 32px"}}>
+          CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · SBA 8(a) · EDWOSB · T4 Cleared · ISO 27001 · CMMI ML3
+        </p>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <button onClick={()=>scrollTo("assess")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s"}}>
+            Take the 35-Point Assessment
+          </button>
+          <button onClick={()=>scrollTo("cases")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:`1.5px solid ${C.border}`,background:"transparent",color:C.navy,transition:"all .2s"}}>
+            See What We've Shipped
+          </button>
+        </div>
+        {/* Client logos bar */}
+        <div style={{marginTop:40,paddingTop:28,borderTop:`1px solid ${C.borderLight}`}}>
+          <p style={{color:C.textFaint,fontSize:11,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Trusted by teams at</p>
+          <div style={{display:"flex",justifyContent:"center",gap:32,flexWrap:"wrap",alignItems:"center"}}>
+            {["Microsoft","bp","Eli Lilly","GE Power","iRobot","Kroger","NOV","Apache","NTT Data","Hitachi"].map(c=>(
+              <span key={c} style={{color:C.textFaint,fontSize:13,fontWeight:600,fontFamily:F.h,opacity:0.5}}>{c}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+/* ═══════════════ VALUE PROPS ═══════════════ */
+function ValueProps() {
+  const items = [
+    {icon:"◈",t:"Assess",d:"35-point AI readiness evaluation across 7 domains. Know exactly where you stand.",color:C.teal},
+    {icon:"⬡",t:"Build",d:"Production Copilot Studio agents and Power Automate workflows. Not demos — real ROI.",color:C.blue},
+    {icon:"△",t:"Learn",d:"Career-proof AI skills. Prompts, governance, automation — real mastery in weeks.",color:C.violet},
+    {icon:"○",t:"Govern",d:"AI compliance frameworks, acceptable use policies, CMMC & FedRAMP readiness.",color:C.coral},
+  ];
+  return (
+    <section style={{padding:"72px 0",background:C.bg}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
+        <div className="g4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:20}}>
+          {items.map(v => (
+            <div key={v.t} style={{padding:28,borderRadius:16,border:`1px solid ${C.border}`,background:C.bg,transition:"all .2s",cursor:"default"}}>
+              <div style={{width:44,height:44,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",background:v.color+"0A",color:v.color,fontSize:20,fontWeight:700,marginBottom:16}}>{v.icon}</div>
+              <h3 style={{fontSize:18,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:6}}>{v.t}</h3>
+              <p style={{color:C.textMuted,fontSize:14,lineHeight:1.6}}>{v.d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ ASSESSMENT ═══════════════ */
+function Assessment({id}) {
+  const [started, setStarted] = useState(false);
+  const [step, setStep] = useState(0);
+  const [ans, setAns] = useState({});
+  const [done, setDone] = useState(false);
+  const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const cur = AQ[step], total = 35, answered = Object.keys(ans).length;
+  const ds = (di) => { let y=0; for(let q=0;q<5;q++){const v=ans[di+"-"+q]; if(v==="yes")y++; else if(v==="partial")y+=.5} return Math.round((y/5)*100); };
+  const overall = () => { let y=0; Object.values(ans).forEach(v=>{if(v==="yes")y++;else if(v==="partial")y+=.5}); return Math.round((y/total)*100); };
+  const lvl = (s) => s>=80?{l:"AI-Ready",c:C.teal,d:"Strong foundations. You're ready to deploy AI and should focus on high-impact use cases."}:s>=60?{l:"AI-Emerging",c:C.blue,d:"Good foundations with gaps. A 60-90 day prep phase will position you for success."}:s>=40?{l:"AI-Building",c:C.coral,d:"Key foundations need work. Our Readiness Sprint can bridge critical gaps in 2-4 weeks."}:{l:"AI-Exploring",c:C.rose,d:"Early stage — many businesses start here. We'll map a clear path from where you are today."};
+
+  const sendReport = async () => {
+    if(!email)return; setSending(true);
+    try {
+      await fetch("/api/assessment", {method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({email,score:overall(),level:lvl(overall()).l,domains:AQ.map((d,i)=>({name:d.d,score:ds(i)}))})});
+      setSent(true);
+    } catch(e) { console.error(e); setSent(true); }
+    setSending(false);
+  };
+
+  // Landing state
+  if (!started) return (
+    <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:720,margin:"0 auto",padding:"0 24px",textAlign:"center"}}>
+        <SH tag="Takes 5 minutes" title="Is your business AI-ready?" desc="Our 35-point assessment evaluates 7 critical dimensions. Used by 200+ organizations from startups to Fortune 500." />
+        <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,padding:"56px 40px",boxShadow:C.shadowMd}}>
+          <div style={{fontSize:56,marginBottom:20}}>◈</div>
+          <h3 style={{fontSize:24,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:12}}>35-Point AI Readiness Assessment</h3>
+          <p style={{color:C.textMuted,fontSize:15,lineHeight:1.7,maxWidth:480,margin:"0 auto 8px"}}>
+            7 domains · 5 questions each · Personalized score and roadmap
+          </p>
+          <p style={{color:C.textFaint,fontSize:12,fontFamily:F.m,marginBottom:28}}>Free · No account required · Results emailed instantly</p>
+          <button onClick={()=>setStarted(true)} style={{padding:"14px 40px",borderRadius:12,cursor:"pointer",fontSize:16,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`}}>
+            Start Assessment →
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+
+  const generatePDF = () => {
+    const s = overall(), lv = lvl(s);
+    const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    // Build PDF using a new window (zero dependencies, works everywhere)
+    const w = window.open('','_blank');
+    w.document.write(`<!DOCTYPE html><html><head><title>AI Readiness Report — TheBHTLabs</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;700&display=swap');
+      *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;color:#0F172A;padding:48px;max-width:800px;margin:0 auto}
+      @media print{body{padding:24px}button{display:none!important}}
+      h1{font-size:28px;font-weight:800;letter-spacing:-0.03em}
+      .score-circle{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 auto 16px}
+      .domain-bar{height:20px;border-radius:4px;transition:width .3s}
+      .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+      .card{padding:16px;border-radius:12px;border:1px solid #E2E8F0}
+    </style></head><body>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #0D9488">
+      <div><h1 style="color:#0F172A">AI Readiness Report</h1>
+      <p style="color:#64748B;font-size:13px;margin-top:4px">Generated by TheBHTLabs · ${new Date().toLocaleDateString()}</p></div>
+      <div style="text-align:right"><div style="font-weight:800;font-size:15px;color:#0F172A">TheBHT<span style="color:#0D9488">Labs</span></div>
+      <div style="font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">CAGE: 7DBB9 · bhtsolutions.com</div></div>
+    </div>
+    <div style="text-align:center;margin:32px 0">
+      <div class="score-circle" style="background:${lv.c}11;border:3px solid ${lv.c}">
+        <div style="font-size:36px;font-weight:800;color:${lv.c};font-family:'IBM Plex Mono',monospace">${s}%</div>
+        <div style="font-size:11px;font-weight:700;color:${lv.c}">${lv.l}</div>
+      </div>
+      <p style="color:#475569;font-size:14px;max-width:500px;margin:0 auto">${lv.d}</p>
+    </div>
+    <h2 style="font-size:18px;font-weight:700;margin:28px 0 14px">Domain Breakdown</h2>
+    ${domains.map(d=>`
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span style="font-size:13px;font-weight:600">${d.name}</span>
+          <span style="font-size:13px;font-weight:700;color:${d.score>=80?'#0D9488':d.score>=60?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};font-family:'IBM Plex Mono',monospace">${d.score}%</span>
+        </div>
+        <div style="height:20px;background:#F1F5F9;border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${d.score}%;background:${d.score>=80?'#0D9488':d.score>=60?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};border-radius:4px"></div>
+        </div>
+      </div>
+    `).join('')}
+    <h2 style="font-size:18px;font-weight:700;margin:32px 0 14px">Your Top 3 Quick Wins</h2>
+    <div class="grid">
+    ${domains.sort((a,b)=>a.score-b.score).slice(0,3).map((d,i)=>`
+      <div class="card">
+        <div style="font-size:12px;font-weight:700;color:#E11D48;margin-bottom:4px">Priority ${i+1}</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:4px">${d.name} · ${d.score}%</div>
+        <p style="font-size:13px;color:#64748B">${d.score<40?'Foundational gap — address this first for maximum impact.':d.score<60?'Partial coverage — targeted improvements will unlock AI capabilities here.':'Close to ready — a focused sprint can bring this to full readiness.'}</p>
+      </div>
+    `).join('')}
+    </div>
+    <h2 style="font-size:18px;font-weight:700;margin:32px 0 14px">Recommended Next Step</h2>
+    <div style="padding:20px;border-radius:14px;background:#F0FDFA;border:1px solid #CCFBF1">
+      <p style="font-size:14px;color:#0F766E;font-weight:600;margin-bottom:8px">${s>=80?'AI Launchpad — You\'re ready to deploy':'AI Readiness Sprint — Bridge your gaps in 2-4 weeks'}</p>
+      <p style="font-size:13px;color:#475569">${s>=80?'Your organization is positioned for AI implementation. We recommend starting with 1-2 high-impact use cases and building from there. Our Launchpad package includes Copilot Studio agents, custom automations, and staff training.':'A focused engagement to address your lowest-scoring domains, build missing foundations, and create a 90-day AI roadmap. Includes executive briefing, tool recommendations, and prioritized action plan.'}</p>
+    </div>
+    <div style="margin-top:32px;padding-top:16px;border-top:2px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:700;font-size:13px;color:#0F172A">Ready to act on these results?</div>
+      <div style="font-size:12px;color:#64748B">info@bhtsolutions.com · bhtsolutions.com · (832) 850-4047</div></div>
+      <div style="text-align:right;font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">
+        SBA 8(a) · EDWOSB · WOSB · NMSDC MBE<br>CAGE: 7DBB9 · UEI: ZW6GMVL368J6<br>ISO 27001 · CMMI ML3 · T4 Clearance
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px">
+      <button onclick="window.print()" style="padding:12px 28px;border-radius:10px;border:none;background:#0D9488;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">
+        Save as PDF (Ctrl+P → Save as PDF)
+      </button>
+    </div>
+    </body></html>`);
+    w.document.close();
+  };
+
+  // Results state
+  if (done) {
+    const sc = overall(), lv = lvl(sc);
+    return (
+      <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
+        <div style={{maxWidth:800,margin:"0 auto",padding:"0 24px"}}>
+          <SH tag="Your Results" title="AI Readiness Score" />
+          <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,overflow:"hidden",boxShadow:C.shadowMd}}>
+            {/* Score header */}
+            <div style={{padding:"40px",textAlign:"center",borderBottom:`1px solid ${C.border}`}}>
+              <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:120,height:120,borderRadius:"50%",background:`conic-gradient(${lv.c} ${sc*3.6}deg, ${C.bgMuted} 0deg)`,margin:"0 auto 16px",position:"relative"}}>
+                <div style={{width:96,height:96,borderRadius:"50%",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>
+                  <span style={{color:lv.c,fontSize:36,fontWeight:800,fontFamily:F.m}}>{sc}</span>
+                  <span style={{color:C.textFaint,fontSize:11,fontFamily:F.m}}>/100</span>
+                </div>
+              </div>
+              <div><Tag color={lv.c}>{lv.l}</Tag></div>
+              <p style={{color:C.textMuted,fontSize:15,lineHeight:1.7,maxWidth:480,margin:"14px auto 0"}}>{lv.d}</p>
+            </div>
+            {/* Domain breakdown */}
+            <div style={{padding:28}}>
+              <h4 style={{fontSize:13,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,marginBottom:16}}>Domain Breakdown</h4>
+              {AQ.map((d,i) => {
+                const s = ds(i), c = s>=80?C.teal:s>=60?C.blue:s>=40?C.coral:C.rose;
+                return (
+                  <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"10px 0",borderBottom:i<6?`1px solid ${C.borderLight}`:"none"}}>
+                    <span style={{fontSize:14,fontWeight:600,color:C.navy,flex:1,fontFamily:F.h}}>{d.d}</span>
+                    <div style={{width:160,height:6,background:C.bgMuted,borderRadius:3,overflow:"hidden"}}>
+                      <div style={{width:`${s}%`,height:"100%",borderRadius:3,background:c,transition:"width .6s ease"}} />
+                    </div>
+                    <span style={{color:c,fontSize:14,fontWeight:700,fontFamily:F.m,width:40,textAlign:"right"}}>{s}%</span>
+                  </div>
+                );
+              })}
+              {/* Email capture */}
+              {!sent ? (
+                <div style={{marginTop:24,padding:20,borderRadius:14,background:C.tealBg,border:`1px solid ${C.teal}15`}}>
+                  <p style={{fontSize:14,fontWeight:600,color:C.navy,marginBottom:10}}>Get your full report with personalized AI roadmap</p>
+                  <div style={{display:"flex",gap:8}}>
+                    <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="your@email.com"
+                      style={{flex:1,padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none"}} />
+                    <button onClick={sendReport} disabled={sending}
+                      style={{padding:"10px 24px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff"}}>
+                      {sending ? "Sending..." : "Send Report"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{marginTop:24,padding:20,borderRadius:14,background:C.tealBg,border:`1px solid ${C.teal}15`,textAlign:"center"}}>
+                  <span style={{color:C.teal,fontSize:14,fontWeight:600}}>✓ Report sent! We'll follow up within 24 hours.</span>
+                </div>
+              )}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginTop:16}}>
+                <button onClick={()=>{setStarted(false);setStep(0);setAns({});setDone(false);setSent(false);setEmail("")}}
+                  style={{padding:"10px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted}}>Retake</button>
+                <button onClick={generatePDF}
+                  style={{padding:"10px",borderRadius:10,border:"none",background:C.teal,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,color:"#fff"}}>📄 Download PDF</button>
+                <button onClick={()=>document.getElementById("partner")?.scrollIntoView({behavior:"smooth"})}
+                  style={{padding:"10px",borderRadius:10,border:"none",background:C.violetBg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.violet}}>Book Consultation →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Questions state
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:800,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Takes 5 minutes" title="Is your business AI-ready?" />
+        <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,overflow:"hidden",boxShadow:C.shadowMd}}>
+          {/* Header */}
+          <div style={{padding:"14px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${C.border}`}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <Tag color={C.teal}>Domain {step+1}/7</Tag>
+              <span style={{fontSize:15,fontWeight:700,fontFamily:F.h,color:C.navy}}>{cur.d}</span>
+            </div>
+            <span style={{color:C.textFaint,fontSize:12,fontFamily:F.m}}>{answered}/{total}</span>
+          </div>
+          {/* Progress bar */}
+          <div style={{height:3,background:C.bgMuted}}>
+            <div style={{height:"100%",background:`linear-gradient(90deg,${C.teal},${C.blue})`,width:`${(step/7)*100}%`,transition:"width .3s"}} />
+          </div>
+          {/* Questions */}
+          <div style={{padding:"20px 24px"}}>
+            {cur.q.map((q, qi) => {
+              const val = ans[step+"-"+qi];
+              return (
+                <div key={qi} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 0",borderBottom:qi<4?`1px solid ${C.borderLight}`:"none",gap:12,flexWrap:"wrap"}}>
+                  <span style={{color:C.text,fontSize:14,flex:1,lineHeight:1.5,minWidth:200}}>{q}</span>
+                  <div style={{display:"flex",gap:6,flexShrink:0}}>
+                    {[{l:"Yes",v:"yes",c:C.teal},{l:"Partial",v:"partial",c:C.coral},{l:"No",v:"no",c:C.rose}].map(o => (
+                      <button key={o.v} onClick={()=>setAns(p=>({...p,[step+"-"+qi]:o.v}))}
+                        style={{padding:"7px 16px",borderRadius:8,fontSize:12,cursor:"pointer",fontFamily:F.m,fontWeight:600,transition:"all .15s",
+                          background:val===o.v?o.c+"12":"transparent",color:val===o.v?o.c:C.textFaint,
+                          border:`1px solid ${val===o.v?o.c+"33":"transparent"}`}}>{o.l}</button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* Nav */}
+          <div style={{padding:"14px 24px",display:"flex",justifyContent:"space-between",borderTop:`1px solid ${C.border}`}}>
+            <button disabled={step===0} onClick={()=>setStep(step-1)}
+              style={{padding:"10px 22px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:step===0?"default":"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted,opacity:step===0?.4:1}}>
+              ← Back
+            </button>
+            {step < 6 ? (
+              <button onClick={()=>setStep(step+1)}
+                style={{padding:"10px 28px",borderRadius:10,border:"none",background:C.teal,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h}}>
+                Next Domain →
+              </button>
+            ) : (
+              <button onClick={()=>setDone(true)}
+                style={{padding:"10px 28px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${C.teal},${C.blue})`,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h}}>
+                See My Results →
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+/* ═══════════════ CASE STUDIES — YOUR WORK FIRST ═══════════════ */
+function LiveCaseStudies({id, items, loading}) {
+  const [open, setOpen] = useState(null);
+  const [showIndustry, setShowIndustry] = useState(false);
+
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bg}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Real Engagements · Verifiable Results" title="What we've built" desc="Not hypotheticals — real implementations with measurable outcomes. Click to expand challenge, solution, and source references." />
+
+        {/* YOUR 4 CASE STUDIES */}
+        <div className="g2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:20}}>
+          {CASES.map((c, i) => (
+            <div key={i} onClick={()=>setOpen(open===i?null:i)} style={{background:C.bg,border:`1px solid ${open===i?c.color+"44":C.border}`,borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"all .2s",boxShadow:open===i?C.shadowMd:C.shadow}}>
+              <div style={{padding:24}}>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
+                  {c.tags.map(t => <Tag key={t} color={c.color}>{t}</Tag>)}
+                </div>
+                <h3 style={{fontSize:18,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:2}}>{c.client}</h3>
+                <p style={{color:C.textMuted,fontSize:13,marginBottom:2}}>{c.subtitle}</p>
+                <p style={{color:C.textFaint,fontSize:12,fontFamily:F.m}}>{c.industry}</p>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginTop:16}}>
+                  {c.results.map(r => (
+                    <div key={r.l} style={{textAlign:"center",padding:"10px 4px",borderRadius:10,background:c.color+"06"}}>
+                      <div style={{color:c.color,fontSize:20,fontWeight:800,fontFamily:F.m,lineHeight:1}}>{r.m}<span style={{fontSize:12,fontWeight:600}}>{r.u}</span></div>
+                      <div style={{color:C.textFaint,fontSize:10,fontFamily:F.m,marginTop:4}}>{r.l}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {open === i && (
+                <div style={{padding:"0 24px 24px",borderTop:`1px solid ${C.borderLight}`,paddingTop:16}}>
+                  <p style={{color:C.textSoft,fontSize:13,lineHeight:1.7,marginBottom:8}}><strong style={{color:C.navy}}>Challenge: </strong>{c.challenge}</p>
+                  <p style={{color:C.textSoft,fontSize:13,lineHeight:1.7,marginBottom:14}}><strong style={{color:C.navy}}>Solution: </strong>{c.solution}</p>
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                    {c.refs.map(r => (
+                      <a key={r.t} href={r.u} target="_blank" rel="noopener" onClick={e=>e.stopPropagation()}
+                        style={{display:"inline-flex",alignItems:"center",gap:4,padding:"6px 14px",borderRadius:8,background:C.tealBg,color:C.tealDark,fontSize:12,fontFamily:F.m,fontWeight:600,border:`1px solid ${C.teal}15`,textDecoration:"none"}}>
+                        📄 {r.t} ↗
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* INDUSTRY AI NEWS — RSS powered, clearly labeled */}
+        <div style={{marginTop:56}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+            <div>
+              <h3 style={{fontSize:20,fontWeight:800,fontFamily:F.h,color:C.navy}}>AI in the Wild</h3>
+              <p style={{color:C.textMuted,fontSize:13}}>Curated industry case studies and implementations — from HBR, McKinsey, Google Cloud, AWS, and Microsoft.</p>
+            </div>
+            <button onClick={()=>setShowIndustry(!showIndustry)} style={{padding:"8px 18px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:F.h,color:C.textMuted,flexShrink:0}}>
+              {showIndustry ? "Hide" : `Show ${items.length || 0} stories`}
+            </button>
+          </div>
+          {showIndustry && (loading ? (
+            <p style={{color:C.textFaint,fontSize:13,fontFamily:F.m,animation:"pulse 1.5s infinite",padding:20,textAlign:"center"}}>Loading live feeds...</p>
+          ) : items.length > 0 ? (
+            <div className="g2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:12}}>
+              {items.filter((v,i,a)=>a.findIndex(t=>t.title===v.title)===i).slice(0,8).map((c,i) => (
+                <a key={i} href={c.link} target="_blank" rel="noopener" style={{display:"flex",gap:12,padding:16,borderRadius:12,background:C.bgSoft,border:`1px solid ${C.borderLight}`,textDecoration:"none",color:"inherit",transition:"all .15s"}}>
+                  <div style={{width:3,borderRadius:2,background:c.color,flexShrink:0}} />
+                  <div style={{minWidth:0}}>
+                    <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:4}}>
+                      <Tag color={c.color}>{c.cat}</Tag>
+                      <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m}}>{c.dateFmt}</span>
+                    </div>
+                    <h4 style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy,lineHeight:1.35,marginBottom:2}}>{c.title}</h4>
+                    <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m}}>{c.source} ↗</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p style={{color:C.textFaint,fontSize:13,textAlign:"center",padding:20}}>No industry stories loaded yet. Refresh to try again.</p>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+/* ═══════════════ AI POLICY GENERATOR — The $10K tool, free ═══════════════ */
+function PolicyGenerator({id}) {
+  const [inputs, setInputs] = useState({size:"",industry:"",tools:"",concerns:[]});
+  const [policy, setPolicy] = useState(null);
+  const set = (k,v) => setInputs(p=>({...p,[k]:v}));
+  const toggle = (c) => setInputs(p=>({...p,concerns:p.concerns.includes(c)?p.concerns.filter(x=>x!==c):[...p.concerns,c]}));
+
+  const generate = () => {
+    const {size,industry,concerns} = inputs;
+    const co = size || "[Your Company]";
+    const ind = industry || "technology";
+    const hasHIPAA = concerns.includes("HIPAA") || ind.toLowerCase().includes("health");
+    const hasCMMC = concerns.includes("CMMC") || ind.toLowerCase().includes("defense");
+    const hasPII = concerns.includes("PII");
+    const hasSOX = concerns.includes("SOX") || ind.toLowerCase().includes("financ");
+
+    const doc = `AI ACCEPTABLE USE POLICY
+${co} · Effective: ${new Date().toLocaleDateString()}
+Industry: ${ind}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. PURPOSE
+This policy governs the acceptable use of artificial intelligence (AI) tools by all employees, contractors, and third-party partners of ${co}. It establishes guidelines to maximize AI's productivity benefits while managing risks to data security, compliance, and organizational reputation.
+
+2. SCOPE
+Applies to all AI tools including but not limited to: generative AI (ChatGPT, Claude, Gemini, Copilot), AI-powered automation (Power Automate, Copilot Studio), AI analytics, and any third-party AI services accessed through company devices or accounts.
+
+3. APPROVED AI TOOLS
+Tier 1 (Unrestricted for business use):
+• Microsoft 365 Copilot (within licensed tenant)
+• Microsoft Copilot Studio (approved agents only)
+• Power Automate AI Builder
+${hasCMMC?'• Azure Government Cloud AI services (GCC-High approved)':'• Azure OpenAI Service (enterprise tenant)'}
+
+Tier 2 (Permitted with restrictions — no sensitive data):
+• ChatGPT (via business/enterprise account only)
+• Claude (via Anthropic business account)
+• Gemini (via Google Workspace enterprise)
+
+Tier 3 (Prohibited — not approved for any business use):
+• Free-tier or personal accounts of any AI service
+• Open-source AI models on personal hardware
+• Any AI tool not listed in Tier 1 or 2
+
+4. PROHIBITED USES
+Employees must NOT use AI tools to:
+• Process, input, or analyze ${hasHIPAA?'Protected Health Information (PHI), ':''}${hasPII?'Personally Identifiable Information (PII), ':''}${hasCMMC?'Controlled Unclassified Information (CUI), ':''}${hasSOX?'non-public financial data, ':''}or any data classified as Confidential or above
+• Generate official communications without human review and approval
+• Make autonomous decisions affecting employment, credit, or legal outcomes
+• Create deepfakes, misleading content, or impersonate individuals
+• Bypass security controls, access restrictions, or compliance requirements
+• Share proprietary business logic, source code, or trade secrets
+
+5. DATA CLASSIFICATION BEFORE AI USE
+Before using any AI tool, employees must classify data according to:
+□ Public — safe for any AI tool (Tier 1, 2, or 3)
+□ Internal — Tier 1 tools only, within company tenant
+□ Confidential — Tier 1 tools only, with manager approval
+□ Restricted — NO AI processing permitted
+${hasHIPAA?'\n□ PHI — NO AI processing unless tool has BAA on file':''}
+${hasCMMC?'\n□ CUI — ONLY Azure Government (GCC-High) AI services':''}
+
+6. REVIEW & APPROVAL PROCESS
+• All AI-generated content for external use must be reviewed by a human before distribution
+• AI agents deployed in production require approval from IT and the relevant department head
+• New AI tool requests must be submitted to IT for security review (allow 5 business days)
+• AI-generated code must pass standard code review process before deployment
+
+7. TRAINING REQUIREMENTS
+• All employees: Complete AI Awareness training within 30 days of hire/policy effective date
+• AI tool users: Complete tool-specific training before access is provisioned
+• Managers: Complete AI governance training annually
+• IT staff: Complete AI security and compliance training quarterly
+
+8. INCIDENT REPORTING
+Report immediately to IT Security if:
+• Sensitive data was inadvertently shared with an AI tool
+• AI output contains potentially harmful, biased, or inaccurate information used in a decision
+• An AI tool behaves unexpectedly or produces concerning outputs
+• A data breach or unauthorized access involving AI systems is suspected
+
+Report to: [IT Security Team Email] · Response SLA: 4 hours for data incidents
+
+9. ANNUAL REVIEW
+This policy will be reviewed and updated at minimum annually, or whenever:
+• New AI tools are adopted or existing tools are deprecated
+• Regulatory requirements change${hasCMMC?' (CMMC assessment cycle)':''}${hasHIPAA?' (HIPAA audit cycle)':''}
+• A significant AI-related incident occurs
+• Industry best practices evolve materially
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Generated by TheBHTLabs · thebhtlabs.com
+This is a starting template. Consult legal counsel before finalizing.
+CAGE: 7DBB9 · info@bhtsolutions.com`;
+
+    setPolicy(doc);
+  };
+
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bg}}>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Consultants charge $5-10K for this" title="AI Policy Generator" desc="Get a ready-to-customize AI Acceptable Use Policy in 30 seconds. Tailored to your industry and compliance needs. Free." />
+        <div style={{display:"grid",gridTemplateColumns:policy?"1fr 1fr":"1fr",gap:24}} className="g2">
+          <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:18,padding:28,boxShadow:C.shadowMd}}>
+            <h3 style={{fontSize:16,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:20}}>Your organization</h3>
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,fontFamily:F.m,color:C.textMuted,marginBottom:4,display:"block"}}>Company / Org name</label>
+                <input value={inputs.size} onChange={e=>set("size",e.target.value)} placeholder="Acme Corp"
+                  style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b}} />
+              </div>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,fontFamily:F.m,color:C.textMuted,marginBottom:4,display:"block"}}>Industry</label>
+                <select value={inputs.industry} onChange={e=>set("industry",e.target.value)}
+                  style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,background:C.bg}}>
+                  {["Select...","Healthcare","Defense / GovCon","Financial Services","Legal","Technology","Manufacturing","Energy","Education","Retail","Other"].map(o=><option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,fontFamily:F.m,color:C.textMuted,marginBottom:6,display:"block"}}>Compliance requirements (select all)</label>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {["HIPAA","CMMC","PII","SOX","FedRAMP","GDPR","State AI Laws"].map(c=>(
+                    <button key={c} onClick={()=>toggle(c)} style={{padding:"6px 14px",borderRadius:8,fontSize:12,fontWeight:600,fontFamily:F.m,cursor:"pointer",
+                      background:inputs.concerns.includes(c)?C.tealBg:C.bgSoft,color:inputs.concerns.includes(c)?C.tealDark:C.textMuted,
+                      border:`1px solid ${inputs.concerns.includes(c)?C.teal+"33":C.border}`}}>{c}</button>
+                  ))}
+                </div>
+              </div>
+              <button onClick={generate} style={{padding:"14px",borderRadius:12,border:"none",cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,marginTop:4}}>
+                Generate My Policy →
+              </button>
+            </div>
+          </div>
+          {policy && (
+            <div style={{background:C.bg,border:`1.5px solid ${C.teal}22`,borderRadius:18,overflow:"hidden",boxShadow:C.shadowMd,display:"flex",flexDirection:"column"}}>
+              <div style={{padding:"12px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.teal}}>YOUR AI POLICY DRAFT</span>
+                <button onClick={()=>{navigator.clipboard?.writeText(policy)}} style={{padding:"5px 14px",borderRadius:8,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:F.m,color:C.textMuted}}>
+                  📋 Copy All
+                </button>
+              </div>
+              <div style={{flex:1,padding:20,overflow:"auto",maxHeight:500,fontFamily:F.m,fontSize:12,color:C.textSoft,lineHeight:1.7,whiteSpace:"pre-wrap"}}>
+                {policy}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ COMPLIANCE COUNTDOWN — Nobody aggregates this ═══════════════ */
+function ComplianceCountdown() {
+  const deadlines = [
+    {name:"CMMC 2.0 — Phase 1 Enforcement",date:"2025-12-16",cat:"Defense",color:C.teal,desc:"Self-assessments required for Level 1. New DoD contracts will require CMMC."},
+    {name:"EU AI Act — Prohibited AI Practices",date:"2025-02-02",cat:"Global",color:C.violet,desc:"Ban on social scoring, real-time biometric surveillance, and manipulative AI."},
+    {name:"EU AI Act — Full High-Risk Compliance",date:"2026-08-02",cat:"Global",color:C.violet,desc:"Full obligations for high-risk AI systems including conformity assessments."},
+    {name:"CMMC 2.0 — Phase 2 (C3PAO Assessments)",date:"2026-12-16",cat:"Defense",color:C.teal,desc:"Third-party assessments required for Level 2 certification."},
+    {name:"NIST AI RMF — Updated Guidelines",date:"2026-03-01",cat:"Federal",color:C.blue,desc:"Expected updates incorporating agentic AI governance and privacy frameworks."},
+    {name:"CMMC 2.0 — Phase 3 (Full Enforcement)",date:"2027-12-16",cat:"Defense",color:C.teal,desc:"Level 3 assessments by DIBCAC. All DoD contracts require appropriate CMMC level."},
+    {name:"Federal AI Budget — $3.5B+",date:"2026-10-01",cat:"Federal",color:C.blue,desc:"FY2026 federal AI R&D budget projected to exceed $3.5 billion."},
+  ];
+  const now = Date.now();
+  const active = deadlines.map(d=>({...d,daysLeft:Math.ceil((new Date(d.date)-now)/86400000)})).sort((a,b)=>a.daysLeft-b.daysLeft);
+
+  return (
+    <section style={{padding:"48px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:1000,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{textAlign:"center",marginBottom:24}}>
+          <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose,textTransform:"uppercase",letterSpacing:2}}>⏱ COMPLIANCE COUNTDOWN</span>
+          <h3 style={{fontSize:22,fontWeight:800,fontFamily:F.h,color:C.navy,marginTop:6}}>Key deadlines you can't miss</h3>
+        </div>
+        <div style={{display:"flex",gap:12,overflowX:"auto",paddingBottom:8}}>
+          {active.map((d,i)=>(
+            <div key={i} style={{minWidth:220,padding:18,borderRadius:14,background:C.bg,border:`1px solid ${d.daysLeft<=90?d.color+"33":C.border}`,boxShadow:d.daysLeft<=90?`0 0 12px ${d.color}11`:C.shadow,flexShrink:0}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <Tag color={d.color}>{d.cat}</Tag>
+                <span style={{fontSize:18,fontWeight:800,fontFamily:F.m,color:d.daysLeft<=0?C.rose:d.daysLeft<=90?C.coral:d.daysLeft<=180?C.blue:C.textFaint}}>
+                  {d.daysLeft<=0?"PAST DUE":d.daysLeft+"d"}
+                </span>
+              </div>
+              <h4 style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy,lineHeight:1.3,marginBottom:4}}>{d.name}</h4>
+              <p style={{fontSize:11,color:C.textFaint,lineHeight:1.5}}>{d.desc}</p>
+              <div style={{fontSize:10,fontFamily:F.m,color:C.textFaint,marginTop:6}}>{new Date(d.date).toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"})}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Packages({id}) {
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Transparent Pricing" title="Choose your AI journey" desc="Start small, prove value, scale with confidence. No lock-ins." />
+        <div className="g4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16}}>
+          {PKGS.map((p, i) => (
+            <div key={i} style={{background:C.bg,border:`1px solid ${p.pop?p.color+"33":C.border}`,borderRadius:18,padding:28,position:"relative",display:"flex",flexDirection:"column",boxShadow:p.pop?C.shadowMd:C.shadow,transition:"all .2s"}}>
+              {p.pop && <div style={{position:"absolute",top:-1,left:"50%",transform:"translateX(-50%)",padding:"4px 16px",borderRadius:"0 0 10px 10px",background:p.color,color:"#fff",fontSize:11,fontWeight:700,fontFamily:F.m}}>MOST POPULAR</div>}
+              <Tag color={p.color}>{p.name}</Tag>
+              <div style={{marginTop:16,marginBottom:8}}>
+                <span style={{fontSize:32,fontWeight:800,fontFamily:F.m,color:C.navy}}>{p.price}</span>
+                <span style={{color:C.textFaint,fontSize:13,fontFamily:F.m}}>{p.per}</span>
+              </div>
+              <p style={{color:C.textMuted,fontSize:13,lineHeight:1.6,marginBottom:20}}>{p.desc}</p>
+              <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
+                {p.feats.map(f => (
+                  <div key={f} style={{display:"flex",alignItems:"flex-start",gap:8}}>
+                    <span style={{color:p.color,fontSize:12,marginTop:2,flexShrink:0}}>✓</span>
+                    <span style={{color:C.textSoft,fontSize:13,lineHeight:1.5}}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={()=>document.getElementById("partner")?.scrollIntoView({behavior:"smooth"})}
+                style={{marginTop:20,width:"100%",padding:"12px",borderRadius:12,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,transition:"all .2s",textAlign:"center",
+                  background:p.pop?p.color:"transparent",color:p.pop?"#fff":p.color,border:p.pop?"none":`1.5px solid ${p.color}33`,
+                  boxShadow:p.pop?`0 4px 12px ${p.color}22`:"none"}}>
+                {p.cta}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ LEARNING — REAL RESOURCES, NOT EMPTY PROMISES ═══════════════ */
+function Learning({id}) {
+  const tracks = [
+    {title:"AI for Business Leaders",level:"Start Here",dur:"Self-paced",color:C.teal,
+      desc:"You don't need to code. You need to decide. Understand what AI can and can't do, evaluate vendors without the hype, and make smart bets.",
+      resources:[
+        {t:"Microsoft AI Business School",u:"https://learn.microsoft.com/en-us/training/topics/ai-business-school",free:true},
+        {t:"Harvard CS50: Intro to AI",u:"https://pll.harvard.edu/course/cs50s-introduction-artificial-intelligence-python",free:true},
+        {t:"Google AI Essentials",u:"https://grow.google/ai-essentials/",free:true},
+      ],
+      stat:"84% of C-suite leaders view AI as critical for competitiveness — PwC 2025"},
+    {title:"Copilot & Automation Mastery",level:"Hands-On",dur:"6 weeks",color:C.blue,
+      desc:"Build production agents. M365 Copilot, Copilot Studio, Power Automate — the Microsoft AI stack end to end. This is what we deploy for clients.",
+      resources:[
+        {t:"Copilot Studio Docs",u:"https://learn.microsoft.com/en-us/microsoft-copilot-studio/",free:true},
+        {t:"Power Automate Learning Path",u:"https://learn.microsoft.com/en-us/training/powerplatform/power-automate",free:true},
+        {t:"MS-4009: Copilot Cert",u:"https://learn.microsoft.com/en-us/credentials/certifications/exams/ms-4009/",free:false},
+      ],
+      stat:"29% of hiring managers exclusively hire AI-proficient candidates"},
+    {title:"AI Governance & Compliance",level:"Advanced",dur:"8 weeks",color:C.violet,
+      desc:"NIST AI RMF, EU AI Act, state regulations, policy development. For CISOs, compliance officers, and anyone who owns risk.",
+      resources:[
+        {t:"NIST AI Risk Management Framework",u:"https://www.nist.gov/artificial-intelligence/executive-order-safe-secure-and-trustworthy-artificial-intelligence",free:true},
+        {t:"CISA AI Security Guide",u:"https://www.cisa.gov/ai",free:true},
+        {t:"EU AI Act Explorer",u:"https://artificialintelligenceact.eu/",free:true},
+      ],
+      stat:"Federal AI use cases doubled to 1,110 in 2024 — GAO"},
+    {title:"Prompt Engineering & AI Tools",level:"All Levels",dur:"Self-paced",color:C.coral,
+      desc:"Stop getting mediocre outputs. Master Claude, ChatGPT, Copilot, and multi-tool workflows. This is the skill that 10x's everything else.",
+      resources:[
+        {t:"Anthropic Prompt Engineering",u:"https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview",free:true},
+        {t:"OpenAI Prompt Guide",u:"https://platform.openai.com/docs/guides/prompt-engineering",free:true},
+        {t:"DeepLearning.AI: ChatGPT Course",u:"https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/",free:true},
+      ],
+      stat:"3-6 months of consistent practice makes candidates job-ready"},
+  ];
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bg}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Free Resources · Real Skills · No BS" title="Upskill or get left behind." desc="Every resource linked here is real and most are free. We curated the best so you don't waste time on garbage courses." />
+        <div className="g2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:20}}>
+          {tracks.map((t, i) => (
+            <div key={i} style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:28,boxShadow:C.shadow}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+                <h3 style={{fontSize:18,fontWeight:700,fontFamily:F.h,color:C.navy}}>{t.title}</h3>
+              </div>
+              <div style={{display:"flex",gap:8,marginBottom:12}}>
+                <Tag color={t.color}>{t.level}</Tag>
+                <Tag color={C.textFaint}>{t.dur}</Tag>
+              </div>
+              <p style={{color:C.textMuted,fontSize:14,lineHeight:1.6,marginBottom:16}}>{t.desc}</p>
+              {/* Real linked resources */}
+              <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:14}}>
+                {t.resources.map(r=>(
+                  <a key={r.t} href={r.u} target="_blank" rel="noopener"
+                    style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 12px",borderRadius:8,background:C.bgSoft,border:`1px solid ${C.borderLight}`,textDecoration:"none",fontSize:13,color:C.navy,fontWeight:600,fontFamily:F.h}}>
+                    <span>{r.t}</span>
+                    <span style={{fontSize:10,fontFamily:F.m,color:r.free?C.teal:C.coral,fontWeight:700}}>{r.free?"FREE":"PAID"} ↗</span>
+                  </a>
+                ))}
+              </div>
+              <div style={{padding:"10px 14px",borderRadius:10,background:t.color+"06",border:`1px solid ${t.color}10`}}>
+                <p style={{color:t.color,fontSize:12,fontWeight:600,fontFamily:F.m}}>📊 {t.stat}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+
+/* ═══════════════ AI ROI CALCULATOR — The signature tool ═══════════════ */
+function ROICalculator({id}) {
+  const [inputs, setInputs] = useState({industry:"",teamSize:10,hoursWasted:15,avgSalary:65000,tasks:""});
+  const [result, setResult] = useState(null);
+  const set = (k,v) => setInputs(p=>({...p,[k]:v}));
+
+  const calculate = () => {
+    const {teamSize,hoursWasted,avgSalary} = inputs;
+    const hourlyRate = avgSalary / 2080;
+    const weeklyWaste = teamSize * hoursWasted * hourlyRate;
+    const annualWaste = weeklyWaste * 50;
+    const aiSavings = annualWaste * 0.55; // AI typically automates 40-70%
+    const implCost = teamSize < 20 ? 7500 : teamSize < 100 ? 25000 : 75000;
+    const monthlySubscription = teamSize * 30; // ~$30/user/mo for Copilot
+    const annualToolCost = monthlySubscription * 12;
+    const netSavings = aiSavings - annualToolCost - implCost;
+    const breakEvenMonths = Math.ceil(implCost / ((aiSavings - annualToolCost) / 12));
+    const fteEquivalent = (teamSize * hoursWasted * 0.55 / 40).toFixed(1);
+    setResult({
+      annualWaste: Math.round(annualWaste),
+      aiSavings: Math.round(aiSavings),
+      implCost, annualToolCost: Math.round(annualToolCost),
+      netSavings: Math.round(netSavings),
+      breakEvenMonths: Math.max(1, breakEvenMonths),
+      fteEquivalent,
+      hourlyRate: Math.round(hourlyRate),
+      weeklyHoursRecovered: Math.round(teamSize * hoursWasted * 0.55),
+    });
+  };
+
+  const fmt = (n) => "$" + Math.abs(n).toLocaleString();
+
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Interactive · Instant · Free" title="AI ROI Calculator" desc="Stop guessing. Enter your numbers and see exactly what AI automation would save your organization. Share the results with your boss." />
+        <div style={{display:"grid",gridTemplateColumns:result?"1fr 1fr":"1fr",gap:24}} className="g2">
+          {/* Input side */}
+          <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:18,padding:28,boxShadow:C.shadowMd}}>
+            <h3 style={{fontSize:16,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:20}}>Your numbers</h3>
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,fontFamily:F.m,color:C.textMuted,marginBottom:4,display:"block"}}>Industry</label>
+                <select value={inputs.industry} onChange={e=>set("industry",e.target.value)}
+                  style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,background:C.bg}}>
+                  {["Select your industry...","Healthcare","Defense / GovCon","Financial Services","Logistics / Supply Chain","Technology / SaaS","Manufacturing","Energy / Oil & Gas","Legal","Real Estate","Education","Retail","Other"].map(o=><option key={o}>{o}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,fontFamily:F.m,color:C.textMuted,marginBottom:4,display:"block"}}>Team size (people doing repetitive work)</label>
+                <input type="number" value={inputs.teamSize} onChange={e=>set("teamSize",+e.target.value)}
+                  style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b}} />
+              </div>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,fontFamily:F.m,color:C.textMuted,marginBottom:4,display:"block"}}>Hours/week each person spends on repetitive tasks</label>
+                <input type="range" min={1} max={40} value={inputs.hoursWasted} onChange={e=>set("hoursWasted",+e.target.value)}
+                  style={{width:"100%"}} />
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:11,fontFamily:F.m,color:C.textFaint}}>
+                  <span>1 hr</span><span style={{fontWeight:700,color:C.teal,fontSize:14}}>{inputs.hoursWasted} hrs/week</span><span>40 hrs</span>
+                </div>
+              </div>
+              <div>
+                <label style={{fontSize:12,fontWeight:600,fontFamily:F.m,color:C.textMuted,marginBottom:4,display:"block"}}>Average annual salary</label>
+                <input type="number" value={inputs.avgSalary} onChange={e=>set("avgSalary",+e.target.value)} step={5000}
+                  style={{width:"100%",padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b}} />
+              </div>
+              <button onClick={calculate} style={{padding:"14px",borderRadius:12,border:"none",cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`}}>
+                Calculate My ROI →
+              </button>
+            </div>
+          </div>
+
+          {/* Results side */}
+          {result && (
+            <div style={{background:C.bg,border:`1.5px solid ${C.teal}22`,borderRadius:18,padding:28,boxShadow:C.shadowMd}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:20}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:C.teal,boxShadow:`0 0 8px ${C.teal}`}} />
+                <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.teal}}>YOUR AI ROI ANALYSIS</span>
+              </div>
+              {/* Hero stat */}
+              <div style={{textAlign:"center",padding:20,borderRadius:14,background:`linear-gradient(135deg,${C.tealBg},${C.teal}08)`,marginBottom:16}}>
+                <div style={{fontSize:11,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1}}>Net Annual Savings</div>
+                <div style={{fontSize:40,fontWeight:800,fontFamily:F.m,color:result.netSavings>0?C.teal:C.rose,letterSpacing:"-0.02em"}}>{fmt(result.netSavings)}</div>
+                <div style={{fontSize:13,color:C.textMuted}}>per year after implementation costs</div>
+              </div>
+              {/* Metrics grid */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+                {[
+                  {l:"Current waste",v:fmt(result.annualWaste)+"/yr",c:C.rose},
+                  {l:"AI recovers",v:fmt(result.aiSavings)+"/yr",c:C.teal},
+                  {l:"Break-even",v:result.breakEvenMonths+" months",c:C.blue},
+                  {l:"FTEs equivalent",v:result.fteEquivalent+" people",c:C.violet},
+                  {l:"Hours recovered",v:result.weeklyHoursRecovered+"/week",c:C.teal},
+                  {l:"Implementation",v:fmt(result.implCost)+" one-time",c:C.textFaint},
+                ].map(m=>(
+                  <div key={m.l} style={{padding:12,borderRadius:10,background:C.bgSoft}}>
+                    <div style={{fontSize:10,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:0.5}}>{m.l}</div>
+                    <div style={{fontSize:16,fontWeight:700,fontFamily:F.m,color:m.c,marginTop:2}}>{m.v}</div>
+                  </div>
+                ))}
+              </div>
+              {/* CTA */}
+              <div style={{padding:"14px 16px",borderRadius:12,background:C.tealBg,border:`1px solid ${C.teal}15`,textAlign:"center"}}>
+                <p style={{fontSize:13,color:C.tealDark,fontWeight:600,fontFamily:F.m,marginBottom:6}}>Want the full analysis?</p>
+                <button onClick={()=>document.getElementById("assess")?.scrollIntoView({behavior:"smooth"})}
+                  style={{padding:"10px 24px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff"}}>
+                  Take the 35-Point Assessment →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ "AM I GETTING REPLACED?" — Viral career tool ═══════════════ */
+function AIRiskChecker() {
+  const [role, setRole] = useState("");
+  const [result, setResult] = useState(null);
+
+  const roles = {
+    "accountant":{risk:6,timeline:"2-4 years",safe:["Complex tax strategy","Client advisory","Forensic accounting","Compliance judgment"],threatened:["Data entry","Basic bookkeeping","Standard tax prep","Routine reconciliation"],skills:["AI-assisted audit tools","Data analytics","Advisory consulting","Prompt engineering for financial analysis"],verdict:"Routine accounting is being automated fast. But complex advisory, judgment calls, and client relationships? AI makes you MORE valuable if you level up."},
+    "project manager":{risk:4,timeline:"3-5 years",safe:["Stakeholder management","Risk judgment","Team leadership","Political navigation"],threatened:["Status reporting","Schedule tracking","Resource allocation math","Meeting scheduling"],skills:["AI project tools (Copilot, Asana AI)","Data-driven decision making","Prompt engineering","Change management for AI adoption"],verdict:"PM is fundamentally a people job. AI handles the tracking and reporting — freeing you for the strategic work that actually matters. Embrace it."},
+    "software developer":{risk:5,timeline:"1-3 years",safe:["System architecture","Complex debugging","Business logic design","Code review judgment"],threatened:["Boilerplate code","Unit test writing","Documentation","Simple CRUD apps"],skills:["AI-assisted coding (Copilot, Cursor)","Prompt engineering for code","AI agent development","Architecture for AI systems"],verdict:"Junior dev tasks are getting automated. Senior dev tasks are getting amplified. The gap between developers who use AI and those who don't will be 10x in 2 years."},
+    "marketing manager":{risk:5,timeline:"1-2 years",safe:["Brand strategy","Customer insight","Campaign strategy","Relationship building"],threatened:["Content drafting","Social media posts","Basic analytics","Email sequences"],skills:["AI content tools","Data analytics","Prompt engineering for marketing","AI-powered personalization"],verdict:"Content creation is already AI-assisted. Strategy and customer understanding? Still irreplaceably human. Learn the tools or get outpaced by someone who did."},
+    "lawyer":{risk:3,timeline:"5-7 years",safe:["Courtroom advocacy","Client counseling","Complex negotiation","Legal strategy"],threatened:["Document review","Contract analysis","Legal research","Routine drafting"],skills:["AI legal research tools","Contract AI platforms","Prompt engineering for legal","AI governance expertise"],verdict:"AI is transforming legal research and document review. But judgment, advocacy, and counsel? Deeply human. Lawyers who use AI will replace lawyers who don't."},
+    "nurse":{risk:2,timeline:"7+ years",safe:["Patient care","Clinical judgment","Emotional support","Emergency response"],threatened:["Documentation","Scheduling","Routine monitoring","Admin paperwork"],skills:["AI-assisted diagnostics","Health informatics","Telehealth technology","AI documentation tools"],verdict:"Healthcare is one of the safest fields. AI handles paperwork so you can focus on patients. The human element in nursing is irreplaceable."},
+    "data analyst":{risk:7,timeline:"1-2 years",safe:["Business context","Stakeholder communication","Insight storytelling","Strategic recommendations"],threatened:["SQL queries","Dashboard building","Routine reporting","Data cleaning"],skills:["AI analytics (Copilot, Claude)","Advanced visualization","Business strategy","AI model interpretation"],verdict:"The most impacted role on this list. AI can already write SQL, build dashboards, and generate insights. Your survival skill? Knowing which questions to ask and translating data into business action."},
+    "hr manager":{risk:4,timeline:"3-5 years",safe:["Employee relations","Culture building","Complex negotiations","Strategic workforce planning"],threatened:["Resume screening","Benefits admin","Policy FAQ","Onboarding logistics"],skills:["AI recruiting tools","People analytics","AI policy development","Change management"],verdict:"Transactional HR is being automated. Strategic HR — culture, development, organizational design — becomes more important as AI transforms how people work."},
+    "sales representative":{risk:4,timeline:"2-4 years",safe:["Relationship building","Complex negotiations","Account strategy","Enterprise deals"],threatened:["Cold outreach","CRM updates","Lead qualification","Follow-up emails"],skills:["AI sales tools (Gong, Outreach)","Data-driven prospecting","Prompt engineering for outreach","AI-powered deal analysis"],verdict:"Transactional sales are shrinking. Consultative, relationship-based sales are growing. AI handles the grunt work — you handle the human connection."},
+    "executive assistant":{risk:7,timeline:"1-3 years",safe:["Executive relationship","Judgment calls","Complex coordination","Confidential matters"],threatened:["Scheduling","Email drafting","Travel booking","Meeting notes"],skills:["AI productivity tools","Copilot mastery","Prompt engineering","AI workflow automation"],verdict:"The most immediately impacted role. Copilot already does scheduling, drafting, and summarizing. The EAs who survive will be strategic partners, not task managers."},
+  };
+
+  const check = () => {
+    const key = role.toLowerCase().trim();
+    const match = Object.entries(roles).find(([k]) => key.includes(k) || k.includes(key));
+    if (match) { setResult({role:role,...match[1]}); }
+    else { setResult({role,risk:5,timeline:"2-4 years",safe:["Domain expertise","Client relationships","Creative problem-solving","Strategic thinking"],threatened:["Routine tasks","Data processing","Standard reporting","Repetitive workflows"],skills:["AI tools for your field","Prompt engineering","Data literacy","Automation fundamentals"],verdict:"We don't have specific data for this role yet, but the pattern is universal: routine tasks get automated, judgment and relationships don't. The professionals who learn AI tools will replace those who refuse to."}); }
+  };
+
+  return (
+    <section style={{padding:"60px 0",background:C.bg}}>
+      <div style={{maxWidth:800,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{textAlign:"center",marginBottom:24}}>
+          <span style={{fontSize:28}}>🤖</span>
+          <h2 style={{fontSize:24,fontWeight:800,fontFamily:F.h,color:C.navy,marginTop:8}}>Am I getting replaced?</h2>
+          <p style={{color:C.textMuted,fontSize:14}}>Enter your job title. Get an honest answer.</p>
+        </div>
+        <div style={{display:"flex",gap:10,maxWidth:480,margin:"0 auto",marginBottom:24}}>
+          <input value={role} onChange={e=>setRole(e.target.value)} onKeyDown={e=>e.key==="Enter"&&check()} placeholder="e.g. Data Analyst, Project Manager, Nurse..."
+            style={{flex:1,padding:"12px 16px",borderRadius:12,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,outline:"none"}} />
+          <button onClick={check} disabled={!role.trim()} style={{padding:"12px 24px",borderRadius:12,border:"none",cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:F.h,
+            background:role.trim()?C.teal:C.bgMuted,color:role.trim()?"#fff":C.textFaint}}>Check →</button>
+        </div>
+        {result && (
+          <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:18,overflow:"hidden",boxShadow:C.shadowMd}}>
+            {/* Risk meter */}
+            <div style={{padding:24,textAlign:"center",background:`linear-gradient(135deg,${result.risk>=7?C.rose:result.risk>=5?C.coral:C.teal}06,${C.bgSoft})`}}>
+              <div style={{fontSize:12,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>AI Automation Risk</div>
+              <div style={{display:"flex",justifyContent:"center",gap:4,marginBottom:8}}>
+                {Array.from({length:10}).map((_,i)=>(
+                  <div key={i} style={{width:24,height:24,borderRadius:4,background:i<result.risk?(result.risk>=7?C.rose:result.risk>=5?C.coral:C.teal):C.bgMuted,transition:"all .3s",transitionDelay:`${i*50}ms`}} />
+                ))}
+              </div>
+              <div style={{fontSize:20,fontWeight:800,fontFamily:F.m,color:result.risk>=7?C.rose:result.risk>=5?C.coral:C.teal}}>{result.risk}/10</div>
+              <div style={{fontSize:12,color:C.textFaint,fontFamily:F.m}}>Estimated timeline: {result.timeline}</div>
+            </div>
+            {/* Details */}
+            <div style={{padding:24}}>
+              <p style={{fontSize:14,color:C.textSoft,lineHeight:1.7,marginBottom:20,fontStyle:"italic",borderLeft:`3px solid ${C.teal}`,paddingLeft:14}}>
+                {result.verdict}
+              </p>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}} className="g2">
+                <div>
+                  <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.teal,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>✅ Safe (AI can't do this)</h4>
+                  {result.safe.map(s=><div key={s} style={{fontSize:13,color:C.textSoft,padding:"4px 0",borderBottom:`1px solid ${C.borderLight}`}}>{s}</div>)}
+                </div>
+                <div>
+                  <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>⚠️ At risk</h4>
+                  {result.threatened.map(s=><div key={s} style={{fontSize:13,color:C.textSoft,padding:"4px 0",borderBottom:`1px solid ${C.borderLight}`}}>{s}</div>)}
+                </div>
+              </div>
+              <div style={{marginTop:20}}>
+                <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.blue,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>🎯 Skills to learn NOW</h4>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {result.skills.map(s=>(
+                    <span key={s} style={{padding:"6px 12px",borderRadius:8,background:C.tealBg,color:C.tealDark,fontSize:12,fontWeight:600,fontFamily:F.m,border:`1px solid ${C.teal}15`}}>{s}</span>
+                  ))}
+                </div>
+              </div>
+              <button onClick={()=>document.getElementById("learn")?.scrollIntoView({behavior:"smooth"})}
+                style={{marginTop:16,width:"100%",padding:"12px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff"}}>
+                Start upskilling now →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ RADAR — AI Intelligence Feed (tight, tactical) ═══════════════ */
+function Radar({id, items, status}) {
+  const [filter, setFilter] = useState("All");
+  const unique = items.filter((v,i,a) => a.findIndex(t => t.title === v.title) === i);
+  const cats = ["All", ...new Set(unique.map(n => n.cat))];
+  const filtered = filter === "All" ? unique : unique.filter(n => n.cat === filter);
+
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:8,marginBottom:10}}>
+            {status.live && <div style={{width:8,height:8,borderRadius:"50%",background:C.teal,boxShadow:`0 0 8px ${C.teal}`}} />}
+            <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.teal,textTransform:"uppercase",letterSpacing:2}}>
+              {status.live ? `RADAR · ${status.count} FEEDS · LIVE` : "RADAR · LOADING"}
+            </span>
+          </div>
+          <h2 style={{fontSize:28,fontWeight:800,fontFamily:F.h,color:C.navy,lineHeight:1.15,letterSpacing:"-0.02em"}}>
+            We read {status.count || 16} sources so you don't have to.
+          </h2>
+        </div>
+        {/* Category filter */}
+        {cats.length > 2 && <div style={{display:"flex",gap:6,justifyContent:"center",flexWrap:"wrap",marginBottom:24}}>
+          {cats.map(c => (
+            <button key={c} onClick={()=>setFilter(c)} style={{padding:"6px 14px",borderRadius:20,border:`1px solid ${filter===c?C.teal+"44":C.border}`,
+              background:filter===c?C.tealBg:C.bg,color:filter===c?C.tealDark:C.textMuted,fontSize:12,fontWeight:600,fontFamily:F.h,cursor:"pointer"}}>{c}</button>
+          ))}
+        </div>}
+        {status.loading ? (
+          <div style={{textAlign:"center",padding:48}}>
+            <p style={{color:C.textFaint,fontSize:14,fontFamily:F.m,animation:"pulse 1.5s infinite"}}>Scanning feeds...</p>
+          </div>
+        ) : (
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}} className="g3">
+            {filtered.slice(0, 12).map((n, i) => (
+              <a key={i} href={n.link} target="_blank" rel="noopener"
+                style={{display:"block",padding:16,borderRadius:12,background:C.bg,border:`1px solid ${C.border}`,textDecoration:"none",color:"inherit",transition:"all .15s",boxShadow:C.shadow}}>
+                <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:6}}>
+                  <Tag color={n.color}>{n.cat}</Tag>
+                  <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m}}>{n.dateFmt}</span>
+                </div>
+                <h4 style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy,lineHeight:1.35,overflow:"hidden",textOverflow:"ellipsis",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{n.title}</h4>
+                <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m,marginTop:6,display:"inline-block"}}>{n.source} ↗</span>
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ OPS DASHBOARD — Mission Control ═══════════════ */
+function OpsDashboard({status, newsCount, caseCount}) {
+  const [uptime] = useState(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')} local`});
+  return (
+    <section style={{padding:"40px 0",background:C.bg}}>
+      <div style={{maxWidth:1000,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{background:C.bgSoft,border:`1px solid ${C.border}`,borderRadius:16,padding:"20px 28px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:10,height:10,borderRadius:"50%",background:status.live?C.teal:C.textFaint,boxShadow:status.live?`0 0 10px ${C.teal}`:"none"}} />
+              <div>
+                <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.navy,textTransform:"uppercase",letterSpacing:1}}>THEBHTLABS OPS</span>
+                <div style={{fontSize:10,fontFamily:F.m,color:C.textFaint}}>All systems operational · {uptime}</div>
+              </div>
+            </div>
+            <div style={{display:"flex",gap:24,flexWrap:"wrap"}}>
+              {[
+                {l:"Feeds active",v:status.count||"...",c:status.live?C.teal:C.textFaint},
+                {l:"Articles processed",v:newsCount||"...",c:C.blue},
+                {l:"Case studies tracked",v:caseCount||"...",c:C.violet},
+                {l:"Assessment engine",v:"Online",c:C.teal},
+                {l:"Chat AI",v:"Active",c:C.teal},
+              ].map(s=>(
+                <div key={s.l} style={{textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:800,fontFamily:F.m,color:s.c}}>{s.v}</div>
+                  <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:0.5}}>{s.l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+/* ═══════════════ PARTNER / CONTACT ═══════════════ */
+function Partner({id}) {
+  const [form, setForm] = useState({name:"",email:"",company:"",interest:"",message:""});
+  const [status, setStatus] = useState("");
+  const submit = async (e) => {
+    e.preventDefault();
+    if(!form.name||!form.email||!form.message){setStatus("Please fill required fields");return}
+    setStatus("sending");
+    try {
+      const r = await fetch("/api/contact", {method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(form)});
+      if(r.ok){setStatus("success");setForm({name:"",email:"",company:"",interest:"",message:""});}
+      else setStatus("Error — email info@bhtsolutions.com directly");
+    } catch(e) {setStatus("Error — email info@bhtsolutions.com directly")}
+  };
+  const cards = [
+    {icon:"◈",t:"Hire Us",d:"AI expertise on your project. 2-week sprints to 12-month engagements. Cleared resources available.",c:C.teal},
+    {icon:"⬡",t:"Partner",d:"Prime contractors: We're SBA 8(a), EDWOSB, WOSB, NMSDC MBE. Let's team on opportunities.",c:C.violet},
+    {icon:"△",t:"AI Assessment",d:"Our signature 35-point evaluation. 7 domains, actionable roadmap, executive briefing.",c:C.blue},
+    {icon:"○",t:"Train Your Team",d:"Custom AI training for 5-200 people. Copilot, prompts, governance. In-person or virtual.",c:C.coral},
+  ];
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:1000,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Let's Build Together" title="Partner with TheBHTLabs" desc="Whether you're a 5-person startup or defense prime — we meet you where you are." />
+        <div className="g2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
+          <form onSubmit={submit} style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:18,padding:28,boxShadow:C.shadowMd}}>
+            <h3 style={{fontSize:20,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:18}}>Get in touch</h3>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {[{p:"Your Name *",k:"name"},{p:"Email *",k:"email"},{p:"Company (optional)",k:"company"}].map(f=>(
+                <input key={f.k} value={form[f.k]} onChange={e=>setForm({...form,[f.k]:e.target.value})} placeholder={f.p}
+                  style={{padding:"11px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,outline:"none",transition:"border-color .2s"}} />
+              ))}
+              <select value={form.interest} onChange={e=>setForm({...form,interest:e.target.value})}
+                style={{padding:"11px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,outline:"none",color:form.interest?C.text:C.textFaint,background:C.bg}}>
+                {["I'm interested in...","AI Readiness Assessment","Copilot Studio / Automation","CMMC / Compliance","AI Upskilling / Training","Partnership / Subcontracting","Hiring BHT","Just Exploring"].map(o=>(
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+              <textarea rows={3} value={form.message} onChange={e=>setForm({...form,message:e.target.value})} placeholder="Tell us about your project..."
+                style={{padding:"11px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,outline:"none",resize:"vertical"}} />
+              <button type="submit" disabled={status==="sending"}
+                style={{padding:"13px",borderRadius:12,border:"none",cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff",boxShadow:`0 4px 12px ${C.teal}22`,textAlign:"center"}}>
+                {status==="sending" ? "Sending..." : "Send Inquiry →"}
+              </button>
+              {status==="success"&&<p style={{textAlign:"center",color:C.teal,fontSize:13,fontWeight:600}}>✓ Sent! We'll respond within 24 hours.</p>}
+              {status&&status!=="success"&&status!=="sending"&&<p style={{textAlign:"center",color:C.rose,fontSize:12}}>{status}</p>}
+            </div>
+          </form>
+          <div style={{display:"flex",flexDirection:"column",gap:14}}>
+            {cards.map(c => (
+              <div key={c.t} style={{display:"flex",gap:16,padding:20,borderRadius:14,background:C.bg,border:`1px solid ${C.border}`,boxShadow:C.shadow}}>
+                <div style={{width:40,height:40,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",background:c.c+"0A",color:c.c,fontSize:18,flexShrink:0}}>{c.icon}</div>
+                <div>
+                  <h4 style={{fontSize:15,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:3}}>{c.t}</h4>
+                  <p style={{color:C.textMuted,fontSize:13,lineHeight:1.6}}>{c.d}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ PROOF BAR ═══════════════ */
+function ProofBar() {
+  const stats = [
+    {v:"20+",l:"Years Experience"},{v:"7DBB9",l:"CAGE Code"},{v:"9",l:"Certifications"},{v:"SBA 8(a)",l:"Set-Aside Eligible"},
+    {v:"T4",l:"Active Clearance"},{v:"11+",l:"NAICS Codes"},{v:"ISO 27001",l:"Security Certified"},{v:"CMMI 3",l:"Maturity Level"},
+  ];
+  return (
+    <section style={{padding:"48px 0",borderTop:`1px solid ${C.border}`,borderBottom:`1px solid ${C.border}`,background:C.bg}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px",display:"flex",justifyContent:"center",gap:40,flexWrap:"wrap"}}>
+        {stats.map(s => (
+          <div key={s.l} style={{textAlign:"center"}}>
+            <div style={{color:C.teal,fontSize:22,fontWeight:800,fontFamily:F.m}}>{s.v}</div>
+            <div style={{color:C.textFaint,fontSize:10,marginTop:3,textTransform:"uppercase",letterSpacing:1,fontFamily:F.m}}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ ABOUT / CREDIBILITY — THE FULL STORY ═══════════════ */
+function About() {
+  const [showNaics, setShowNaics] = useState(false);
+  const certs = [
+    {label:"SBA 8(a)",desc:"Small Business Administration Certified",icon:"🏛️"},
+    {label:"EDWOSB",desc:"Economically Disadvantaged Women-Owned",icon:"🏅"},
+    {label:"WOSB",desc:"Women-Owned Small Business",icon:"🏅"},
+    {label:"NMSDC MBE",desc:"Minority Business Enterprise",icon:"🏅"},
+    {label:"T4 Clearance",desc:"Active Security Clearance",icon:"🔒"},
+    {label:"ISO 27001",desc:"Information Security Management",icon:"🛡️"},
+    {label:"ISO 9001:2015",desc:"Quality Management System",icon:"✅"},
+    {label:"ISO/IEC 20000-1",desc:"IT Service Management",icon:"⚙️"},
+    {label:"CMMI ML3",desc:"Capability Maturity Model v2.0",icon:"📊"},
+  ];
+  const naics = [
+    {c:"541512",d:"Computer Systems Design Services (Primary)"},
+    {c:"541511",d:"Custom Computer Programming Services"},
+    {c:"541513",d:"Computer Facilities Management Services"},
+    {c:"541519",d:"Other Computer Related Services"},
+    {c:"541611",d:"Admin & General Management Consulting"},
+    {c:"541330",d:"Engineering Services"},
+    {c:"541614",d:"Process & Logistics Consulting"},
+    {c:"541618",d:"Other Management Consulting Services"},
+    {c:"541690",d:"Scientific & Technical Consulting"},
+    {c:"519190",d:"All Other Information Services"},
+    {c:"611420",d:"Computer Training"},
+  ];
+  const clients = ["Microsoft","bp","Eli Lilly","GE Power & Water","iRobot","Kroger","NOV","Apache","NTT Data","Hitachi Consulting","Healthcare Assoc. of Hawaii"];
+  return (
+    <section style={{padding:"80px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px"}}>
+        {/* Header */}
+        <div style={{textAlign:"center",marginBottom:40}}>
+          <Tag color={C.teal}>The Skunkworks Division</Tag>
+          <h2 style={{fontSize:32,fontWeight:800,fontFamily:F.h,color:C.navy,marginTop:14,lineHeight:1.15,letterSpacing:"-0.03em"}}>
+            We didn't start yesterday.<br/>We've been building this for 20 years.
+          </h2>
+          <p style={{color:C.textMuted,fontSize:15,lineHeight:1.7,maxWidth:650,margin:"16px auto 0"}}>
+            TheBHTLabs is the R&D arm of <strong style={{color:C.navy}}>Bluebery Hawaii Technology Solutions</strong> — where we take two decades of Fortune 500 and federal IT experience and turn it into tools, frameworks, and services that make AI accessible to everyone. No gatekeeping. No hand-waving. Just results.
+          </p>
+        </div>
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}} className="g2">
+          {/* Left: Story + Clients */}
+          <div>
+            {/* Federal ID Card */}
+            <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:24,marginBottom:16}}>
+              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:16}}>Federal Identification</h4>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                {[{l:"CAGE Code",v:"7DBB9"},{l:"UEI",v:"ZW6GMVL368J6"},{l:"DUNS",v:"801352894"},{l:"FEIN",v:"26-0374906"}].map(f=>(
+                  <div key={f.l} style={{padding:12,borderRadius:10,background:C.bgSoft}}>
+                    <div style={{fontSize:10,color:C.textFaint,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1}}>{f.l}</div>
+                    <div style={{fontSize:15,fontWeight:700,fontFamily:F.m,color:C.navy,marginTop:2}}>{f.v}</div>
+                  </div>
+                ))}
+              </div>
+              <button onClick={()=>setShowNaics(!showNaics)} style={{marginTop:12,padding:"6px 14px",borderRadius:8,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:F.m,color:C.textMuted}}>
+                {showNaics?"Hide":"Show"} {naics.length} NAICS Codes
+              </button>
+              {showNaics && <div style={{marginTop:10,display:"grid",gap:4}}>
+                {naics.map(n=>(
+                  <div key={n.c} style={{display:"flex",gap:8,fontSize:12,fontFamily:F.m,padding:"4px 0",borderBottom:`1px solid ${C.borderLight}`}}>
+                    <span style={{fontWeight:700,color:C.teal,width:60,flexShrink:0}}>{n.c}</span>
+                    <span style={{color:C.textMuted}}>{n.d}</span>
+                  </div>
+                ))}
+              </div>}
+            </div>
+
+            {/* Client logos */}
+            <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:24}}>
+              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Past Performance</h4>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {clients.map(c=>(
+                  <span key={c} style={{padding:"5px 12px",borderRadius:8,background:C.bgSoft,border:`1px solid ${C.borderLight}`,fontSize:12,fontWeight:600,fontFamily:F.h,color:C.navy}}>{c}</span>
+                ))}
+              </div>
+              <div style={{marginTop:14,padding:"10px 14px",borderRadius:10,background:C.tealBg,border:`1px solid ${C.teal}12`}}>
+                <p style={{color:C.tealDark,fontSize:12,fontFamily:F.m,fontWeight:600}}>
+                  🏛️ DIR-CPO-5626 · TX ITSAC Contract Holder since 2024
+                </p>
+              </div>
+              <div style={{marginTop:8,padding:"10px 14px",borderRadius:10,background:C.tealBg,border:`1px solid ${C.teal}12`}}>
+                <p style={{color:C.tealDark,fontSize:12,fontFamily:F.m,fontWeight:600}}>
+                  🎓 API Bluewave Supplier Development Program Graduate (2023)
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Certifications */}
+          <div>
+            <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:24}}>
+              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:16}}>Certifications & Clearances</h4>
+              {certs.map((c,i) => (
+                <div key={c.label} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:i<certs.length-1?`1px solid ${C.borderLight}`:"none"}}>
+                  <span style={{fontSize:16}}>{c.icon}</span>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy}}>{c.label}</div>
+                    <div style={{fontSize:11,color:C.textFaint}}>{c.desc}</div>
+                  </div>
+                </div>
+              ))}
+              <div style={{marginTop:16,display:"flex",gap:8,flexWrap:"wrap"}}>
+                <a href="https://www.linkedin.com/in/nitinnagar/" target="_blank" rel="noopener"
+                  style={{display:"inline-flex",alignItems:"center",gap:6,padding:"9px 18px",borderRadius:10,background:C.teal,color:"#fff",fontSize:13,fontFamily:F.m,fontWeight:700,textDecoration:"none"}}>
+                  Connect with Nitin ↗
+                </a>
+                <a href="https://bhtsolutions.com/capability-statement/" target="_blank" rel="noopener"
+                  style={{display:"inline-flex",alignItems:"center",gap:6,padding:"9px 18px",borderRadius:10,background:C.bg,color:C.tealDark,fontSize:13,fontFamily:F.m,fontWeight:700,border:`1.5px solid ${C.teal}22`,textDecoration:"none"}}>
+                  📄 Full Capability Statement
+                </a>
+              </div>
+            </div>
+
+            {/* Core capabilities */}
+            <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:24,marginTop:16}}>
+              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Core Capabilities</h4>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                {["Azure Government Cloud","M365 GCC / GCC-High","CMMC Level 2","FedRAMP Advisory","Copilot Studio Agents","Power Platform","AI Governance (NIST RMF)","Cybersecurity Ops","Cloud Migration","Staff Augmentation","IAM / Entra ID","DevSecOps"].map(s=>(
+                  <div key={s} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.textSoft,fontFamily:F.m}}>
+                    <span style={{color:C.teal,fontSize:8}}>◆</span>{s}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ FOOTER ═══════════════ */
+function Footer() {
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  return (
+    <footer style={{padding:"36px 0",background:C.bg,borderTop:`1px solid ${C.border}`}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12,marginBottom:12}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontWeight:800,fontSize:15,fontFamily:F.h,color:C.navy}}>TheBHT<span style={{color:C.teal}}>Labs</span></span>
+            <span style={{color:C.textFaint,fontSize:12}}>Skunkworks Division · BHT Solutions</span>
+          </div>
+          <div style={{display:"flex",gap:20}}>
+            <a href="https://bhtsolutions.com" target="_blank" rel="noopener" style={{color:C.textMuted,fontSize:12,fontFamily:F.m}}>bhtsolutions.com</a>
+            <a href="https://www.linkedin.com/company/bht-solutions-llc" target="_blank" rel="noopener" style={{color:C.textMuted,fontSize:12,fontFamily:F.m}}>LinkedIn</a>
+            <a href="https://bhtsolutions.com/capability-statement/" target="_blank" rel="noopener" style={{color:C.textMuted,fontSize:12,fontFamily:F.m}}>Capability Statement</a>
+            <button onClick={()=>setShowPrivacy(true)} style={{background:"none",border:"none",cursor:"pointer",color:C.textMuted,fontSize:12,fontFamily:F.m,padding:0}}>Privacy Policy</button>
+          </div>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+          <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m}}>CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · DUNS: 801352894 · FEIN: 26-0374906 · Primary NAICS: 541512</span>
+          <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m}}>© 2026 Bluebery Hawaii Technology Solutions LLC · SBA 8(a) · EDWOSB · WOSB · NMSDC MBE · Houston, TX</span>
+        </div>
+      </div>
+      {/* Privacy Policy Modal */}
+      {showPrivacy && (
+        <div style={{position:"fixed",inset:0,zIndex:2000,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:24}} onClick={()=>setShowPrivacy(false)}>
+          <div style={{background:C.bg,borderRadius:20,maxWidth:640,width:"100%",maxHeight:"80vh",overflow:"auto",padding:32,boxShadow:C.shadowLg}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <h2 style={{fontSize:22,fontWeight:800,fontFamily:F.h,color:C.navy}}>Privacy Policy</h2>
+              <button onClick={()=>setShowPrivacy(false)} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:C.textMuted}}>✕</button>
+            </div>
+            <div style={{fontSize:13,color:C.textSoft,lineHeight:1.8,fontFamily:F.b}}>
+              <p style={{marginBottom:12}}><strong style={{color:C.navy}}>Effective Date:</strong> January 1, 2026 · <strong style={{color:C.navy}}>Last Updated:</strong> {new Date().toLocaleDateString()}</p>
+              <p style={{marginBottom:12}}>Bluebery Hawaii Technology Solutions LLC ("BHT Solutions", "we", "us") operates TheBHTLabs.com. This policy explains how we handle information when you use our site and tools.</p>
+              <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>Information We Collect</h3>
+              <p style={{marginBottom:8}}><strong>Voluntarily Provided:</strong> When you submit the contact form or assessment, we collect information you provide: name, email, company name, and assessment responses.</p>
+              <p style={{marginBottom:8}}><strong>Automatically Collected:</strong> Standard web analytics (page views, referral source). We do not use third-party tracking cookies or sell data to advertisers.</p>
+              <p style={{marginBottom:8}}><strong>Tools (ROI Calculator, Policy Generator, Assessment):</strong> All calculations run in your browser. We do not store your inputs or outputs unless you explicitly submit them via the contact/assessment form.</p>
+              <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>How We Use Information</h3>
+              <p style={{marginBottom:8}}>We use voluntarily provided information solely to: respond to your inquiry, deliver assessment results, and follow up on requested consultations. We do not sell, rent, or share your personal information with third parties for marketing purposes.</p>
+              <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>Data Security</h3>
+              <p style={{marginBottom:8}}>We implement industry-standard security measures. Our chatbot uses server-side API routing — no API keys or sensitive credentials are exposed client-side. Contact form submissions are transmitted via encrypted SMTP.</p>
+              <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>AI Chatbot</h3>
+              <p style={{marginBottom:8}}>Our AI chatbot is powered by Anthropic's Claude. Conversations are processed through our secure server-side proxy. Do not share sensitive personal, financial, or health information in the chat. Chat conversations are not stored permanently.</p>
+              <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>Your Rights</h3>
+              <p style={{marginBottom:8}}>You may request deletion of any personal information we hold by emailing info@bhtsolutions.com. We will respond within 30 days.</p>
+              <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>Contact</h3>
+              <p>Bluebery Hawaii Technology Solutions LLC · 20223 Granite Birch Ln, Cypress, TX 77433 · info@bhtsolutions.com</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </footer>
+  );
+}
+
+/* ═══════════════ CHATBOT ═══════════════ */
+function ChatWidget() {
+  const [open, setOpen] = useState(false);
+  const [msgs, setMsgs] = useState([{r:"a",c:"Hey! I'm the TheBHTLabs AI advisor. I can help with:\n\n• Is AI right for your business?\n• Which package fits your needs?\n• Copilot Studio & automation questions\n• Compliance (CMMC, FedRAMP)\n• Career & upskilling guidance\n\nWhat's on your mind?"}]);
+  const [inp, setInp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef(null);
+  useEffect(() => { endRef.current?.scrollIntoView({behavior:"smooth"}); }, [msgs]);
+
+  const send = async () => {
+    if(!inp.trim()||loading)return;
+    const msg = inp.trim(); setInp(""); setMsgs(p=>[...p,{r:"u",c:msg}]); setLoading(true);
+    try {
+      const history = msgs.filter(m=>m.r!=="a"||msgs.indexOf(m)>0).slice(-6).map(m=>({role:m.r==="u"?"user":"assistant",content:m.c}));
+      history.push({role:"user",content:msg});
+      const r = await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({messages:history})});
+      const d = await r.json();
+      setMsgs(p=>[...p,{r:"a",c:d.content||"Connection issue. Email info@bhtsolutions.com"}]);
+    } catch(e) { setMsgs(p=>[...p,{r:"a",c:"Connection issue. Reach us at info@bhtsolutions.com"}]); }
+    setLoading(false);
+  };
+
+  if (!open) return (
+    <button onClick={()=>setOpen(true)} style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:56,height:56,borderRadius:16,background:C.teal,border:"none",cursor:"pointer",boxShadow:`0 4px 20px ${C.teal}33`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:22,transition:"all .2s"}}>
+      💬
+    </button>
+  );
+
+  return (
+    <div style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:380,maxWidth:"calc(100vw - 48px)",height:520,background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,boxShadow:C.shadowLg,display:"flex",flexDirection:"column"}}>
+      <div style={{padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${C.border}`}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <Badge color={C.teal}>Online</Badge>
+          <span style={{fontWeight:700,fontFamily:F.h,fontSize:14,color:C.navy}}>TheBHTLabs AI</span>
+        </div>
+        <button onClick={()=>setOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:C.textMuted,fontSize:18}}>✕</button>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:12,display:"flex",flexDirection:"column",gap:8}}>
+        {msgs.map((m,i) => (
+          <div key={i} style={{display:"flex",justifyContent:m.r==="u"?"flex-end":"flex-start"}}>
+            <div style={{maxWidth:"80%",padding:"10px 14px",borderRadius:14,fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap",
+              background:m.r==="u"?C.teal:C.bgMuted,color:m.r==="u"?"#fff":C.text,
+              borderBottomRightRadius:m.r==="u"?4:14,borderBottomLeftRadius:m.r==="u"?14:4}}>{m.c}</div>
+          </div>
+        ))}
+        {loading && <div style={{padding:8}}><span style={{color:C.teal,fontSize:13,fontFamily:F.m}}>Thinking...</span></div>}
+        <div ref={endRef} />
+      </div>
+      <div style={{padding:10,borderTop:`1px solid ${C.border}`,display:"flex",gap:8}}>
+        <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Ask anything..."
+          style={{flex:1,padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none"}} />
+        <button onClick={send} style={{width:38,height:38,borderRadius:10,border:"none",cursor:"pointer",
+          background:inp.trim()?C.teal:C.bgMuted,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:15,transition:"all .15s"}}>→</button>
+      </div>
+    </div>
+  );
+}
