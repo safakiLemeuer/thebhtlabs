@@ -218,18 +218,19 @@ export default function TheBHTLabs() {
       <Packages id="packages" />
       <Learning id="learn" />
       <AIRiskChecker />
+      <TheBuilder id="builder" />
+      <FieldNotes id="notes" />
       <Radar id="insights" items={newsItems} status={feedStatus} />
       <OpsDashboard status={feedStatus} newsCount={newsItems.length} caseCount={caseItems.length} />
       <Partner id="partner" />
       <ProofBar />
-      <About />
       <Footer />
       <ChatWidget />
     </div>
   );
 }
 function Hero({scrollTo, nav}) {
-  const navItems = [{id:"assess",l:"Assessment"},{id:"cases",l:"Results"},{id:"roi",l:"ROI Calc"},{id:"policy",l:"AI Policy"},{id:"packages",l:"Packages"},{id:"learn",l:"Upskill"},{id:"insights",l:"Radar"},{id:"partner",l:"Work With Us"}];
+  const navItems = [{id:"assess",l:"Assessment"},{id:"cases",l:"Results"},{id:"roi",l:"ROI Calc"},{id:"policy",l:"AI Policy"},{id:"packages",l:"Packages"},{id:"notes",l:"Field Notes"},{id:"builder",l:"The Builder"},{id:"partner",l:"Work With Us"}];
   return (
     <header style={{borderBottom:`1px solid ${C.border}`,background:`linear-gradient(180deg, ${C.bg} 0%, ${C.bgSoft} 100%)`}}>
       {/* Top nav */}
@@ -1239,24 +1240,36 @@ function OpsDashboard({status, newsCount, caseCount}) {
 }
 /* ═══════════════ PARTNER / CONTACT ═══════════════ */
 function Partner({id}) {
-  const [form, setForm] = useState({name:"",email:"",company:"",interest:"",message:""});
+  const [form, setForm] = useState({name:"",email:"",company:"",interest:"",message:"",website:""});
   const [status, setStatus] = useState("");
+  const [touched, setTouched] = useState({});
+  const markTouched = (k) => setTouched(p=>({...p,[k]:true}));
+  const isValid = (k) => { if(k==="email") return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form[k]); return form[k].trim().length>0; };
+  const inputStyle = (k, req) => ({
+    padding:"12px 16px",borderRadius:10,fontSize:14,fontFamily:F.b,outline:"none",transition:"border-color .2s, box-shadow .2s",
+    border:`1.5px solid ${touched[k]&&req&&!isValid(k)?C.rose:C.border}`,
+    boxShadow:touched[k]&&req&&!isValid(k)?`0 0 0 3px ${C.rose}15`:"none",
+    background:C.bg
+  });
+  const labelStyle = {fontSize:12,fontWeight:600,fontFamily:F.h,color:C.textMuted,marginBottom:4,display:"block"};
   const submit = async (e) => {
     e.preventDefault();
-    if(!form.name||!form.email||!form.message){setStatus("Please fill required fields");return}
+    setTouched({name:true,email:true,message:true});
+    if(!form.name.trim()||!form.email.trim()||!form.message.trim()){setStatus("fill");return}
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)){setStatus("email");return}
     setStatus("sending");
     try {
       const r = await fetch("/api/contact", {method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify(form)});
-      if(r.ok){setStatus("success");setForm({name:"",email:"",company:"",interest:"",message:""});}
-      else setStatus("Error — email info@bhtsolutions.com directly");
-    } catch(e) {setStatus("Error — email info@bhtsolutions.com directly")}
+      if(r.ok){setStatus("success");setForm({name:"",email:"",company:"",interest:"",message:"",website:""});setTouched({});}
+      else {const d=await r.json().catch(()=>({}));setStatus("error");console.error("Contact API error:",d);}
+    } catch(e) {setStatus("error");console.error("Contact fetch error:",e);}
   };
   const cards = [
-    {icon:"◈",t:"Hire Us",d:"AI expertise on your project. 2-week sprints to 12-month engagements. Cleared resources available.",c:C.teal},
-    {icon:"⬡",t:"Partner",d:"Prime contractors: We're SBA 8(a), EDWOSB, WOSB, NMSDC MBE. Let's team on opportunities.",c:C.violet},
-    {icon:"△",t:"AI Assessment",d:"Our signature 35-point evaluation. 7 domains, actionable roadmap, executive briefing.",c:C.blue},
-    {icon:"○",t:"Train Your Team",d:"Custom AI training for 5-200 people. Copilot, prompts, governance. In-person or virtual.",c:C.coral},
+    {icon:"◈",t:"Hire Us",d:"AI, cloud, security expertise. 2-week sprints to 12-month engagements. Cleared resources.",c:C.teal},
+    {icon:"⬡",t:"Partner",d:"Prime contractors: SBA 8(a), EDWOSB, WOSB, NMSDC MBE certified. Let's team.",c:C.violet},
+    {icon:"△",t:"Assess",d:"35-point AI evaluation. Cloud readiness. Security posture. Executive briefing.",c:C.blue},
+    {icon:"○",t:"Train",d:"Custom AI, cloud, security training for 5-200 people. In-person or virtual.",c:C.coral},
   ];
   return (
     <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
@@ -1264,26 +1277,50 @@ function Partner({id}) {
         <SH tag="Let's Build Together" title="Partner with TheBHTLabs" desc="Whether you're a 5-person startup or defense prime — we meet you where you are." />
         <div className="g2" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}}>
           <form onSubmit={submit} style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:18,padding:28,boxShadow:C.shadowMd}}>
-            <h3 style={{fontSize:20,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:18}}>Get in touch</h3>
-            <div style={{display:"flex",flexDirection:"column",gap:12}}>
-              {[{p:"Your Name *",k:"name"},{p:"Email *",k:"email"},{p:"Company (optional)",k:"company"}].map(f=>(
-                <input key={f.k} value={form[f.k]} onChange={e=>setForm({...form,[f.k]:e.target.value})} placeholder={f.p}
-                  style={{padding:"11px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,outline:"none",transition:"border-color .2s"}} />
+            <h3 style={{fontSize:20,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:20}}>Get in touch</h3>
+            <div style={{display:"flex",flexDirection:"column",gap:14}}>
+              {[{l:"Full Name",p:"Your full name",k:"name",req:true},{l:"Email Address",p:"you@company.com",k:"email",req:true},{l:"Company",p:"Company name (optional)",k:"company",req:false}].map(f=>(
+                <div key={f.k}>
+                  <label style={labelStyle}>{f.l} {f.req&&<span style={{color:C.rose}}>*</span>}</label>
+                  <input value={form[f.k]} onChange={e=>setForm({...form,[f.k]:e.target.value})} onBlur={()=>f.req&&markTouched(f.k)}
+                    placeholder={f.p} required={f.req}
+                    style={{...inputStyle(f.k,f.req),width:"100%",boxSizing:"border-box"}} />
+                  {touched[f.k]&&f.req&&!isValid(f.k)&&<span style={{fontSize:11,color:C.rose,marginTop:2,display:"block"}}>{f.k==="email"?"Please enter a valid email":"This field is required"}</span>}
+                </div>
               ))}
-              <select value={form.interest} onChange={e=>setForm({...form,interest:e.target.value})}
-                style={{padding:"11px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,outline:"none",color:form.interest?C.text:C.textFaint,background:C.bg}}>
-                {["I'm interested in...","AI Readiness Assessment","Copilot Studio / Automation","CMMC / Compliance","AI Upskilling / Training","Partnership / Subcontracting","Hiring BHT","Just Exploring"].map(o=>(
-                  <option key={o}>{o}</option>
-                ))}
-              </select>
-              <textarea rows={3} value={form.message} onChange={e=>setForm({...form,message:e.target.value})} placeholder="Tell us about your project..."
-                style={{padding:"11px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:14,fontFamily:F.b,outline:"none",resize:"vertical"}} />
+              <div>
+                <label style={labelStyle}>I'm interested in</label>
+                <select value={form.interest} onChange={e=>setForm({...form,interest:e.target.value})}
+                  style={{...inputStyle("interest",false),width:"100%",boxSizing:"border-box",color:form.interest&&form.interest!=="I'm interested in..."?C.text:C.textFaint,cursor:"pointer"}}>
+                  {["I'm interested in...","AI Readiness Assessment","Copilot Studio / Automation","CMMC / Compliance","AI Upskilling / Training","Partnership / Subcontracting","Hiring BHT","Just Exploring"].map(o=>(
+                    <option key={o}>{o}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Tell us about your project <span style={{color:C.rose}}>*</span></label>
+                <textarea rows={6} value={form.message} onChange={e=>setForm({...form,message:e.target.value})} onBlur={()=>markTouched("message")}
+                  placeholder="Describe your project, goals, timeline, or any questions you have. The more detail you share, the better we can help..."
+                  required
+                  style={{...inputStyle("message",true),width:"100%",boxSizing:"border-box",resize:"vertical",minHeight:120,lineHeight:1.6}} />
+                {touched.message&&!isValid("message")&&<span style={{fontSize:11,color:C.rose,marginTop:2,display:"block"}}>Please describe your project</span>}
+              </div>
+              {/* Honeypot — hidden from humans, bots fill it */}
+              <div style={{position:'absolute',left:'-9999px',opacity:0,height:0,overflow:'hidden'}} aria-hidden="true">
+                <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={e=>setForm({...form,website:e.target.value})} />
+              </div>
               <button type="submit" disabled={status==="sending"}
-                style={{padding:"13px",borderRadius:12,border:"none",cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff",boxShadow:`0 4px 12px ${C.teal}22`,textAlign:"center"}}>
+                style={{padding:"14px",borderRadius:12,border:"none",cursor:status==="sending"?"wait":"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,
+                  background:status==="sending"?C.textMuted:C.teal,color:"#fff",boxShadow:`0 4px 14px ${C.teal}22`,textAlign:"center",transition:"background .2s",marginTop:4}}>
                 {status==="sending" ? "Sending..." : "Send Inquiry →"}
               </button>
-              {status==="success"&&<p style={{textAlign:"center",color:C.teal,fontSize:13,fontWeight:600}}>✓ Sent! We'll respond within 24 hours.</p>}
-              {status&&status!=="success"&&status!=="sending"&&<p style={{textAlign:"center",color:C.rose,fontSize:12}}>{status}</p>}
+              {status==="success"&&<div style={{textAlign:"center",color:C.teal,fontSize:14,fontWeight:600,padding:"10px 16px",background:C.teal+"0A",borderRadius:10,border:`1px solid ${C.teal}20`}}>✓ Sent! We'll respond within 24 hours.</div>}
+              {status==="fill"&&<p style={{textAlign:"center",color:C.rose,fontSize:13}}>Please fill in all required fields.</p>}
+              {status==="email"&&<p style={{textAlign:"center",color:C.rose,fontSize:13}}>Please enter a valid email address.</p>}
+              {status==="error"&&<div style={{textAlign:"center",fontSize:13}}>
+                <p style={{color:C.rose,marginBottom:4}}>Something went wrong.</p>
+                <p style={{color:C.textMuted}}>Email us directly at <a href="mailto:info@bhtsolutions.com" style={{color:C.teal,fontWeight:600}}>info@bhtsolutions.com</a></p>
+              </div>}
             </div>
           </form>
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -1323,125 +1360,172 @@ function ProofBar() {
   );
 }
 
-/* ═══════════════ ABOUT / CREDIBILITY — THE FULL STORY ═══════════════ */
-function About() {
+/* ═══════════════ THE BUILDER — Musk-style founder credibility ═══════════════ */
+function TheBuilder({id}) {
   const [showNaics, setShowNaics] = useState(false);
-  const certs = [
-    {label:"SBA 8(a)",desc:"Small Business Administration Certified",icon:"🏛️"},
-    {label:"EDWOSB",desc:"Economically Disadvantaged Women-Owned",icon:"🏅"},
-    {label:"WOSB",desc:"Women-Owned Small Business",icon:"🏅"},
-    {label:"NMSDC MBE",desc:"Minority Business Enterprise",icon:"🏅"},
-    {label:"T4 Clearance",desc:"Active Security Clearance",icon:"🔒"},
-    {label:"ISO 27001",desc:"Information Security Management",icon:"🛡️"},
-    {label:"ISO 9001:2015",desc:"Quality Management System",icon:"✅"},
-    {label:"ISO/IEC 20000-1",desc:"IT Service Management",icon:"⚙️"},
-    {label:"CMMI ML3",desc:"Capability Maturity Model v2.0",icon:"📊"},
-  ];
+  const [showCreds, setShowCreds] = useState(false);
   const naics = [
-    {c:"541512",d:"Computer Systems Design Services (Primary)"},
-    {c:"541511",d:"Custom Computer Programming Services"},
-    {c:"541513",d:"Computer Facilities Management Services"},
-    {c:"541519",d:"Other Computer Related Services"},
-    {c:"541611",d:"Admin & General Management Consulting"},
-    {c:"541330",d:"Engineering Services"},
-    {c:"541614",d:"Process & Logistics Consulting"},
-    {c:"541618",d:"Other Management Consulting Services"},
-    {c:"541690",d:"Scientific & Technical Consulting"},
-    {c:"519190",d:"All Other Information Services"},
+    {c:"541512",d:"Computer Systems Design Services (Primary)"},{c:"541511",d:"Custom Computer Programming Services"},
+    {c:"541513",d:"Computer Facilities Management Services"},{c:"541519",d:"Other Computer Related Services"},
+    {c:"541611",d:"Admin & General Management Consulting"},{c:"541330",d:"Engineering Services"},
+    {c:"541614",d:"Process & Logistics Consulting"},{c:"541618",d:"Other Management Consulting Services"},
+    {c:"541690",d:"Scientific & Technical Consulting"},{c:"519190",d:"All Other Information Services"},
     {c:"611420",d:"Computer Training"},
   ];
-  const clients = ["Microsoft","bp","Eli Lilly","GE Power & Water","iRobot","Kroger","NOV","Apache","NTT Data","Hitachi Consulting","Healthcare Assoc. of Hawaii"];
+  const timeline = [
+    {y:"2004",t:"Started building enterprise systems at scale — Microsoft stack from day one"},
+    {y:"2008",t:"Led architecture for Fortune 500 clients: bp, Eli Lilly, GE Power, Kroger"},
+    {y:"2014",t:"Moved into federal IT — Azure Gov, GCC-High, classified environments"},
+    {y:"2019",t:"Founded BHT Solutions — SBA 8(a), EDWOSB, WOSB certified"},
+    {y:"2023",t:"API Bluewave Supplier Development Program Graduate"},
+    {y:"2024",t:"TX ITSAC Contract Holder (DIR-CPO-5626) · Launched TheBHTLabs"},
+    {y:"2025",t:"Building AI agents, governance frameworks, and the tools you see on this site"},
+  ];
   return (
-    <section style={{padding:"80px 0",background:C.bgSoft}}>
+    <section id={id} style={{padding:"100px 0",background:C.bg}}>
       <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px"}}>
-        {/* Header */}
-        <div style={{textAlign:"center",marginBottom:40}}>
-          <Tag color={C.teal}>The Skunkworks Division</Tag>
-          <h2 style={{fontSize:32,fontWeight:800,fontFamily:F.h,color:C.navy,marginTop:14,lineHeight:1.15,letterSpacing:"-0.03em"}}>
-            We didn't start yesterday.<br/>We've been building this for 20 years.
+
+        {/* Header — Not "About Us". This is a statement. */}
+        <div style={{textAlign:"center",marginBottom:60}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:C.navy+"08",border:`1px solid ${C.navy}12`,marginBottom:16}}>
+            <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.navy,letterSpacing:".5px"}}>THE BUILDER</span>
+          </div>
+          <h2 style={{fontSize:"clamp(28px,3.5vw,40px)",fontWeight:800,fontFamily:F.h,color:C.navy,lineHeight:1.1,letterSpacing:"-0.03em"}}>
+            Every tool on this site was built by someone<br/>who spent 20 years inside the systems it assesses.
           </h2>
-          <p style={{color:C.textMuted,fontSize:15,lineHeight:1.7,maxWidth:650,margin:"16px auto 0"}}>
-            TheBHTLabs is the R&D arm of <strong style={{color:C.navy}}>Bluebery Hawaii Technology Solutions</strong> — where we take two decades of Fortune 500 and federal IT experience and turn it into tools, frameworks, and services that make AI accessible to everyone. No gatekeeping. No hand-waving. Just results.
-          </p>
         </div>
 
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:24}} className="g2">
-          {/* Left: Story + Clients */}
+        {/* Founder card — the centerpiece */}
+        <div style={{display:"grid",gridTemplateColumns:"340px 1fr",gap:40,alignItems:"start"}} className="g2">
+
+          {/* Left: Photo + identity */}
           <div>
-            {/* Federal ID Card */}
-            <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:24,marginBottom:16}}>
-              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:16}}>Federal Identification</h4>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-                {[{l:"CAGE Code",v:"7DBB9"},{l:"UEI",v:"ZW6GMVL368J6"},{l:"DUNS",v:"801352894"},{l:"FEIN",v:"26-0374906"}].map(f=>(
-                  <div key={f.l} style={{padding:12,borderRadius:10,background:C.bgSoft}}>
-                    <div style={{fontSize:10,color:C.textFaint,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1}}>{f.l}</div>
-                    <div style={{fontSize:15,fontWeight:700,fontFamily:F.m,color:C.navy,marginTop:2}}>{f.v}</div>
-                  </div>
-                ))}
+            <div style={{background:C.bgSoft,border:`1px solid ${C.border}`,borderRadius:20,overflow:"hidden",boxShadow:C.shadowMd}}>
+              {/* Photo — uses LinkedIn profile image via proxy, or placeholder */}
+              <div style={{width:"100%",aspectRatio:"1/1",background:`linear-gradient(135deg,${C.navy} 0%,${C.tealDark} 100%)`,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
+                <img
+                  src="https://media.licdn.com/dms/image/v2/D5603AQHIxRpFvjzyjg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1719811532081?e=1745452800&v=beta&t=NitinNagar"
+                  alt="Nitin Nagar — Founder, BHT Solutions"
+                  style={{width:"100%",height:"100%",objectFit:"cover"}}
+                  onError={(e)=>{e.target.style.display="none";e.target.nextSibling.style.display="flex"}}
+                />
+                <div style={{display:"none",position:"absolute",inset:0,alignItems:"center",justifyContent:"center",flexDirection:"column",color:"#fff"}}>
+                  <div style={{fontSize:72,fontWeight:800,fontFamily:F.h,opacity:.9}}>NN</div>
+                  <div style={{fontSize:13,fontFamily:F.m,opacity:.6,marginTop:4}}>Nitin Nagar</div>
+                </div>
               </div>
-              <button onClick={()=>setShowNaics(!showNaics)} style={{marginTop:12,padding:"6px 14px",borderRadius:8,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:F.m,color:C.textMuted}}>
-                {showNaics?"Hide":"Show"} {naics.length} NAICS Codes
-              </button>
-              {showNaics && <div style={{marginTop:10,display:"grid",gap:4}}>
-                {naics.map(n=>(
-                  <div key={n.c} style={{display:"flex",gap:8,fontSize:12,fontFamily:F.m,padding:"4px 0",borderBottom:`1px solid ${C.borderLight}`}}>
-                    <span style={{fontWeight:700,color:C.teal,width:60,flexShrink:0}}>{n.c}</span>
-                    <span style={{color:C.textMuted}}>{n.d}</span>
-                  </div>
-                ))}
-              </div>}
+              <div style={{padding:24,textAlign:"center"}}>
+                <h3 style={{fontSize:22,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:2}}>Nitin Nagar</h3>
+                <p style={{color:C.teal,fontSize:13,fontWeight:700,fontFamily:F.m,marginBottom:12}}>Founder & Principal Architect</p>
+                <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:16}}>
+                  {["T4 Cleared","20+ Years","SBA 8(a)"].map(t=>(
+                    <span key={t} style={{padding:"4px 10px",borderRadius:8,background:C.teal+"0A",border:`1px solid ${C.teal}15`,fontSize:11,fontWeight:700,fontFamily:F.m,color:C.tealDark}}>{t}</span>
+                  ))}
+                </div>
+                <a href="https://www.linkedin.com/in/nitinnagar/" target="_blank" rel="noopener noreferrer"
+                  style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"12px 24px",borderRadius:12,background:C.navy,color:"#fff",fontSize:14,fontWeight:700,fontFamily:F.h,textDecoration:"none",boxShadow:`0 4px 16px ${C.navy}22`,transition:"all .2s",width:"100%"}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                  Connect on LinkedIn
+                </a>
+              </div>
             </div>
 
-            {/* Client logos */}
-            <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:24}}>
-              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Past Performance</h4>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {clients.map(c=>(
-                  <span key={c} style={{padding:"5px 12px",borderRadius:8,background:C.bgSoft,border:`1px solid ${C.borderLight}`,fontSize:12,fontWeight:600,fontFamily:F.h,color:C.navy}}>{c}</span>
-                ))}
-              </div>
-              <div style={{marginTop:14,padding:"10px 14px",borderRadius:10,background:C.tealBg,border:`1px solid ${C.teal}12`}}>
-                <p style={{color:C.tealDark,fontSize:12,fontFamily:F.m,fontWeight:600}}>
-                  🏛️ DIR-CPO-5626 · TX ITSAC Contract Holder since 2024
-                </p>
-              </div>
-              <div style={{marginTop:8,padding:"10px 14px",borderRadius:10,background:C.tealBg,border:`1px solid ${C.teal}12`}}>
-                <p style={{color:C.tealDark,fontSize:12,fontFamily:F.m,fontWeight:600}}>
-                  🎓 API Bluewave Supplier Development Program Graduate (2023)
-                </p>
-              </div>
+            {/* Quick stats */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:12}}>
+              {[{v:"7DBB9",l:"CAGE"},{v:"ZW6GMVL368J6",l:"UEI"},{v:"9",l:"Certifications"},{v:"11",l:"NAICS Codes"}].map(s=>(
+                <div key={s.l} style={{textAlign:"center",padding:12,borderRadius:10,background:C.bgSoft,border:`1px solid ${C.borderLight}`}}>
+                  <div style={{color:C.teal,fontSize:16,fontWeight:800,fontFamily:F.m}}>{s.v}</div>
+                  <div style={{color:C.textFaint,fontSize:9,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1,marginTop:2}}>{s.l}</div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Right: Certifications */}
+          {/* Right: The story + proof */}
           <div>
-            <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:24}}>
-              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:16}}>Certifications & Clearances</h4>
-              {certs.map((c,i) => (
-                <div key={c.label} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:i<certs.length-1?`1px solid ${C.borderLight}`:"none"}}>
-                  <span style={{fontSize:16}}>{c.icon}</span>
-                  <div>
-                    <div style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy}}>{c.label}</div>
-                    <div style={{fontSize:11,color:C.textFaint}}>{c.desc}</div>
+            {/* The narrative — not a bio, a manifesto */}
+            <div style={{marginBottom:32}}>
+              <p style={{fontSize:18,lineHeight:1.8,color:C.text,fontFamily:F.b,marginBottom:16}}>
+                Most consulting firms hand you a PowerPoint and disappear. We thought that was broken, so we built something different.
+              </p>
+              <p style={{fontSize:15,lineHeight:1.8,color:C.textSoft,fontFamily:F.b,marginBottom:16}}>
+                TheBHTLabs is the R&D arm of <strong style={{color:C.navy}}>Bluebery Hawaii Technology Solutions</strong>. Every assessment, calculator, policy generator, and compliance tracker on this site exists because we got tired of watching organizations spend six figures on consulting engagements that could have started with a free diagnostic.
+              </p>
+              <p style={{fontSize:15,lineHeight:1.8,color:C.textSoft,fontFamily:F.b,marginBottom:16}}>
+                The tools here aren't demos. They're the same frameworks we deploy for defense contractors, federal agencies, and Fortune 500 companies — just made available to everyone. Our philosophy: if a tool can be automated, it should be free. If it requires human judgment, that's where we come in.
+              </p>
+              <p style={{fontSize:15,lineHeight:1.8,color:C.textSoft,fontFamily:F.b}}>
+                We specialize in the hard stuff — Azure Government Cloud, GCC-High migrations, CMMC Level 2 certification, AI governance for regulated industries. The kind of work where getting it wrong means losing your clearance, not just your budget.
+              </p>
+            </div>
+
+            {/* Timeline — proof of work, not claims */}
+            <div style={{marginBottom:28}}>
+              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:16}}>The Journey</h4>
+              <div style={{borderLeft:`2px solid ${C.teal}22`,paddingLeft:20,display:"flex",flexDirection:"column",gap:0}}>
+                {timeline.map((e,i)=>(
+                  <div key={i} style={{position:"relative",paddingBottom:i<timeline.length-1?16:0}}>
+                    <div style={{position:"absolute",left:-26,top:4,width:10,height:10,borderRadius:"50%",background:i===timeline.length-1?C.teal:C.bg,border:`2px solid ${C.teal}`,boxShadow:i===timeline.length-1?`0 0 0 4px ${C.teal}15`:""}} />
+                    <div style={{display:"flex",gap:12,alignItems:"baseline"}}>
+                      <span style={{fontSize:13,fontWeight:800,fontFamily:F.m,color:C.teal,flexShrink:0,width:40}}>{e.y}</span>
+                      <span style={{fontSize:14,color:C.textSoft,lineHeight:1.5}}>{e.t}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-              <div style={{marginTop:16,display:"flex",gap:8,flexWrap:"wrap"}}>
-                <a href="https://www.linkedin.com/in/nitinnagar/" target="_blank" rel="noopener"
-                  style={{display:"inline-flex",alignItems:"center",gap:6,padding:"9px 18px",borderRadius:10,background:C.teal,color:"#fff",fontSize:13,fontFamily:F.m,fontWeight:700,textDecoration:"none"}}>
-                  Connect with Nitin ↗
-                </a>
-                <a href="https://bhtsolutions.com/capability-statement/" target="_blank" rel="noopener"
-                  style={{display:"inline-flex",alignItems:"center",gap:6,padding:"9px 18px",borderRadius:10,background:C.bg,color:C.tealDark,fontSize:13,fontFamily:F.m,fontWeight:700,border:`1.5px solid ${C.teal}22`,textDecoration:"none"}}>
-                  📄 Full Capability Statement
-                </a>
+                ))}
               </div>
             </div>
 
-            {/* Core capabilities */}
-            <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:16,padding:24,marginTop:16}}>
-              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Core Capabilities</h4>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+            {/* Past performance — names that matter */}
+            <div style={{marginBottom:24}}>
+              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:12}}>Built Systems For</h4>
+              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                {["Microsoft","bp","Eli Lilly","GE Power & Water","iRobot","Kroger","NOV","Apache","NTT Data","Hitachi Consulting","Healthcare Assoc. of Hawaii"].map(c=>(
+                  <span key={c} style={{padding:"6px 14px",borderRadius:10,background:C.navy+"06",border:`1px solid ${C.navy}0A`,fontSize:13,fontWeight:600,fontFamily:F.h,color:C.navy}}>{c}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* Certifications + NAICS — expandable */}
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:16}}>
+              <button onClick={()=>setShowCreds(!showCreds)}
+                style={{padding:"8px 16px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textMuted,transition:"all .15s"}}>
+                {showCreds?"Hide":"Show"} 9 Certifications
+              </button>
+              <button onClick={()=>setShowNaics(!showNaics)}
+                style={{padding:"8px 16px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textMuted,transition:"all .15s"}}>
+                {showNaics?"Hide":"Show"} 11 NAICS Codes
+              </button>
+              <a href="https://bhtsolutions.com/capability-statement/" target="_blank" rel="noopener"
+                style={{display:"inline-flex",alignItems:"center",gap:4,padding:"8px 16px",borderRadius:10,background:C.teal+"0A",border:`1px solid ${C.teal}15`,fontSize:12,fontWeight:700,fontFamily:F.m,color:C.tealDark,textDecoration:"none"}}>
+                Full Capability Statement ↗
+              </a>
+            </div>
+            {showCreds && <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:16,animation:"fadeUp .3s ease"}} className="g2">
+              {[
+                {l:"SBA 8(a)",d:"Small Business Administration"},{l:"EDWOSB",d:"Econ. Disadvantaged Women-Owned"},
+                {l:"WOSB",d:"Women-Owned Small Business"},{l:"NMSDC MBE",d:"Minority Business Enterprise"},
+                {l:"T4 Clearance",d:"Active Security Clearance"},{l:"ISO 27001",d:"Info Security Management"},
+                {l:"ISO 9001:2015",d:"Quality Management"},{l:"ISO/IEC 20000-1",d:"IT Service Management"},
+                {l:"CMMI ML3",d:"Capability Maturity v2.0"},
+              ].map(c=>(
+                <div key={c.l} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,background:C.bgSoft,border:`1px solid ${C.borderLight}`}}>
+                  <span style={{color:C.teal,fontSize:10}}>◆</span>
+                  <div><div style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy}}>{c.l}</div><div style={{fontSize:10,color:C.textFaint}}>{c.d}</div></div>
+                </div>
+              ))}
+            </div>}
+            {showNaics && <div style={{display:"grid",gap:3,marginBottom:16,animation:"fadeUp .3s ease"}}>
+              {naics.map(n=>(
+                <div key={n.c} style={{display:"flex",gap:10,fontSize:12,fontFamily:F.m,padding:"5px 0",borderBottom:`1px solid ${C.borderLight}`}}>
+                  <span style={{fontWeight:700,color:C.teal,width:56,flexShrink:0}}>{n.c}</span><span style={{color:C.textMuted}}>{n.d}</span>
+                </div>
+              ))}
+            </div>}
+
+            {/* Core capabilities — what we actually do */}
+            <div>
+              <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:10}}>Core Capabilities</h4>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}} className="g3">
                 {["Azure Government Cloud","M365 GCC / GCC-High","CMMC Level 2","FedRAMP Advisory","Copilot Studio Agents","Power Platform","AI Governance (NIST RMF)","Cybersecurity Ops","Cloud Migration","Staff Augmentation","IAM / Entra ID","DevSecOps"].map(s=>(
                   <div key={s} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.textSoft,fontFamily:F.m}}>
                     <span style={{color:C.teal,fontSize:8}}>◆</span>{s}
@@ -1450,6 +1534,142 @@ function About() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ FIELD NOTES — The blog/proof-of-work feed ═══════════════ */
+const FIELD_NOTES = [
+  {
+    id:"copilot-studio-mistakes",
+    date:"Feb 2025",
+    tag:"Copilot Studio",
+    tagColor:C.blue,
+    title:"3 Copilot Studio mistakes every defense contractor is making right now",
+    body:"We audited six Copilot Studio deployments last month. Every single one had the same three problems: no data grounding strategy (the bot hallucinates because it's not connected to SharePoint), no governance wrapper (who approved this agent to talk to customers?), and no fallback logic (when the AI doesn't know, it makes things up instead of routing to a human).\n\nThe fix isn't complicated. Connect your agent to a curated SharePoint library, wrap it in a Purview DLP policy, and add a confidence threshold that escalates to a human below 70%. We built all three in a single sprint.\n\nStop deploying demo agents to production. Your CISO will thank you.",
+    readTime:"2 min",
+  },
+  {
+    id:"cmmc-90-days",
+    date:"Feb 2025",
+    tag:"CMMC",
+    tagColor:C.coral,
+    title:"We helped a defense contractor hit 110/110 NIST 800-171 practices in 90 days. Here's how.",
+    body:"Everyone says CMMC takes 12-18 months. That's true if you're working with a consultancy that bills by the hour and has zero incentive to finish.\n\nHere's what we actually did: Week 1-2 — full gap assessment against all 110 practices. Found 67 gaps. Week 3-4 — migrated from consumer M365 to GCC-High, deployed Intune MDM to 200+ devices, configured Purview DLP with CUI sensitivity labels. Week 5-8 — SSP documentation, POA&M for remaining gaps, PowerShell continuous monitoring scripts. Week 9-12 — remediation of final gaps, pre-audit dry run, C3PAO readiness review.\n\nThe secret? We didn't start with documentation. We started with infrastructure. Get the tenant right, get the devices managed, get the DLP policies enforced. Then document what you built. Most firms do it backwards — they document what they wish they had, then scramble to build it.\n\n90 days. 110/110. The client kept their DoD contract.",
+    readTime:"3 min",
+  },
+  {
+    id:"ai-governance-gap",
+    date:"Jan 2025",
+    tag:"AI Governance",
+    tagColor:C.violet,
+    title:"The AI governance gap that will cost small contractors their clearance",
+    body:"Here's a scenario playing out right now at hundreds of defense contractors: an employee uses ChatGPT to summarize a document that contains CUI. That document is now in OpenAI's training data. The contractor has just violated NIST 800-171 and doesn't even know it.\n\nThe fix is an AI acceptable use policy — and almost nobody has one. We built a generator for it (it's free on this site). But the policy alone isn't enough. You need Purview DLP rules that detect when CUI is being pasted into unauthorized AI tools. You need Conditional Access policies in Entra ID that block access to consumer AI services from managed devices. You need training that explains WHY, not just WHAT.\n\nThe federal AI landscape is changing fast. The organizations that get governance right now will have a massive advantage when the auditors come knocking.",
+    readTime:"2 min",
+  },
+  {
+    id:"powershell-savings",
+    date:"Jan 2025",
+    tag:"Automation",
+    tagColor:C.teal,
+    title:"3 lines of PowerShell that saved a client $145K/year",
+    body:"A client had two full-time employees whose entire job was pulling data from three systems, reconciling it in Excel, and emailing a report to 12 managers every Monday morning. Eight hours each, every week. 832 hours per year.\n\nWe replaced it with a Power Automate flow that pulls from all three APIs, a PowerShell script that does the reconciliation (3 lines — Get-Data, Compare-Object, Export-Csv), and a scheduled Teams message that delivers the report at 7am Monday.\n\nTotal build time: 2 days. Annual savings: $145K in labor. Those two employees? They're now doing analysis instead of data entry. Better work, better outcomes, better morale.\n\nThis is what AI readiness actually looks like. Not chatbots. Not copilots. Just automating the dumb stuff so smart people can do smart work.",
+    readTime:"2 min",
+  },
+  {
+    id:"gcc-high-reality",
+    date:"Jan 2025",
+    tag:"Azure Gov",
+    tagColor:C.blue,
+    title:"The uncomfortable truth about GCC-High migrations",
+    body:"Nobody tells you this upfront: a GCC-High migration is not a \"migration.\" It's a rebuild. Your consumer M365 tenant and your GCC-High tenant are completely separate environments. You can't move data between them natively. Every mailbox, every SharePoint site, every Teams channel — rebuilt from scratch.\n\nWe've done enough of these to know where the landmines are: third-party apps that don't work in GCC-High (most of them), Conditional Access policies that need complete reconfiguration, Power Platform connectors that aren't available in the government cloud.\n\nOur approach: we build the GCC-High environment in parallel, test everything in a pilot group, then migrate in waves. Never big-bang. The organizations that try to do it all at once are the ones calling us to fix it three months later.\n\nBudget 4-8 weeks minimum. Plan for app compatibility issues. And for the love of everything, test your DLP policies before you migrate CUI.",
+    readTime:"3 min",
+  },
+];
+
+function FieldNotes({id}) {
+  const [expanded, setExpanded] = useState(null);
+  return (
+    <section id={id} style={{padding:"100px 0",background:C.bgSoft}}>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"0 24px"}}>
+        {/* Header */}
+        <div style={{textAlign:"center",marginBottom:56}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:C.teal+"0A",border:`1px solid ${C.teal}15`,marginBottom:16}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:C.teal}} />
+            <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.tealDark,letterSpacing:".5px"}}>FIELD NOTES</span>
+          </div>
+          <h2 style={{fontSize:"clamp(28px,3.5vw,40px)",fontWeight:800,fontFamily:F.h,color:C.navy,lineHeight:1.1,letterSpacing:"-0.03em"}}>
+            Dispatches from the field.
+          </h2>
+          <p style={{color:C.textMuted,fontSize:16,marginTop:14,lineHeight:1.7,fontFamily:F.b,maxWidth:600,margin:"14px auto 0"}}>
+            Real problems. Real solutions. No thought leadership fluff. Written from active client engagements, not a content calendar.
+          </p>
+        </div>
+
+        {/* Notes feed */}
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          {FIELD_NOTES.map((note,i)=>{
+            const isOpen = expanded === note.id;
+            return (
+              <article key={note.id}
+                style={{background:C.bg,border:`1px solid ${isOpen?C.teal+"33":C.border}`,borderRadius:16,overflow:"hidden",transition:"all .2s",boxShadow:isOpen?C.shadowMd:C.shadow}}>
+                <div
+                  onClick={()=>setExpanded(isOpen?null:note.id)}
+                  style={{padding:"24px 28px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:16}}>
+                  <div style={{flex:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,flexWrap:"wrap"}}>
+                      <Tag color={note.tagColor}>{note.tag}</Tag>
+                      <span style={{fontSize:12,color:C.textFaint,fontFamily:F.m}}>{note.date}</span>
+                      <span style={{fontSize:11,color:C.textFaint,fontFamily:F.m}}>· {note.readTime} read</span>
+                    </div>
+                    <h3 style={{fontSize:18,fontWeight:700,fontFamily:F.h,color:C.navy,lineHeight:1.35}}>
+                      {note.title}
+                    </h3>
+                    {!isOpen && <p style={{color:C.textMuted,fontSize:14,marginTop:8,lineHeight:1.6}}>
+                      {note.body.substring(0,160).trim()}...
+                    </p>}
+                  </div>
+                  <div style={{flexShrink:0,width:32,height:32,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:C.bgSoft,color:C.textMuted,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(180deg)":""}}>
+                    ▾
+                  </div>
+                </div>
+                {isOpen && (
+                  <div style={{padding:"0 28px 28px",animation:"fadeUp .3s ease"}}>
+                    <div style={{borderTop:`1px solid ${C.borderLight}`,paddingTop:20}}>
+                      {note.body.split("\n\n").map((p,j)=>(
+                        <p key={j} style={{fontSize:15,lineHeight:1.8,color:C.textSoft,marginBottom:j<note.body.split("\n\n").length-1?16:0,fontFamily:F.b}}>{p}</p>
+                      ))}
+                    </div>
+                    <div style={{marginTop:24,paddingTop:16,borderTop:`1px solid ${C.borderLight}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+                      <div style={{display:"flex",alignItems:"center",gap:10}}>
+                        <div style={{width:32,height:32,borderRadius:8,background:`linear-gradient(135deg,${C.navy},${C.tealDark})`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:800,fontFamily:F.h}}>NN</div>
+                        <div>
+                          <div style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy}}>Nitin Nagar</div>
+                          <div style={{fontSize:11,color:C.textFaint,fontFamily:F.m}}>Founder, BHT Solutions</div>
+                        </div>
+                      </div>
+                      <a href="https://www.linkedin.com/in/nitinnagar/" target="_blank" rel="noopener"
+                        style={{display:"inline-flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:10,background:C.navy,color:"#fff",fontSize:12,fontWeight:700,fontFamily:F.m,textDecoration:"none"}}>
+                        Follow for more ↗
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
+        {/* CTA */}
+        <div style={{textAlign:"center",marginTop:40}}>
+          <a href="https://www.linkedin.com/in/nitinnagar/" target="_blank" rel="noopener"
+            style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 32px",borderRadius:12,background:C.navy,color:"#fff",fontSize:15,fontWeight:700,fontFamily:F.h,textDecoration:"none",boxShadow:`0 4px 16px ${C.navy}22`,transition:"all .2s"}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            Follow Nitin on LinkedIn
+          </a>
+          <p style={{color:C.textFaint,fontSize:12,fontFamily:F.m,marginTop:10}}>New field notes posted weekly from active engagements</p>
         </div>
       </div>
     </section>
