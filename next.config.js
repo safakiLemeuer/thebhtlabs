@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  // Note: removed 'standalone' output for better-sqlite3 native module compatibility
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
