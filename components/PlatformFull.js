@@ -1033,7 +1033,7 @@ function Assessment({id}) {
                   style={{padding:"10px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted}}>Retake</button>
                 <button onClick={generatePDF}
                   style={{padding:"10px",borderRadius:10,border:"none",background:C.teal,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,color:"#fff"}}>📄 Download PDF</button>
-                <button onClick={()=>document.getElementById("contact")?.scrollIntoView({behavior:"smooth"})}
+                <button onClick={()=>document.getElementById("partner")?.scrollIntoView({behavior:"smooth"})}
                   style={{padding:"10px",borderRadius:10,border:"none",background:C.violetBg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.violet}}>Book Discovery Call →</button>
               </div>
               <p style={{fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:12,lineHeight:1.5,fontStyle:"italic"}}>Results vary. Stats from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), BCG (2024). Pricing illustrative.</p>
@@ -1786,7 +1786,7 @@ function OpsDashboard({status, newsCount, caseCount}) {
 }
 /* ═══════════════ PARTNER / CONTACT ═══════════════ */
 function Partner({id}) {
-  const [form, setForm] = useState({name:"",email:"",company:"",interest:"",message:"",website:""});
+  const [form, setForm] = useState({name:"",email:"",phone:"",company:"",interest:"",message:"",website:""});
   const [status, setStatus] = useState("");
   const [touched, setTouched] = useState({});
   const markTouched = (k) => setTouched(p=>({...p,[k]:true}));
@@ -1807,7 +1807,7 @@ function Partner({id}) {
     try {
       const r = await fetch("/api/contact", {method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify(form)});
-      if(r.ok){setStatus("success");setForm({name:"",email:"",company:"",interest:"",message:"",website:""});setTouched({});}
+      if(r.ok){setStatus("success");setForm({name:"",email:"",phone:"",company:"",interest:"",message:"",website:""});setTouched({});}
       else {const d=await r.json().catch(()=>({}));setStatus("error");console.error("Contact API error:",d);}
     } catch(e) {setStatus("error");console.error("Contact fetch error:",e);}
   };
@@ -1825,7 +1825,7 @@ function Partner({id}) {
           <form onSubmit={submit} style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:18,padding:28,boxShadow:C.shadowMd}}>
             <h3 style={{fontSize:20,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:20}}>Get in touch</h3>
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
-              {[{l:"Full Name",p:"Your full name",k:"name",req:true},{l:"Email Address",p:"you@company.com",k:"email",req:true},{l:"Company",p:"Company name (optional)",k:"company",req:false}].map(f=>(
+              {[{l:"Full Name",p:"Your full name",k:"name",req:true},{l:"Email Address",p:"you@company.com",k:"email",req:true},{l:"Phone",p:"(555) 123-4567",k:"phone",req:false},{l:"Company",p:"Company name (optional)",k:"company",req:false}].map(f=>(
                 <div key={f.k}>
                   <label style={labelStyle}>{f.l} {f.req&&<span style={{color:C.rose}}>*</span>}</label>
                   <input value={form[f.k]} onChange={e=>setForm({...form,[f.k]:e.target.value})} onBlur={()=>f.req&&markTouched(f.k)}

@@ -40,6 +40,7 @@ export default function AdminPortal() {
 
   const tabs = [
     { id: 'leads', label: 'Leads & Analytics', icon: '🎯' },
+    { id: 'contacts', label: 'Contacts', icon: '📞' },
     { id: 'posts', label: 'Blog Posts', icon: '📝' },
     { id: 'cases', label: 'Case Studies', icon: '📋' },
     { id: 'comments', label: 'Comments', icon: '💬' },
@@ -69,6 +70,7 @@ export default function AdminPortal() {
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
         {tab === 'leads' && <LeadsManager headers={headers} token={token} />}
+        {tab === 'contacts' && <ContactsManager headers={headers} />}
         {tab === 'posts' && <BlogManager headers={headers} />}
         {tab === 'cases' && <CaseManager headers={headers} />}
         {tab === 'comments' && <CommentManager headers={headers} />}
@@ -76,8 +78,6 @@ export default function AdminPortal() {
     </div>
   );
 }
-
-/* ═══════════════ BLOG MANAGER ═══════════════ */
 
 /* ═══════════════ LEADS & ANALYTICS DASHBOARD ═══════════════ */
 function LeadsManager({ headers, token }) {
@@ -426,6 +426,141 @@ function LeadsManager({ headers, token }) {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+/* ═══════════════ CONTACTS MANAGER ═══════════════ */
+function ContactsManager({ headers }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [editingNote, setEditingNote] = useState(null);
+  const [noteText, setNoteText] = useState('');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      let url = '/api/contact?limit=200';
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (statusFilter) url += `&status=${statusFilter}`;
+      const r = await fetch(url, { headers });
+      if (r.ok) setData(await r.json());
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }, [headers, search, statusFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const updateStatus = async (id, status) => {
+    await fetch('/api/contact', { method: 'PATCH', headers, body: JSON.stringify({ id, status }) });
+    setData(d => ({ ...d, contacts: d.contacts.map(c => c.id === id ? { ...c, status } : c) }));
+  };
+
+  const saveNote = async (id) => {
+    await fetch('/api/contact', { method: 'PATCH', headers, body: JSON.stringify({ id, notes: noteText }) });
+    setData(d => ({ ...d, contacts: d.contacts.map(c => c.id === id ? { ...c, notes: noteText } : c) }));
+    setEditingNote(null);
+  };
+
+  const exportCSV = async () => {
+    try {
+      const r = await fetch('/api/contact?format=csv&limit=500', { headers });
+      if (!r.ok) return;
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'bht-contacts.csv'; a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) { console.error(e); }
+  };
+
+  const statusColors = { new: '#3B82F6', contacted: '#F97316', qualified: '#0D9488', closed: '#7C3AED', spam: '#94A3B8' };
+
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: C.textMuted }}>Loading contacts...</div>;
+  if (!data) return <div style={{ padding: 40, textAlign: 'center', color: C.red }}>Failed to load.</div>;
+
+  const { analytics, contacts } = data;
+  let sorted = [...contacts];
+  if (sortBy === 'name') sorted.sort((a, b) => sortDir === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name));
+  else if (sortBy === 'status') sorted.sort((a, b) => sortDir === 'asc' ? a.status.localeCompare(b.status) : b.status.localeCompare(a.status));
+
+  return (
+    <div>
+      {/* KPIs */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        {[{ l: 'Total', v: analytics.total, c: C.navy }, ...(analytics.byStatus || []).map(s => ({ l: s.status, v: s.count, c: statusColors[s.status] || C.textMuted }))].map(s => (
+          <div key={s.l} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px 20px', textAlign: 'center', minWidth: 90 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: s.c, fontFamily: "'IBM Plex Mono',monospace" }}>{s.v}</div>
+            <div style={{ fontSize: 10, color: C.textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>{s.l}</div>
+          </div>
+        ))}
+      </div>
+      {/* Controls */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input value={search} onChange={e => setSearch(e.target.value)} onKeyDown={e => e.key === 'Enter' && load()}
+          placeholder="Search name, email, company, message..." style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12, flex: 1, minWidth: 200 }} />
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+          style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12 }}>
+          <option value="">All Status</option>
+          {['new', 'contacted', 'qualified', 'closed', 'spam'].map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <button onClick={load} style={{ padding: '6px 14px', borderRadius: 8, background: C.teal, border: 'none', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Search</button>
+        <div style={{ display: 'flex', gap: 4, marginLeft: 'auto' }}>
+          {['date', 'name', 'status'].map(s => (
+            <button key={s} onClick={() => { if (sortBy === s) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else { setSortBy(s); setSortDir('desc'); } }}
+              style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${sortBy === s ? C.teal : C.border}`, background: sortBy === s ? C.teal + '0D' : C.bg, fontSize: 10, fontWeight: 700, cursor: 'pointer', color: sortBy === s ? C.teal : C.textMuted }}>
+              {s} {sortBy === s ? (sortDir === 'asc' ? '↑' : '↓') : ''}
+            </button>
+          ))}
+        </div>
+        <button onClick={exportCSV} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.teal, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#fff' }}>📥 CSV</button>
+      </div>
+      {/* Cards */}
+      <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden' }}>
+        {sorted.length === 0 && <p style={{ textAlign: 'center', color: C.textMuted, padding: 40 }}>No contacts yet. Form submissions will appear here.</p>}
+        {sorted.map(c => (
+          <div key={c.id} style={{ padding: '14px 20px', borderBottom: `1px solid ${C.border}22` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: C.navy }}>{c.name}</span>
+                  <a href={`mailto:${c.email}`} style={{ fontSize: 12, color: C.teal, fontWeight: 600 }}>{c.email}</a>
+                  {c.phone && <a href={`tel:${c.phone}`} style={{ fontSize: 12, color: C.navy, fontWeight: 600 }}>📞 {c.phone}</a>}
+                  {c.company && <span style={{ fontSize: 11, color: C.textMuted }}>· {c.company}</span>}
+                </div>
+                {c.interest && c.interest !== "I'm interested in..." && <span style={{ fontSize: 11, color: C.textMuted, display: 'block', marginTop: 2 }}>Interest: {c.interest}</span>}
+                {c.message && <p style={{ fontSize: 12, color: C.navy, lineHeight: 1.6, marginTop: 6, padding: 10, background: '#F8FAFC', borderRadius: 8, border: `1px solid ${C.border}22` }}>{c.message}</p>}
+                {editingNote === c.id ? (
+                  <div style={{ marginTop: 6, display: 'flex', gap: 6 }}>
+                    <input value={noteText} onChange={e => setNoteText(e.target.value)} placeholder="Internal note..."
+                      style={{ flex: 1, padding: '6px 10px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 11 }} />
+                    <button onClick={() => saveNote(c.id)} style={{ padding: '6px 12px', borderRadius: 6, background: C.teal, border: 'none', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Save</button>
+                    <button onClick={() => setEditingNote(null)} style={{ padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: C.bg, fontSize: 11, cursor: 'pointer' }}>Cancel</button>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {c.notes && <span style={{ fontSize: 11, color: '#7C3AED', fontStyle: 'italic' }}>📝 {c.notes}</span>}
+                    <button onClick={() => { setEditingNote(c.id); setNoteText(c.notes || ''); }}
+                      style={{ fontSize: 10, color: C.textMuted, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
+                      {c.notes ? 'edit' : '+ note'}
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
+                <select value={c.status} onChange={e => updateStatus(c.id, e.target.value)}
+                  style={{ padding: '3px 8px', borderRadius: 6, border: `1px solid ${statusColors[c.status] || C.border}30`, background: (statusColors[c.status] || C.textMuted) + '10', color: statusColors[c.status] || C.textMuted, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                  {['new', 'contacted', 'qualified', 'closed', 'spam'].map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <span style={{ fontSize: 10, color: C.textMuted }}>{new Date(c.created_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

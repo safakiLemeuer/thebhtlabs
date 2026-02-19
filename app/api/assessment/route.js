@@ -84,8 +84,22 @@ export async function POST(request) {
 }
 
 export async function GET(request) {
-  const auth = request.headers.get('authorization');
-  if (auth !== `Bearer ${process.env.ADMIN_PASSWORD}`) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // Verify admin auth (HMAC signed token or raw password)
+  const authHeader = request.headers.get('authorization') || '';
+  const token = authHeader.replace('Bearer ', '');
+  const adminPass = process.env.ADMIN_PASSWORD;
+  
+  let authed = false;
+  if (token === adminPass) { authed = true; } // raw password (curl)
+  else {
+    const [t, sig] = token.split('.');
+    if (t && sig && adminPass) {
+      const crypto = require('crypto');
+      const expected = crypto.createHmac('sha256', adminPass).update(t).digest('hex');
+      if (sig === expected) authed = true;
+    }
+  }
+  if (!authed) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const db = getDb();
   const url = new URL(request.url);
   const format = url.searchParams.get('format');
