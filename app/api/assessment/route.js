@@ -1,6 +1,24 @@
-// app/api/assessment/route.js — Save assessment + send lead alert via Resend
+// app/api/assessment/route.js
 import { NextResponse } from 'next/server';
 const { getDb } = require('../../../lib/db');
+
+function verifyAdmin(request) {
+  const authHeader = request.headers.get('authorization') || '';
+  const token = authHeader.replace('Bearer ', '');
+  const adminPass = process.env.ADMIN_PASSWORD;
+  if (!adminPass) return false;
+  if (token === adminPass) return true;
+  const parts = token.split('.');
+  if (parts.length === 2) {
+    const [t, sig] = parts;
+    if (t && sig) {
+      const crypto = require('crypto');
+      const expected = crypto.createHmac('sha256', adminPass).update(t).digest('hex');
+      if (sig === expected) return true;
+    }
+  }
+  return false;
+}
 
 export async function POST(request) {
   try {
@@ -55,23 +73,23 @@ export async function POST(request) {
         body: JSON.stringify({
           from: process.env.RESEND_FROM || 'TheBHTLabs <onboarding@resend.dev>',
           to: process.env.CONTACT_EMAIL || 'info@bhtsolutions.com',
-          subject: `New Lead: ${name} at ${company} — ${stage} (${overallScore}%) · ARIA: ${ariaTier || 'N/A'}`,
+          subject: `New Lead: ${name} at ${company} - ${stage} (${overallScore}%) ARIA: ${ariaTier || 'N/A'}`,
           html: `<div style="font-family:sans-serif;max-width:600px"><h2 style="color:#0D9488">New Assessment Lead</h2>
             <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
               <tr><td style="padding:6px 8px;font-weight:bold;width:100px">Name</td><td style="padding:6px 8px">${name}</td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold">Email</td><td style="padding:6px 8px"><a href="mailto:${email}">${email}</a></td></tr>
+              <tr><td style="padding:6px 8px;font-weight:bold">Phone</td><td style="padding:6px 8px">${phone ? '<a href="tel:'+phone+'">'+phone+'</a>' : 'N/A'}</td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold">Title</td><td style="padding:6px 8px">${title || 'N/A'}</td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold">Company</td><td style="padding:6px 8px">${company}</td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold">Industry</td><td style="padding:6px 8px">${industryLabel || industry}</td></tr>
-              <tr><td style="padding:6px 8px;font-weight:bold">Size</td><td style="padding:6px 8px">${employees || '?'} employees · ${revenue || '?'} revenue</td></tr>
-              <tr><td style="padding:6px 8px;font-weight:bold">Phone</td><td style="padding:6px 8px"><a href="tel:${phone}">${phone || 'N/A'}</a></td></tr>
-              <tr><td style="padding:6px 8px;font-weight:bold;color:#7C3AED">ARIA Score</td><td style="padding:6px 8px;font-weight:bold">${ariaScore||'?'}/30 — ${ariaTier||'?'} (${ariaMult||1}x)</td></tr>
-              ${suspicious ? '<tr><td style="padding:6px 8px;font-weight:bold;color:#E11D48">⚠️ FLAG</td><td style="padding:6px 8px;color:#E11D48">Completed in ' + timeSpent + 's — possibly rushed</td></tr>' : ''}
+              <tr><td style="padding:6px 8px;font-weight:bold">Size</td><td style="padding:6px 8px">${employees || '?'} employees / ${revenue || '?'} revenue</td></tr>
+              <tr><td style="padding:6px 8px;font-weight:bold;color:#7C3AED">ARIA</td><td style="padding:6px 8px;font-weight:bold">${ariaScore||'?'}/30 - ${ariaTier||'?'} (${ariaMult||1}x)</td></tr>
+              ${suspicious ? '<tr><td style="padding:6px 8px;font-weight:bold;color:#E11D48">FLAG</td><td style="padding:6px 8px;color:#E11D48">Completed in '+timeSpent+'s - possibly rushed</td></tr>' : ''}
             </table>
-            <h3 style="color:#0F172A">Score: ${overallScore}% — ${stage}</h3>
+            <h3 style="color:#0F172A">Score: ${overallScore}% - ${stage}</h3>
             <table style="width:100%;border-collapse:collapse;margin-bottom:16px">${domainList}</table>
             <h3 style="color:#0F172A">Pain Points</h3><p style="background:#FFF7ED;padding:12px;border-radius:8px;font-size:13px">${painList || 'None selected'}</p>
-            <p style="margin-top:16px;color:#64748B;font-size:12px">Lead #${leadId} · <a href="https://thebhtlabs.com/admin">View Dashboard</a></p></div>`
+            <p style="margin-top:16px;color:#64748B;font-size:12px">Lead #${leadId} / <a href="https://thebhtlabs.com/admin">View Dashboard</a></p></div>`
         })
       });
     } catch (e) { console.error('Lead email error:', e); }
@@ -84,22 +102,8 @@ export async function POST(request) {
 }
 
 export async function GET(request) {
-  // Verify admin auth (HMAC signed token or raw password)
-  const authHeader = request.headers.get('authorization') || '';
-  const token = authHeader.replace('Bearer ', '');
-  const adminPass = process.env.ADMIN_PASSWORD;
-  
-  let authed = false;
-  if (token === adminPass) { authed = true; } // raw password (curl)
-  else {
-    const [t, sig] = token.split('.');
-    if (t && sig && adminPass) {
-      const crypto = require('crypto');
-      const expected = crypto.createHmac('sha256', adminPass).update(t).digest('hex');
-      if (sig === expected) authed = true;
-    }
-  }
-  if (!authed) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (!verifyAdmin(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const db = getDb();
   const url = new URL(request.url);
   const format = url.searchParams.get('format');
@@ -114,25 +118,31 @@ export async function GET(request) {
   if (minScore) { query += ' AND overall_score >= ?'; params.push(parseInt(minScore)); }
   if (maxScore) { query += ' AND overall_score <= ?'; params.push(parseInt(maxScore)); }
   query += ' ORDER BY created_at DESC LIMIT ?'; params.push(limit);
-  const rows = db.prepare(query).all(...params);
+
+  let rows = [];
+  try { rows = db.prepare(query).all(...params); } catch (e) { console.error('Query error:', e.message); }
 
   if (format === 'csv') {
     const h = ['id','name','email','phone','title','company','industry_label','employees','revenue','pains','overall_score','stage',
       'aria_score','aria_tier','aria_mult','time_spent','suspicious',
       'domain_foundation','domain_process','domain_tech','domain_people','domain_strategy','domain_governance','domain_usecase','created_at'];
-    const csv = [h.join(','), ...rows.map(r => h.map(k => { let v=String(r[k]||''); return v.includes(',')?`"${v.replace(/"/g,'""')}"`:v; }).join(','))].join('\n');
+    const csv = [h.join(','), ...rows.map(r => h.map(k => { let v=String(r[k]||''); return v.includes(',')||v.includes('"')||v.includes('\n')?`"${v.replace(/"/g,'""')}"`:v; }).join(','))].join('\n');
     return new Response(csv, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename=bht-leads.csv' } });
   }
 
-  const total = db.prepare('SELECT COUNT(*) as c FROM assessments').get().c;
-  const avgScore = Math.round(db.prepare('SELECT AVG(overall_score) as a FROM assessments').get().a || 0);
-  const byIndustry = db.prepare('SELECT industry_label as label, COUNT(*) as count, ROUND(AVG(overall_score)) as avg FROM assessments WHERE industry_label != "" GROUP BY industry_label ORDER BY count DESC').all();
-  const byStage = db.prepare('SELECT stage, COUNT(*) as count FROM assessments WHERE stage != "" GROUP BY stage').all();
-  const byEmployees = db.prepare('SELECT employees, COUNT(*) as count FROM assessments WHERE employees != "" GROUP BY employees ORDER BY count DESC').all();
-  const topPains = {};
-  rows.forEach(r => { try { JSON.parse(r.pains||'[]').forEach(p => { topPains[p]=(topPains[p]||0)+1; }); } catch(e){} });
-  const painRanking = Object.entries(topPains).sort((a,b)=>b[1]-a[1]).map(([pain,count])=>({pain,count}));
-  const recent = rows.slice(0, 30);
+  // Analytics - use try/catch for each query in case columns don't exist yet
+  let total = 0, avgScore = 0, byIndustry = [], byStage = [], byEmployees = [], painRanking = [];
+  try { total = db.prepare('SELECT COUNT(*) as c FROM assessments').get().c; } catch(e) {}
+  try { avgScore = Math.round(db.prepare('SELECT AVG(overall_score) as a FROM assessments').get().a || 0); } catch(e) {}
+  try { byIndustry = db.prepare("SELECT industry_label as label, COUNT(*) as count, ROUND(AVG(overall_score)) as avg FROM assessments WHERE industry_label IS NOT NULL AND industry_label != '' GROUP BY industry_label ORDER BY count DESC").all(); } catch(e) {}
+  try { byStage = db.prepare("SELECT stage, COUNT(*) as count FROM assessments WHERE stage IS NOT NULL AND stage != '' GROUP BY stage").all(); } catch(e) {}
+  try { byEmployees = db.prepare("SELECT employees, COUNT(*) as count FROM assessments WHERE employees IS NOT NULL AND employees != '' GROUP BY employees ORDER BY count DESC").all(); } catch(e) {}
+  
+  try {
+    const topPains = {};
+    rows.forEach(r => { try { JSON.parse(r.pains||'[]').forEach(p => { topPains[p]=(topPains[p]||0)+1; }); } catch(e){} });
+    painRanking = Object.entries(topPains).sort((a,b)=>b[1]-a[1]).map(([pain,count])=>({pain,count}));
+  } catch(e) {}
 
-  return NextResponse.json({ analytics: { total, avgScore, byIndustry, byStage, byEmployees, painRanking }, leads: recent });
+  return NextResponse.json({ analytics: { total, avgScore, byIndustry, byStage, byEmployees, painRanking }, leads: rows.slice(0, 30) });
 }
