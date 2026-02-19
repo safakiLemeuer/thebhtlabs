@@ -232,6 +232,79 @@ export default function TheBHTLabs() {
     </div>
   );
 }
+/* ═══════════════ CLIENT TICKER — Scrolling logos by industry ═══════════════ */
+const CLIENTS = [
+  // Technology
+  {n:"Microsoft",u:"https://www.microsoft.com",logo:"https://logo.clearbit.com/microsoft.com",cat:"Technology"},
+  {n:"IBM",u:"https://www.ibm.com",logo:"https://logo.clearbit.com/ibm.com",cat:"Technology"},
+  {n:"NTT Data",u:"https://www.nttdata.com",logo:"https://logo.clearbit.com/nttdata.com",cat:"Technology"},
+  {n:"Hitachi",u:"https://www.hitachiconsulting.com",logo:"https://logo.clearbit.com/hitachi.com",cat:"Technology"},
+  {n:"HID Global",u:"https://www.hidglobal.com",logo:"https://logo.clearbit.com/hidglobal.com",cat:"Technology"},
+  {n:"iRobot",u:"https://www.irobot.com",logo:"https://logo.clearbit.com/irobot.com",cat:"Technology"},
+  {n:"Parex Technology",u:"https://www.parextechnologies.com",logo:null,cat:"Technology"},
+  // Consulting & Professional Services
+  {n:"Ernst & Young",u:"https://www.ey.com",logo:"https://logo.clearbit.com/ey.com",cat:"Consulting"},
+  {n:"PwC",u:"https://www.pwc.com",logo:"https://logo.clearbit.com/pwc.com",cat:"Consulting"},
+  {n:"Bain & Company",u:"https://www.bain.com",logo:"https://logo.clearbit.com/bain.com",cat:"Consulting"},
+  {n:"Bank of America",u:"https://www.bankofamerica.com",logo:"https://logo.clearbit.com/bankofamerica.com",cat:"Financial Services"},
+  {n:"SWBC",u:"https://www.swbc.com",logo:"https://logo.clearbit.com/swbc.com",cat:"Financial Services"},
+  {n:"Standard Insurance",u:"https://www.standard.com",logo:"https://logo.clearbit.com/standard.com",cat:"Financial Services"},
+  // Energy
+  {n:"bp",u:"https://www.bp.com",logo:"https://logo.clearbit.com/bp.com",cat:"Energy"},
+  {n:"Devon Energy",u:"https://www.devonenergy.com",logo:"https://logo.clearbit.com/devonenergy.com",cat:"Energy"},
+  {n:"Phillips 66",u:"https://www.phillips66.com",logo:"https://logo.clearbit.com/phillips66.com",cat:"Energy"},
+  {n:"CenterPoint Energy",u:"https://www.centerpointenergy.com",logo:"https://logo.clearbit.com/centerpointenergy.com",cat:"Energy"},
+  {n:"Consolidated Edison",u:"https://www.coned.com",logo:"https://logo.clearbit.com/coned.com",cat:"Energy"},
+  {n:"Speedway",u:"https://www.speedway.com",logo:"https://logo.clearbit.com/speedway.com",cat:"Energy"},
+  {n:"NOV",u:"https://www.nov.com",logo:"https://logo.clearbit.com/nov.com",cat:"Energy"},
+  {n:"Apache",u:"https://www.apachecorp.com",logo:"https://logo.clearbit.com/apachecorp.com",cat:"Energy"},
+  // Healthcare & Pharma
+  {n:"Eli Lilly",u:"https://www.lilly.com",logo:"https://logo.clearbit.com/lilly.com",cat:"Healthcare"},
+  {n:"McKesson",u:"https://www.mckesson.com",logo:"https://logo.clearbit.com/mckesson.com",cat:"Healthcare"},
+  {n:"Healthcare Assoc. of Hawaii",u:"https://www.hah.org",logo:null,cat:"Healthcare"},
+  // Retail & Consumer
+  {n:"Kroger",u:"https://www.kroger.com",logo:"https://logo.clearbit.com/kroger.com",cat:"Retail"},
+  {n:"GE Power",u:"https://www.ge.com",logo:"https://logo.clearbit.com/ge.com",cat:"Industrial"},
+  {n:"Foodland",u:"https://www.foodland.com",logo:"https://logo.clearbit.com/foodland.com",cat:"Retail"},
+  // Nonprofit
+  {n:"Bill & Melinda Gates Foundation",u:"https://www.gatesfoundation.org",logo:"https://logo.clearbit.com/gatesfoundation.org",cat:"Nonprofit"},
+  // Federal & State Government
+  {n:"U.S. Department of Justice",u:"https://www.justice.gov",logo:"https://logo.clearbit.com/justice.gov",cat:"Federal"},
+  {n:"U.S. SEC",u:"https://www.sec.gov",logo:"https://logo.clearbit.com/sec.gov",cat:"Federal"},
+  {n:"U.S. Department of Homeland Security",u:"https://www.dhs.gov",logo:"https://logo.clearbit.com/dhs.gov",cat:"Federal"},
+  {n:"State of Hawaii",u:"https://www.hawaii.gov",logo:null,cat:"State Gov"},
+  {n:"State of Arkansas Dept. of Education",u:"https://dese.ade.arkansas.gov",logo:null,cat:"State Gov"},
+  {n:"City of San Diego",u:"https://www.sandiego.gov",logo:null,cat:"State Gov"},
+];
+
+function ClientTicker() {
+  const [hovered, setHovered] = useState(false);
+  // Duplicate for seamless loop
+  const items = [...CLIENTS, ...CLIENTS];
+  return (
+    <div style={{overflow:"hidden",position:"relative",width:"100%",maskImage:"linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)"}}>
+      <div
+        onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
+        style={{display:"flex",gap:36,animation:"tickerScroll 60s linear infinite",animationPlayState:hovered?"paused":"running",width:"max-content"}}>
+        {items.map((c,i)=>(
+          <a key={c.n+i} href={c.u} target="_blank" rel="noopener noreferrer" title={`${c.n} — ${c.cat}`}
+            style={{display:"flex",alignItems:"center",gap:8,flexShrink:0,padding:"8px 14px",borderRadius:10,textDecoration:"none",transition:"all .15s",background:"transparent",border:"1px solid transparent"}}
+            onMouseEnter={e=>{e.currentTarget.style.background=C.bgSoft;e.currentTarget.style.borderColor=C.border}}
+            onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor="transparent"}}>
+            {c.logo ? (
+              <img src={c.logo} alt={c.n} style={{width:22,height:22,borderRadius:4,objectFit:"contain"}} onError={e=>{e.target.style.display="none";e.target.nextSibling&&(e.target.nextSibling.style.display="flex")}} />
+            ) : null}
+            {!c.logo && <div style={{width:22,height:22,borderRadius:4,background:C.teal+"12",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:C.teal,fontFamily:F.h}}>{c.n.charAt(0)}</div>}
+            {c.logo && <div style={{display:"none",width:22,height:22,borderRadius:4,background:C.teal+"12",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:C.teal,fontFamily:F.h}}>{c.n.charAt(0)}</div>}
+            <span style={{fontSize:12,fontWeight:600,fontFamily:F.h,color:C.textMuted,whiteSpace:"nowrap"}}>{c.n}</span>
+          </a>
+        ))}
+      </div>
+      <style>{`@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}`}</style>
+    </div>
+  );
+}
+
 function Hero({scrollTo, nav}) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(()=>{
@@ -305,7 +378,7 @@ function Hero({scrollTo, nav}) {
             20 years of Fortune 500 and federal IT. We built the tools, frameworks, and cleared team to take your organization from evaluation to production — with compliance baked in from day one.
           </p>
           <p style={{color:C.textFaint,fontSize:13,fontFamily:F.m,maxWidth:500,margin:"0 auto 32px"}}>
-            CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · SBA 8(a) · EDWOSB · T4 Cleared · CyberAB RP · SAFe 5
+            CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · SBA 8(a) · EDWOSB · CyberAB RP
           </p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <button onClick={()=>scrollTo("assess")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s"}}>
@@ -315,14 +388,10 @@ function Hero({scrollTo, nav}) {
               See What We've Shipped
             </button>
           </div>
-          {/* Client logos bar */}
+          {/* Client logos — animated ticker */}
           <div style={{marginTop:40,paddingTop:28,borderTop:`1px solid ${C.borderLight}`}}>
-            <p style={{color:C.textFaint,fontSize:11,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Trusted by teams at</p>
-            <div style={{display:"flex",justifyContent:"center",gap:32,flexWrap:"wrap",alignItems:"center"}}>
-              {["Microsoft","bp","Eli Lilly","GE Power","iRobot","Kroger","NOV","Apache","NTT Data","Hitachi"].map(c=>(
-                <span key={c} style={{color:C.textFaint,fontSize:13,fontWeight:600,fontFamily:F.h,opacity:0.5}}>{c}</span>
-              ))}
-            </div>
+            <p style={{color:C.textFaint,fontSize:11,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Trusted by teams across industries</p>
+            <ClientTicker />
           </div>
           {/* Outcome metrics bar — all verifiable from case studies */}
           <div style={{marginTop:28,display:"flex",justifyContent:"center",gap:40,flexWrap:"wrap"}}>
@@ -1533,9 +1602,15 @@ function TheBuilder({id}) {
             {/* Past performance — names that matter */}
             <div style={{marginBottom:24}}>
               <h4 style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:12}}>Built Systems For</h4>
-              <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                {["Microsoft","bp","Eli Lilly","GE Power & Water","iRobot","Kroger","NOV","Apache","NTT Data","Hitachi Consulting","Healthcare Assoc. of Hawaii"].map(c=>(
-                  <span key={c} style={{padding:"6px 14px",borderRadius:10,background:C.navy+"06",border:`1px solid ${C.navy}0A`,fontSize:13,fontWeight:600,fontFamily:F.h,color:C.navy}}>{c}</span>
+              <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                {CLIENTS.filter((v,i,a)=>a.findIndex(t=>t.n===v.n)===i).map(c=>(
+                  <a key={c.n} href={c.u} target="_blank" rel="noopener" title={c.cat}
+                    style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:10,background:C.navy+"06",border:`1px solid ${C.navy}0A`,fontSize:12,fontWeight:600,fontFamily:F.h,color:C.navy,textDecoration:"none",transition:"all .15s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.background=C.teal+"0D";e.currentTarget.style.borderColor=C.teal+"22"}}
+                    onMouseLeave={e=>{e.currentTarget.style.background=C.navy+"06";e.currentTarget.style.borderColor=C.navy+"0A"}}>
+                    {c.logo && <img src={c.logo} alt="" style={{width:14,height:14,borderRadius:2,objectFit:"contain"}} onError={e=>e.target.style.display="none"} />}
+                    {c.n}
+                  </a>
                 ))}
               </div>
             </div>
