@@ -8,15 +8,16 @@ function verifyAdmin(request) {
   const adminPass = process.env.ADMIN_PASSWORD;
   if (!adminPass) return false;
   if (token === adminPass) return true;
-  const parts = token.split('.');
-  if (parts.length === 2) {
-    const [t, sig] = parts;
-    if (t && sig) {
+  try {
+    const idx = token.lastIndexOf('.');
+    if (idx > 0) {
+      const t = token.substring(0, idx);
+      const sig = token.substring(idx + 1);
       const crypto = require('crypto');
       const expected = crypto.createHmac('sha256', adminPass).update(t).digest('hex');
       if (sig === expected) return true;
     }
-  }
+  } catch (e) {}
   return false;
 }
 
