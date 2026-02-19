@@ -80,10 +80,10 @@ const CASES = [
     refs:[{t:"Cross-Tenant Migration",u:"https://learn.microsoft.com/en-us/microsoft-365/enterprise/cross-tenant-mailbox-migration"},{t:"Entra Cross-Tenant",u:"https://learn.microsoft.com/en-us/entra/external-id/cross-tenant-access-overview"}]},
 ];
 const PKGS = [
-  {name:"AI Discovery",price:"Free",per:"",color:C.teal,pop:false,desc:"Not sure where to start? Let's talk.",feats:["30-min strategy call","Quick AI readiness check","2-3 use case ideas","No commitment"],cta:"Book Free Call"},
-  {name:"AI Readiness Sprint",price:"$2,500",per:"/engagement",color:C.blue,pop:false,desc:"Full 35-point assessment with roadmap.",feats:["Complete 35-point assessment","Data & process audit","Prioritized AI roadmap","Tool recommendations","Executive briefing","90-day action plan"],cta:"Start Sprint"},
-  {name:"AI Launchpad",price:"$7,500",per:"/month",color:C.violet,pop:true,desc:"End-to-end implementation.",feats:["Everything in Sprint","Copilot Studio agents","1-2 custom automations","Staff training (20 people)","Monthly reviews","Priority support"],cta:"Launch Now"},
-  {name:"AI Transformation",price:"Custom",per:"",color:C.coral,pop:false,desc:"Enterprise & federal. Full-scale.",feats:["Everything in Launchpad","GCC-High / compliance","CMMC / FedRAMP","Multi-agent orchestration","AI governance framework","Managed services"],cta:"Contact Us"},
+  {name:"AI Discovery",price:"Free",per:"",color:C.teal,pop:false,desc:"30-min call. We review your assessment results and tell you what we'd do first.",feats:["Review your assessment results","2-3 priority recommendations","Honest fit assessment","Zero obligation"],cta:"Book Free Call"},
+  {name:"AI Quick Scan",price:"$2,500",per:"/10 hrs",color:C.blue,pop:false,desc:"Our scripts on YOUR tenant. Real findings, not surveys.",feats:["Automated M365/Azure diagnostic","PowerShell tenant analysis","Ungoverned file & DLP gap report","License optimization findings","1-hour executive briefing","3 priority action items"],cta:"Start Scan"},
+  {name:"AI Readiness Sprint",price:"$7,500",per:"/30 hrs",color:C.violet,pop:true,desc:"Full engagement. Stakeholder interviews to boardroom deliverable.",feats:["Everything in Quick Scan","Stakeholder interviews (3-5)","Process mapping (core workflows)","90-day prioritized roadmap","Executive presentation deck","Tool & vendor recommendations"],cta:"Start Sprint"},
+  {name:"AI Launchpad",price:"$15,000",per:"/month",color:C.coral,pop:false,desc:"Implementation. Agents, automations, training, results.",feats:["Everything in Sprint","Copilot Studio agents (production)","Custom Power Automate workflows","Staff training (up to 20)","Monthly optimization reviews","Priority support + Slack channel"],cta:"Launch Now"},
 ];
 const PROMPTS = [
   {cat:"Business",title:"AI Use Case Identifier",color:C.teal,prompt:"I run a [INDUSTRY] business with [X] employees. Top 3 time-consuming tasks: [list]. Current tools: [list]. Budget: [RANGE]. Identify top 5 AI use cases ranked by: (1) time savings, (2) difficulty, (3) 90-day ROI. For each, recommend specific tools and 2-sentence plan."},
@@ -489,74 +489,277 @@ function ValueProps() {
 }
 
 /* ═══════════════ ASSESSMENT ═══════════════ */
+const INDUSTRIES = [
+  {v:"financial",l:"Financial Services",avg:61},{v:"healthcare",l:"Healthcare",avg:54},
+  {v:"professional",l:"Professional Services",avg:58},{v:"manufacturing",l:"Manufacturing",avg:49},
+  {v:"legal",l:"Legal",avg:44},{v:"govdef",l:"Government / Defense",avg:52},
+  {v:"technology",l:"Technology",avg:67},{v:"retail",l:"Retail / Distribution",avg:51},
+  {v:"energy",l:"Energy / Utilities",avg:53},{v:"education",l:"Education",avg:48},
+  {v:"insurance",l:"Insurance / Benefits",avg:56},{v:"construction",l:"Construction / Engineering",avg:45},
+  {v:"nonprofit",l:"Nonprofit",avg:46},{v:"other",l:"Other",avg:52},
+];
+const JOB_TITLES = ["CIO","CTO","VP of IT","Director of IT","IT Manager","VP of Operations","COO","CEO / Founder","CISO","Other"];
+const EMP_RANGES = ["1-10","11-50","51-200","201-500","501-1,000","1,001-5,000","5,001-10,000","10,000+"];
+const REV_RANGES = ["< $1M","$1M - $5M","$5M - $25M","$25M - $100M","$100M - $500M","$500M+","Prefer not to say"];
+const PAIN_POINTS = [
+  "Manual processes consuming too many hours",
+  "Data scattered across multiple systems",
+  "Compliance or governance gaps",
+  "Employees resistant to new technology",
+  "AI tools deployed but not delivering ROI",
+  "No clear AI strategy or roadmap",
+  "Difficulty measuring operational efficiency",
+  "Cybersecurity or data privacy concerns",
+  "Talent shortage or skills gaps",
+  "Competitor pressure to adopt AI faster",
+];
+
+/* ═══════════════ ARIA SCORE — AI Readiness & Implementation Assessment ═══════════════ */
+// 6 dimensions, each 1-5, total 6-30 → 3 complexity tiers → pricing multiplier
+const ARIA_REG_INDUSTRIES = ["financial","healthcare","govdef","insurance","legal","energy"]; // regulated
+const calcARIA = (intake, domainScores) => {
+  // D1: Org Size (employees)
+  const empMap = {"1-10":1,"11-50":1,"51-200":2,"201-500":3,"501-1,000":4,"1,001-5,000":4,"5,001-10,000":5,"10,000+":5};
+  const d1 = empMap[intake.employees] || 2;
+  // D2: Revenue Scale
+  const revMap = {"< $1M":1,"$1M - $5M":1,"$5M - $25M":2,"$25M - $100M":3,"$100M - $500M":4,"$500M+":5,"Prefer not to say":2};
+  const d2 = revMap[intake.revenue] || 2;
+  // D3: Regulatory Exposure (industry + governance score)
+  const isReg = ARIA_REG_INDUSTRIES.includes(intake.industry);
+  const govScore = domainScores?.governance ?? 50;
+  const d3 = isReg ? (govScore < 30 ? 5 : govScore < 50 ? 4 : 3) : (govScore < 30 ? 3 : govScore < 50 ? 2 : 1);
+  // D4: Tech Footprint (tech readiness inversely = more complex if low)
+  const techScore = domainScores?.tech ?? 50;
+  const d4 = techScore < 20 ? 5 : techScore < 40 ? 4 : techScore < 60 ? 3 : techScore < 80 ? 2 : 1;
+  // D5: Data Sensitivity (regulated industry + data foundation gaps)
+  const dataScore = domainScores?.data ?? 50;
+  const d5 = isReg ? (dataScore < 40 ? 5 : dataScore < 60 ? 4 : 3) : (dataScore < 40 ? 3 : dataScore < 60 ? 2 : 1);
+  // D6: AI Adoption Scope (use case clarity + strategy maturity)
+  const ucScore = domainScores?.usecase ?? 50;
+  const stratScore = domainScores?.strategy ?? 50;
+  const aiMaturity = (ucScore + stratScore) / 2;
+  const d6 = aiMaturity >= 80 ? 5 : aiMaturity >= 60 ? 4 : aiMaturity >= 40 ? 3 : aiMaturity >= 20 ? 2 : 1;
+
+  const total = d1 + d2 + d3 + d4 + d5 + d6;
+  const tier = total >= 21 ? "enterprise" : total >= 13 ? "professional" : "standard";
+  const mult = tier === "enterprise" ? 3.0 : tier === "professional" ? 1.8 : 1.0;
+  const tierLabel = tier === "enterprise" ? "Enterprise" : tier === "professional" ? "Professional" : "Standard";
+  const tierColor = tier === "enterprise" ? "#7C3AED" : tier === "professional" ? "#3B82F6" : "#0D9488";
+
+  return {
+    dimensions: [
+      {name:"Organizational Size",score:d1,max:5},
+      {name:"Revenue Scale",score:d2,max:5},
+      {name:"Regulatory Exposure",score:d3,max:5},
+      {name:"Technical Footprint",score:d4,max:5},
+      {name:"Data Sensitivity",score:d5,max:5},
+      {name:"AI Adoption Scope",score:d6,max:5},
+    ],
+    total, tier, mult, tierLabel, tierColor,
+    pricing: {
+      scan: {base:2500, adjusted:Math.round(2500*mult/100)*100, hours:Math.round(10*mult)},
+      sprint: {base:7500, adjusted:Math.round(7500*mult/100)*100, hours:Math.round(30*mult)},
+      launchpad: {base:15000, adjusted:Math.round(15000*mult/100)*100, hours:Math.round(60*mult)},
+    }
+  };
+};
+
 function Assessment({id}) {
-  const [started, setStarted] = useState(false);
+  const [phase, setPhase] = useState("landing"); // landing, intake, questions, results
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState({});
-  const [done, setDone] = useState(false);
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [intake, setIntake] = useState({name:"",email:"",title:"",company:"",industry:"",employees:"",revenue:"",pains:[]});
+  const [intakeErr, setIntakeErr] = useState("");
+  const upI = (k,v) => setIntake(p=>({...p,[k]:v}));
+  const togglePain = (p) => setIntake(prev => ({...prev, pains: prev.pains.includes(p) ? prev.pains.filter(x=>x!==p) : prev.pains.length < 3 ? [...prev.pains, p] : prev.pains}));
+
   const cur = AQ[step], total = 35, answered = Object.keys(ans).length;
   const ds = (di) => { let y=0; for(let q=0;q<5;q++){const v=ans[di+"-"+q]; if(v==="yes")y++; else if(v==="partial")y+=.5} return Math.round((y/5)*100); };
   const overall = () => { let y=0; Object.values(ans).forEach(v=>{if(v==="yes")y++;else if(v==="partial")y+=.5}); return Math.round((y/total)*100); };
-  const lvl = (s) => s>=80?{l:"AI-Leading",c:C.teal,d:"Above-average maturity. Focus shifts to scaling, governance, and systematic competitive advantage."}:s>=65?{l:"AI-Ready",c:C.blue,d:"Strong foundations — ready for production deployment. The window of advantage is open."}:s>=40?{l:"AI-Building",c:C.coral,d:"Partial readiness — some domains strong, critical gaps remain. Right time to act."}:{l:"AI-Unready",c:C.rose,d:"Foundational gaps will limit any AI investment. Addressing these first has the highest ROI."};
+  const lvl = (s) => s>=80?{l:"AI-Leading",c:C.teal}:s>=65?{l:"AI-Ready",c:C.blue}:s>=40?{l:"AI-Building",c:C.coral}:{l:"AI-Unready",c:C.rose};
+  const indObj = INDUSTRIES.find(i=>i.v===intake.industry) || {l:"your industry",avg:52};
 
-  // CTA intelligence — maps score to specific recommendation
-  const getCTA = (s, domains) => {
+  const getCTA = (s, domains, aria) => {
     const sorted = [...domains].sort((a,b)=>a.score-b.score);
     const low1 = sorted[0], low2 = sorted[1];
+    const co = intake.company || "Your organization";
     const domainInsight = (name, score) => {
-      if(name==="Data Foundation"&&score<40) return "Gartner reports that 85% of AI projects fail due to poor data quality. Fixing data foundations first has the highest leverage.";
-      if(name==="Process Maturity"&&score<40) return "McKinsey's 2025 survey found organizations reporting significant AI returns were twice as likely to have redesigned workflows before selecting tools.";
-      if(name==="People & Culture"&&score<50) return "BCG research suggests AI success is 70% people, processes, and culture — only 10% algorithms. Change management is critical.";
-      if(name==="Governance & Compliance"&&score<50) return "The EY Responsible AI Pulse survey found only 1 in 3 companies have proper AI governance controls despite broad AI integration.";
-      if(name==="Technology Readiness"&&score<50) return "This isn't about buying more tools — it's about ensuring your existing stack is configured, connected, and AI-ready.";
-      if(name==="Strategy & ROI"&&score<50) return "McKinsey found only 39% of organizations report enterprise-level EBIT impact from AI despite widespread adoption. A structured strategy changes that.";
-      if(name==="Use Case Clarity"&&score<50) return "The right starting point is narrowing to 1-2 high-impact, low-risk use cases that demonstrate ROI fast.";
-      return "Targeted improvements in this domain will unlock measurable AI capabilities.";
+      if(name==="Data Foundation"&&score<40) return "Gartner reports 85% of AI projects fail due to poor data quality. This is your highest-leverage fix.";
+      if(name==="Process Maturity"&&score<40) return "McKinsey found organizations with redesigned workflows are 2x more likely to achieve AI returns.";
+      if(name==="People & Culture"&&score<50) return "BCG: AI success is 70% people/culture, only 10% algorithms. Change management is critical.";
+      if(name==="Governance & Compliance"&&score<50) return "EY found only 1 in 3 companies have proper AI governance despite broad adoption.";
+      if(name==="Technology Readiness"&&score<50) return "Not about buying more tools — it's ensuring your existing stack is configured and AI-ready.";
+      if(name==="Strategy & ROI"&&score<50) return "Only 39% report enterprise EBIT impact from AI (McKinsey 2025). A structured strategy changes that.";
+      if(name==="Use Case Clarity"&&score<50) return "Start with 1-2 high-impact, low-risk use cases. Breadth kills ROI; depth creates it.";
+      return "Targeted improvements here will unlock measurable AI capabilities.";
     };
-    const pkg = s>=80?{name:"AI Launchpad",price:"$7,500/mo",what:"End-to-end implementation: Copilot Studio agents, custom automations, staff training for up to 20 people, monthly reviews, and priority support."}
-      :s>=65?{name:"AI Launchpad",price:"$7,500/mo",what:"Production deployment: Copilot Studio agents, 1-2 custom automations, staff training, monthly reviews. Everything in Sprint plus implementation."}
-      :s>=40?{name:"AI Readiness Sprint",price:"$2,500",what:"Full 35-point deep-dive assessment, data and process audit, prioritized AI roadmap, tool recommendations, executive briefing, and 90-day action plan."}
-      :{name:"AI Readiness Sprint",price:"$2,500",what:"Focused engagement to address your lowest-scoring domains, build missing foundations, and create a prioritized 90-day roadmap with executive briefing."};
+    const ap = aria.pricing;
+    const pkg = s>=80
+      ? {name:"AI Launchpad",price:`$${ap.launchpad.adjusted.toLocaleString()}/mo`,hours:`${ap.launchpad.hours} hrs/mo`,what:"Implementation: Copilot Studio agents, custom automations, staff training, monthly optimization reviews.",value:"Avg client sees 87% faster processing, $145K+ annual savings"}
+      : s>=65
+      ? {name:"AI Readiness Sprint",price:`$${ap.sprint.adjusted.toLocaleString()}`,hours:`${ap.sprint.hours} hrs`,what:`${ap.sprint.hours}-hour engagement: stakeholder interviews, M365/Azure tenant diagnostic, process mapping, 90-day roadmap, executive deck.`,value:"Clients typically identify $50-150K in optimization opportunities in the first audit"}
+      : {name:"AI Quick Scan",price:`$${ap.scan.adjusted.toLocaleString()}`,hours:`${ap.scan.hours} hrs`,what:`${ap.scan.hours}-hour engagement: automated tenant diagnostic with our PowerShell scripts on YOUR systems, scored report with actual findings, executive briefing with priority recommendations.`,value:"Moves you from self-reported survey to evidence-based findings from your actual environment"};
     return {low1,low2,domainInsight,pkg,
       honest: s>=80
-        ? `At ${s}%, your organization is in the AI-Leading stage — ahead of most. Your foundations are strong. The focus now shifts to scaling and governance to maintain that advantage.`
+        ? `${co} scored ${s}% — AI-Leading. Ahead of most ${indObj.l} organizations (industry avg: ${indObj.avg}%). Foundations are strong. Focus on scaling and governance.`
         : s>=65
-        ? `At ${s}%, your organization is AI-Ready — which puts you ahead of the majority. Your critical gaps are ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%). Addressing these unlocks production deployment.`
+        ? `${co} scored ${s}% — AI-Ready, above the ${indObj.l} average of ${indObj.avg}%. Gaps in ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%) are the last barriers to production deployment.`
         : s>=40
-        ? `At ${s}%, your organization is in the AI-Building stage — which is where most organizations find themselves right now. Your critical gaps are ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%). Industry research consistently identifies these as the primary drivers of AI deployment failure.`
-        : `At ${s}%, your organization is in the early stages of AI readiness. ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%) need foundational work before any AI tool deployment will deliver returns.`,
+        ? `${co} scored ${s}% — AI-Building. This is ${s>indObj.avg?'above':'below'} the ${indObj.l} average of ${indObj.avg}%. Critical gaps: ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%). These two domains drive the majority of AI deployment failures.`
+        : `${co} scored ${s}% — AI-Unready. The ${indObj.l} average is ${indObj.avg}%. ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%) need foundational work before AI tools will deliver returns.`,
       practical: s>=65
-        ? `Organizations at your level that deploy AI into well-prepared workflows typically see measurable results within 60-90 days. McKinsey reports that companies redesigning workflows before selecting tools are twice as likely to achieve enterprise-level impact.`
-        : `S&P Global reported that 42% of companies abandoned most AI initiatives in 2025 — up from 17% the prior year — largely because they deployed tools before data and processes were ready. Addressing foundations first is the highest-ROI investment you can make.`,
+        ? `Organizations that deploy AI into prepared workflows see results in 60-90 days. Companies redesigning workflows first are 2x more likely to achieve enterprise impact (McKinsey 2025).`
+        : `42% of companies abandoned most AI initiatives in 2025 — up from 17% prior year (S&P Global) — because they deployed tools before data and processes were ready.`,
     };
   };
 
-  const sendReport = async () => {
-    if(!email)return; setSending(true);
+  const saveResults = async () => {
+    setSaving(true);
+    const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
+    const aria = calcARIA(intake, dScores);
     try {
       await fetch("/api/assessment", {method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({email,score:overall(),level:lvl(overall()).l,domains:AQ.map((d,i)=>({name:d.d,score:ds(i)}))})});
-      setSent(true);
-    } catch(e) { console.error(e); setSent(true); }
-    setSending(false);
+        body:JSON.stringify({...intake, industryLabel:indObj.l, overallScore:overall(), stage:lvl(overall()).l, domains, rawAnswers:ans,
+          ariaScore:aria.total, ariaTier:aria.tierLabel, ariaMult:aria.mult, ariaPricing:aria.pricing})});
+      setSaved(true);
+    } catch(e) { console.error(e); setSaved(true); }
+    setSaving(false);
   };
 
-  // Landing state
-  if (!started) return (
+  const generatePDF = () => {
+    if(!saved) saveResults();
+    const s = overall(), lv = lvl(s);
+    const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
+    const aria = calcARIA(intake, dScores);
+    const cta = getCTA(s, domains, aria);
+    const co = intake.company || "Organization";
+    const w = window.open('','_blank');
+    w.document.write(`<!DOCTYPE html><html><head><title>AI Readiness Report — ${co} — TheBHTLabs</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;700&display=swap');
+      *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;color:#0F172A;padding:40px;max-width:800px;margin:0 auto}
+      @media print{body{padding:20px}button,.no-print{display:none!important}.page-break{page-break-before:always}}
+      h1{font-size:26px;font-weight:800;letter-spacing:-0.03em}h2{font-size:17px;font-weight:700;margin:24px 0 12px}
+      .card{padding:16px;border-radius:12px;border:1px solid #E2E8F0}
+      .insight{font-size:13px;color:#475569;line-height:1.7;margin-bottom:8px}
+    </style></head><body>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #0D9488">
+      <div><h1>${co} — AI Readiness Report</h1>
+      <p style="color:#64748B;font-size:12px;margin-top:4px">Prepared for ${intake.name}${intake.title?' · '+intake.title:''} · ${new Date().toLocaleDateString()}</p>
+      <p style="color:#94A3B8;font-size:11px">${indObj.l}${intake.employees?' · '+intake.employees+' employees':''}${intake.revenue&&intake.revenue!=='Prefer not to say'?' · '+intake.revenue:''}</p></div>
+      <div style="text-align:right"><div style="font-weight:800;font-size:15px;color:#0F172A">TheBHT<span style="color:#0D9488">Labs</span></div>
+      <div style="font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">thebhtlabs.com</div></div>
+    </div>
+    <div style="display:flex;gap:24px;align-items:center;margin:24px 0;padding:20px;background:#F8FAFC;border-radius:14px">
+      <div style="width:100px;height:100px;border-radius:50%;background:${lv.c}11;border:3px solid ${lv.c};display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0">
+        <div style="font-size:32px;font-weight:800;color:${lv.c};font-family:'IBM Plex Mono',monospace">${s}%</div>
+        <div style="font-size:10px;font-weight:700;color:${lv.c}">${lv.l}</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:#0F172A;margin-bottom:6px">Industry Benchmark: ${indObj.l} average is ${indObj.avg}%</div>
+        <div style="height:24px;background:#E2E8F0;border-radius:6px;position:relative;overflow:hidden">
+          <div style="height:100%;width:${s}%;background:${lv.c};border-radius:6px"></div>
+          <div style="position:absolute;left:${indObj.avg}%;top:0;height:100%;width:2px;background:#0F172A"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:#94A3B8">
+          <span>You: ${s}%</span><span>${indObj.l} avg: ${indObj.avg}%</span>
+        </div>
+      </div>
+    </div>
+    <h2>Domain Breakdown</h2>
+    ${domains.map(d=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:3px">
+      <span style="font-size:12px;font-weight:600">${d.name}</span>
+      <span style="font-size:12px;font-weight:700;color:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};font-family:'IBM Plex Mono',monospace">${d.score}%</span></div>
+      <div style="height:16px;background:#F1F5F9;border-radius:4px;overflow:hidden">
+      <div style="height:100%;width:${d.score}%;background:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};border-radius:4px"></div></div></div>`).join('')}
+    ${intake.pains.length?`<h2>Business Pains Identified</h2><div style="display:flex;flex-wrap:wrap;gap:6px">${intake.pains.map(p=>`<span style="padding:5px 12px;border-radius:8px;background:#FFF7ED;border:1px solid #FDBA7433;font-size:11px;font-weight:600;color:#9A3412">${p}</span>`).join('')}</div>`:''}
+    <h2>ARIA Score — Engagement Complexity</h2>
+    <div style="padding:16px;border-radius:12px;background:#F8FAFC;border:1px solid #E2E8F0;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
+        <div style="width:56px;height:56px;border-radius:50%;background:${aria.tierColor}15;border:2px solid ${aria.tierColor};display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0">
+          <div style="font-size:20px;font-weight:800;color:${aria.tierColor};font-family:'IBM Plex Mono',monospace">${aria.total}</div>
+          <div style="font-size:7px;font-weight:700;color:${aria.tierColor}">/30</div>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:${aria.tierColor}">${aria.tierLabel} Complexity</div>
+          <div style="font-size:11px;color:#64748B">AI Readiness & Implementation Assessment · Pricing multiplier: ${aria.mult}x</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+        ${aria.dimensions.map(d=>`<div style="padding:6px 8px;border-radius:6px;background:#fff;border:1px solid #E2E8F0">
+          <div style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.5px">${d.name}</div>
+          <div style="font-size:14px;font-weight:700;color:#0F172A;font-family:'IBM Plex Mono',monospace">${d.score}<span style="font-size:10px;color:#94A3B8">/${d.max}</span></div>
+        </div>`).join('')}
+      </div>
+      <p style="font-size:10px;color:#94A3B8;margin-top:8px;line-height:1.5">ARIA Score determines engagement scope and pricing based on organizational complexity. Dimensions: size, revenue, regulatory exposure, technical footprint, data sensitivity, AI adoption scope. Methodology informed by NIST AI RMF principles and enterprise AI adoption research.</p>
+    </div>
+    <h2>Priority Gap Analysis</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    ${[...domains].sort((a,b)=>a.score-b.score).slice(0,3).map((d,i)=>`<div class="card">
+      <div style="font-size:10px;font-weight:700;color:#E11D48;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Priority ${i+1}</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">${d.name} · ${d.score}%</div>
+      <p style="font-size:11px;color:#64748B;line-height:1.6">${cta.domainInsight(d.name, d.score)}</p></div>`).join('')}
+    </div>
+    <div class="page-break"></div>
+    <h2>The Honest Assessment</h2>
+    <div style="padding:20px;border-radius:14px;background:#F8FAFC;border:1px solid #E2E8F0;margin-bottom:16px">
+      <p class="insight">${cta.honest}</p><p class="insight">${cta.practical}</p>
+    </div>
+    <h2>Recommended Next Step</h2>
+    <div style="padding:20px;border-radius:14px;background:#F0FDFA;border:1px solid #CCFBF1">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><div style="font-size:16px;font-weight:700;color:#0F766E">${cta.pkg.name}</div>
+        <div style="font-size:13px;color:#0D9488;font-weight:600;font-family:'IBM Plex Mono',monospace">${cta.pkg.price}</div></div></div>
+      <p class="insight">${cta.pkg.what}</p>
+      <p style="font-size:12px;color:#0F766E;font-weight:600;margin-top:8px;padding:10px;background:#ECFDF5;border-radius:8px">${cta.pkg.value}</p>
+      <div style="margin-top:14px;padding:14px;background:#fff;border-radius:10px;border:1px solid #E2E8F0">
+        <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:4px">What the free assessment told you vs. what a Quick Scan reveals:</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
+          <tr style="border-bottom:1px solid #eee"><td style="padding:6px;font-weight:600;color:#94A3B8;width:40%"></td><td style="padding:6px;font-weight:700;color:#94A3B8">Free Assessment</td><td style="padding:6px;font-weight:700;color:#0D9488">Quick Scan ($2,500)</td></tr>
+          <tr style="border-bottom:1px solid #eee"><td style="padding:6px;font-weight:600">Method</td><td style="padding:6px;color:#64748B">Self-reported survey</td><td style="padding:6px;color:#0F172A">Our scripts on your tenant</td></tr>
+          <tr style="border-bottom:1px solid #eee"><td style="padding:6px;font-weight:600">Data Finding</td><td style="padding:6px;color:#64748B">"Data Foundation: ${domains.find(d=>d.name==='Data Foundation')?.score||0}%"</td><td style="padding:6px;color:#0F172A">"14K ungoverned files, 3 DLP gaps, $47K unused licenses"</td></tr>
+          <tr><td style="padding:6px;font-weight:600">Deliverable</td><td style="padding:6px;color:#64748B">This PDF</td><td style="padding:6px;color:#0F172A">Evidence-based report + exec briefing</td></tr>
+        </table>
+      </div>
+      <div style="margin-top:14px;padding:14px;background:#fff;border-radius:10px;border:1px solid #E2E8F0">
+        <div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:4px">The next step costs nothing.</div>
+        <p style="font-size:12px;color:#64748B;line-height:1.6">30-minute discovery call. We walk through this report together. No pitch, no commitment.</p>
+        <div style="margin-top:8px;font-size:13px;font-weight:700;color:#0D9488">Schedule → thebhtlabs.com · info@bhtsolutions.com · (513) 638-1986</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;padding:16px;background:#F8FAFC;border-radius:12px;border:1px solid #E2E8F0">
+      <div style="font-size:11px;font-weight:700;margin-bottom:6px">About BHT Solutions</div>
+      <p style="font-size:10px;color:#64748B;line-height:1.5">SBA 8(a) · EDWOSB · WOSB · MS Azure Solutions Architect · CyberAB RP · Wiz Certified · CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · Active clearance, Secret eligible</p>
+      <p style="font-size:10px;color:#64748B;line-height:1.5;margin-top:4px">Azure Gov · M365 GCC/GCC-High · CMMC L2 · FedRAMP Advisory · Copilot Studio · Power Platform · AI Governance (NIST RMF)</p>
+      <p style="font-size:8px;color:#94A3B8;font-style:italic;margin-top:6px">Results vary. Industry stats from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), BCG (2024). Pricing illustrative.</p>
+    </div>
+    <div style="text-align:center;margin-top:20px" class="no-print">
+      <button onclick="window.print()" style="padding:12px 28px;border-radius:10px;border:none;background:#0D9488;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">Save as PDF (Ctrl+P)</button>
+    </div></body></html>`);
+    w.document.close();
+  };
+
+  // ═══ LANDING ═══
+  if (phase==="landing") return (
     <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
       <div style={{maxWidth:720,margin:"0 auto",padding:"0 24px",textAlign:"center"}}>
-        <SH tag="Takes 5 minutes" title="Is your business AI-ready?" desc="Our 35-point assessment evaluates 7 critical dimensions. Used by 200+ organizations from startups to Fortune 500." />
-        <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,padding:"56px 40px",boxShadow:C.shadowMd}}>
-          <div style={{fontSize:56,marginBottom:20}}>◈</div>
-          <h3 style={{fontSize:24,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:12}}>35-Point AI Readiness Assessment</h3>
-          <p style={{color:C.textMuted,fontSize:15,lineHeight:1.7,maxWidth:480,margin:"0 auto 8px"}}>
-            7 domains · 5 questions each · Personalized score and roadmap
-          </p>
-          <p style={{color:C.textFaint,fontSize:12,fontFamily:F.m,marginBottom:28}}>Free · No account required · Results emailed instantly</p>
-          <button onClick={()=>setStarted(true)} style={{padding:"14px 40px",borderRadius:12,cursor:"pointer",fontSize:16,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`}}>
+        <SH tag="Takes 5 minutes · Used by 200+ organizations" title="Is your business AI-ready?" desc="7 domains · 35 questions · Personalized report with industry benchmarks, gap analysis, and recommended next step." />
+        <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,padding:"48px 40px",boxShadow:C.shadowMd}}>
+          <div style={{fontSize:48,marginBottom:16}}>◈</div>
+          <h3 style={{fontSize:22,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:10}}>35-Point AI Readiness Assessment</h3>
+          <div style={{display:"flex",justifyContent:"center",gap:16,flexWrap:"wrap",marginBottom:20}}>
+            {["Personalized score vs industry peers","Priority gap analysis with cited research","Recommended engagement + pricing","Downloadable PDF for your leadership team"].map(b=>(
+              <div key={b} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.textMuted,fontFamily:F.b}}>
+                <span style={{color:C.teal,fontWeight:800}}>✓</span>{b}
+              </div>
+            ))}
+          </div>
+          <p style={{color:C.textFaint,fontSize:11,fontFamily:F.m,marginBottom:24}}>Free · No credit card · Results in 5 minutes · PDF you can share with your board</p>
+          <button onClick={()=>setPhase("intake")} style={{padding:"14px 40px",borderRadius:12,cursor:"pointer",fontSize:16,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`}}>
             Start Assessment →
           </button>
         </div>
@@ -564,129 +767,109 @@ function Assessment({id}) {
     </section>
   );
 
-  const generatePDF = () => {
-    const s = overall(), lv = lvl(s);
-    const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
-    const cta = getCTA(s, domains);
-    const w = window.open('','_blank');
-    w.document.write(`<!DOCTYPE html><html><head><title>AI Readiness Report — TheBHTLabs</title>
-    <style>
-      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;700&display=swap');
-      *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;color:#0F172A;padding:48px;max-width:800px;margin:0 auto}
-      @media print{body{padding:24px}button,.no-print{display:none!important}.page-break{page-break-before:always}}
-      h1{font-size:28px;font-weight:800;letter-spacing:-0.03em}
-      h2{font-size:18px;font-weight:700;margin:28px 0 14px}
-      .score-circle{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 auto 16px}
-      .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-      .card{padding:16px;border-radius:12px;border:1px solid #E2E8F0}
-      .cta-section{padding:24px;border-radius:14px;margin:16px 0}
-      .insight{font-size:13px;color:#475569;line-height:1.7;margin-bottom:10px}
-      .footer-note{font-size:9px;color:#94A3B8;font-style:italic;margin-top:8px;line-height:1.5}
-    </style></head><body>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #0D9488">
-      <div><h1 style="color:#0F172A">AI Readiness Report</h1>
-      <p style="color:#64748B;font-size:13px;margin-top:4px">Generated by TheBHTLabs · ${new Date().toLocaleDateString()}</p></div>
-      <div style="text-align:right"><div style="font-weight:800;font-size:15px;color:#0F172A">TheBHT<span style="color:#0D9488">Labs</span></div>
-      <div style="font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">CAGE: 7DBB9 · thebhtlabs.com</div></div>
-    </div>
-    <div style="text-align:center;margin:32px 0">
-      <div class="score-circle" style="background:${lv.c}11;border:3px solid ${lv.c}">
-        <div style="font-size:36px;font-weight:800;color:${lv.c};font-family:'IBM Plex Mono',monospace">${s}%</div>
-        <div style="font-size:11px;font-weight:700;color:${lv.c}">${lv.l}</div>
-      </div>
-      <p style="color:#475569;font-size:14px;max-width:500px;margin:0 auto">${lv.d}</p>
-    </div>
-    <h2>Domain Breakdown</h2>
-    ${domains.map(d=>`
-      <div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-          <span style="font-size:13px;font-weight:600">${d.name}</span>
-          <span style="font-size:13px;font-weight:700;color:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};font-family:'IBM Plex Mono',monospace">${d.score}%</span>
+  // ═══ INTAKE FORM ═══
+  if (phase==="intake") {
+    const validate = () => {
+      if(!intake.name.trim()) return "Your full name is required";
+      if(!intake.email.trim() || !intake.email.includes("@") || !intake.email.includes(".")) return "Valid business email required";
+      if(intake.email.match(/@(gmail|yahoo|hotmail|outlook|aol|icloud)\./i)) return "Please use your business email for a personalized report";
+      if(!intake.company.trim()) return "Company name is required";
+      if(!intake.industry) return "Select your industry for benchmark comparison";
+      if(!intake.employees) return "Select employee range";
+      return "";
+    };
+    const proceed = () => { const err = validate(); if(err){setIntakeErr(err);return;} setIntakeErr(""); setPhase("questions"); };
+    const inp = {padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none",width:"100%",background:C.bg,color:C.text};
+    const sel = {...inp, cursor:"pointer"};
+    return (
+      <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
+        <div style={{maxWidth:640,margin:"0 auto",padding:"0 24px"}}>
+          <SH tag="Step 1 of 2 — About You" title="Tell us about your organization" desc="So we can benchmark your results against industry peers and personalize your report." />
+          <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,padding:"32px",boxShadow:C.shadowMd}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Full Name *</label>
+                <input value={intake.name} onChange={e=>upI("name",e.target.value)} placeholder="Jane Smith" style={inp}/></div>
+              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Business Email *</label>
+                <input type="email" value={intake.email} onChange={e=>upI("email",e.target.value)} placeholder="jane@company.com" style={inp}/></div>
+              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Job Title</label>
+                <select value={intake.title} onChange={e=>upI("title",e.target.value)} style={sel}>
+                  <option value="">Select title...</option>{JOB_TITLES.map(t=><option key={t} value={t}>{t}</option>)}</select></div>
+              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Company *</label>
+                <input value={intake.company} onChange={e=>upI("company",e.target.value)} placeholder="Acme Corp" style={inp}/></div>
+              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Industry *</label>
+                <select value={intake.industry} onChange={e=>upI("industry",e.target.value)} style={sel}>
+                  <option value="">Select industry...</option>{INDUSTRIES.map(i=><option key={i.v} value={i.v}>{i.l}</option>)}</select></div>
+              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Employees *</label>
+                <select value={intake.employees} onChange={e=>upI("employees",e.target.value)} style={sel}>
+                  <option value="">Select range...</option>{EMP_RANGES.map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+              <div style={{gridColumn:"1/-1"}}><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Annual Revenue</label>
+                <select value={intake.revenue} onChange={e=>upI("revenue",e.target.value)} style={sel}>
+                  <option value="">Select range (optional)...</option>{REV_RANGES.map(r=><option key={r} value={r}>{r}</option>)}</select></div>
+            </div>
+            <div style={{marginTop:20}}>
+              <label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:8}}>Top Business Pains (select up to 3)</label>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {PAIN_POINTS.map(p=>(
+                  <button key={p} onClick={()=>togglePain(p)}
+                    style={{padding:"7px 14px",borderRadius:8,fontSize:11,fontWeight:600,fontFamily:F.h,cursor:"pointer",transition:"all .15s",
+                      background:intake.pains.includes(p)?C.teal+"0D":"transparent",color:intake.pains.includes(p)?C.teal:C.textMuted,
+                      border:`1px solid ${intake.pains.includes(p)?C.teal+"33":C.border}`}}>{p}</button>
+                ))}
+              </div>
+            </div>
+            {intakeErr && <p style={{color:C.rose,fontSize:12,fontWeight:600,fontFamily:F.m,marginTop:12}}>{intakeErr}</p>}
+            <div style={{marginTop:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <button onClick={()=>setPhase("landing")} style={{padding:"10px 20px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted}}>← Back</button>
+              <button onClick={proceed} style={{padding:"12px 32px",borderRadius:10,border:"none",background:C.teal,color:"#fff",cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:F.h}}>
+                Continue to Assessment →
+              </button>
+            </div>
+            <p style={{fontSize:10,color:C.textFaint,fontFamily:F.m,marginTop:12,textAlign:"center"}}>Your data is used only to personalize your report. We don't sell or share your information.</p>
+          </div>
         </div>
-        <div style="height:20px;background:#F1F5F9;border-radius:4px;overflow:hidden">
-          <div style="height:100%;width:${d.score}%;background:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};border-radius:4px"></div>
-        </div>
-      </div>
-    `).join('')}
-    <h2>Priority Gap Analysis</h2>
-    <div class="grid">
-    ${[...domains].sort((a,b)=>a.score-b.score).slice(0,3).map((d,i)=>`
-      <div class="card">
-        <div style="font-size:11px;font-weight:700;color:#E11D48;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Priority ${i+1}</div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:6px">${d.name} · ${d.score}%</div>
-        <p style="font-size:12px;color:#64748B;line-height:1.6">${cta.domainInsight(d.name, d.score)}</p>
-      </div>
-    `).join('')}
-    </div>
+      </section>
+    );
+  }
 
-    <div class="page-break"></div>
-    <h2 style="margin-top:32px">The Honest Assessment</h2>
-    <div class="cta-section" style="background:#F8FAFC;border:1px solid #E2E8F0">
-      <p class="insight">${cta.honest}</p>
-      <p class="insight">${cta.practical}</p>
-    </div>
-
-    <h2>Your Recommended Next Step</h2>
-    <div class="cta-section" style="background:#F0FDFA;border:1px solid #CCFBF1">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div>
-          <div style="font-size:16px;font-weight:700;color:#0F766E">${cta.pkg.name}</div>
-          <div style="font-size:13px;color:#0D9488;font-weight:600;font-family:'IBM Plex Mono',monospace">${cta.pkg.price}</div>
-        </div>
-      </div>
-      <p class="insight">${cta.pkg.what}</p>
-      <p class="insight" style="margin-top:12px">This is the same foundation we built for a defense contractor that went from incomplete NIST 800-171 documentation to 110/110 practices in 90 days, and an insurance broker that achieved 87% faster document processing through AI automation.</p>
-      <div style="margin-top:16px;padding:16px;background:#fff;border-radius:10px;border:1px solid #E2E8F0">
-        <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:4px">The next step costs nothing.</div>
-        <p style="font-size:13px;color:#64748B;line-height:1.6">A 30-minute discovery call where we walk through this report together and tell you what we would prioritize first. Most people find that conversation clarifying regardless of what they decide to do next.</p>
-        <div style="margin-top:12px;font-size:13px;font-weight:700;color:#0D9488">Schedule your call → thebhtlabs.com · info@bhtsolutions.com · (513) 638-1986</div>
-      </div>
-    </div>
-
-    <div style="margin-top:24px;padding:20px;background:#F8FAFC;border-radius:12px;border:1px solid #E2E8F0">
-      <div style="font-size:12px;font-weight:700;color:#0F172A;margin-bottom:8px">About BHT Solutions</div>
-      <p style="font-size:11px;color:#64748B;line-height:1.6">Bluebery Hawaii Technology Solutions LLC · SBA 8(a) · EDWOSB · WOSB · Microsoft Certified Azure Solutions Architect · CyberAB Registered Practitioner · Wiz-certified Cloud Security · Active Public Trust clearance, Secret eligible · CAGE: 7DBB9 · UEI: ZW6GMVL368J6</p>
-      <p style="font-size:11px;color:#64748B;line-height:1.6;margin-top:6px">Core capabilities: Azure Government Cloud · M365 GCC/GCC-High · CMMC Level 2 · FedRAMP Advisory · Copilot Studio · Power Platform · AI Governance (NIST RMF)</p>
-      <p class="footer-note" style="margin-top:10px">Results vary based on organizational readiness, implementation approach, and market conditions. Industry statistics cited are from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), and BCG (2024). Engagement scope and pricing are illustrative and subject to discussion. BHT engagement outcomes referenced are based on actual client engagements.</p>
-    </div>
-
-    <div style="margin-top:24px;padding-top:16px;border-top:2px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-weight:700;font-size:13px;color:#0F172A">Ready to act on these results?</div>
-      <div style="font-size:12px;color:#64748B">info@bhtsolutions.com · thebhtlabs.com · (513) 638-1986</div></div>
-      <div style="text-align:right;font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">
-        SBA 8(a) · EDWOSB · WOSB<br>CAGE: 7DBB9 · UEI: ZW6GMVL368J6<br>CyberAB RP · Wiz Certified
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:24px" class="no-print">
-      <button onclick="window.print()" style="padding:12px 28px;border-radius:10px;border:none;background:#0D9488;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">
-        Save as PDF (Ctrl+P → Save as PDF)
-      </button>
-    </div>
-    </body></html>`);
-    w.document.close();
-  };
-
-  // Results state
-  if (done) {
+  // ═══ RESULTS ═══
+  if (phase==="results") {
     const sc = overall(), lv = lvl(sc);
     const domainResults = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
-    const cta = getCTA(sc, domainResults);
+    const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
+    const aria = calcARIA(intake, dScores);
+    const cta = getCTA(sc, domainResults, aria);
     const sorted = [...domainResults].sort((a,b)=>a.score-b.score);
+    if(!saved && !saving) saveResults(); // auto-save on results view
     return (
       <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
         <div style={{maxWidth:800,margin:"0 auto",padding:"0 24px"}}>
-          <SH tag="Your Results" title="AI Readiness Score" />
+          <SH tag={`Results for ${intake.company}`} title="AI Readiness Score" />
           <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,overflow:"hidden",boxShadow:C.shadowMd}}>
-            {/* Score header */}
-            <div style={{padding:"40px",textAlign:"center",borderBottom:`1px solid ${C.border}`}}>
-              <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:120,height:120,borderRadius:"50%",background:`conic-gradient(${lv.c} ${sc*3.6}deg, ${C.bgMuted} 0deg)`,margin:"0 auto 16px",position:"relative"}}>
-                <div style={{width:96,height:96,borderRadius:"50%",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>
-                  <span style={{color:lv.c,fontSize:36,fontWeight:800,fontFamily:F.m}}>{sc}</span>
-                  <span style={{color:C.textFaint,fontSize:11,fontFamily:F.m}}>/100</span>
+            {/* Score + Industry benchmark */}
+            <div style={{padding:"32px 40px",borderBottom:`1px solid ${C.border}`}}>
+              <div style={{display:"flex",alignItems:"center",gap:28,flexWrap:"wrap",justifyContent:"center"}}>
+                <div style={{textAlign:"center"}}>
+                  <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:110,height:110,borderRadius:"50%",background:`conic-gradient(${lv.c} ${sc*3.6}deg, ${C.bgMuted} 0deg)`,position:"relative"}}>
+                    <div style={{width:88,height:88,borderRadius:"50%",background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column"}}>
+                      <span style={{color:lv.c,fontSize:32,fontWeight:800,fontFamily:F.m}}>{sc}</span>
+                      <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m}}>/100</span>
+                    </div>
+                  </div>
+                  <div style={{marginTop:8}}><Tag color={lv.c}>{lv.l}</Tag></div>
+                </div>
+                <div style={{flex:1,minWidth:240}}>
+                  <p style={{fontSize:13,fontWeight:600,color:C.navy,marginBottom:8}}>{intake.company} vs. {indObj.l} average</p>
+                  <div style={{position:"relative",height:28,background:C.bgMuted,borderRadius:8,overflow:"visible"}}>
+                    <div style={{height:"100%",width:`${sc}%`,background:lv.c,borderRadius:8,transition:"width .6s"}} />
+                    <div style={{position:"absolute",left:`${indObj.avg}%`,top:-4,height:36,width:2,background:C.navy,borderRadius:1}} />
+                    <span style={{position:"absolute",left:`${indObj.avg}%`,top:-18,transform:"translateX(-50%)",fontSize:9,fontWeight:700,fontFamily:F.m,color:C.navy,whiteSpace:"nowrap"}}>Industry: {indObj.avg}%</span>
+                  </div>
+                  <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
+                    <span style={{fontSize:11,fontWeight:600,color:lv.c,fontFamily:F.m}}>You: {sc}%</span>
+                    <span style={{fontSize:11,color:C.textFaint,fontFamily:F.m}}>{sc>=indObj.avg?"Above average":"Below average"}</span>
+                  </div>
                 </div>
               </div>
-              <div><Tag color={lv.c}>{lv.l}</Tag></div>
-              <p style={{color:C.textMuted,fontSize:15,lineHeight:1.7,maxWidth:480,margin:"14px auto 0"}}>{lv.d}</p>
             </div>
             {/* Domain breakdown */}
             <div style={{padding:28}}>
@@ -703,15 +886,54 @@ function Assessment({id}) {
                   </div>
                 );
               })}
+              {/* ARIA Score — Engagement Complexity */}
+              <div style={{marginTop:24,padding:20,borderRadius:14,background:`${aria.tierColor}05`,border:`1px solid ${aria.tierColor}20`}}>
+                <div style={{display:"flex",alignItems:"center",gap:14,marginBottom:12}}>
+                  <div style={{width:52,height:52,borderRadius:"50%",background:`${aria.tierColor}12`,border:`2px solid ${aria.tierColor}`,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",flexShrink:0}}>
+                    <span style={{fontSize:18,fontWeight:800,color:aria.tierColor,fontFamily:F.m}}>{aria.total}</span>
+                    <span style={{fontSize:8,fontWeight:700,color:aria.tierColor}}>/30</span>
+                  </div>
+                  <div>
+                    <h4 style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:aria.tierColor}}>ARIA Score: {aria.tierLabel} Complexity</h4>
+                    <p style={{fontSize:11,color:C.textMuted,fontFamily:F.m}}>AI Readiness & Implementation Assessment · Pricing scaled to your environment</p>
+                  </div>
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+                  {aria.dimensions.map(d=>(
+                    <div key={d.name} style={{padding:"6px 8px",borderRadius:8,background:C.bg,border:`1px solid ${C.border}`}}>
+                      <div style={{fontSize:9,color:C.textFaint,fontWeight:600,textTransform:"uppercase",letterSpacing:.5,fontFamily:F.m}}>{d.name}</div>
+                      <div style={{display:"flex",alignItems:"baseline",gap:2}}>
+                        <span style={{fontSize:16,fontWeight:800,color:C.navy,fontFamily:F.m}}>{d.score}</span>
+                        <span style={{fontSize:10,color:C.textFaint,fontFamily:F.m}}>/{d.max}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {/* Pricing tiers */}
+                <div style={{marginTop:12,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                  {[
+                    {n:"Quick Scan",p:aria.pricing.scan,h:aria.pricing.scan.hours,rec:sc<65},
+                    {n:"Readiness Sprint",p:aria.pricing.sprint,h:aria.pricing.sprint.hours,rec:sc>=65&&sc<80},
+                    {n:"Launchpad",p:aria.pricing.launchpad,h:aria.pricing.launchpad.hours,rec:sc>=80,mo:true},
+                  ].map(t=>(
+                    <div key={t.n} style={{padding:12,borderRadius:10,background:t.rec?C.teal+"08":C.bg,border:`1px solid ${t.rec?C.teal+"30":C.border}`,textAlign:"center"}}>
+                      {t.rec && <div style={{fontSize:8,fontWeight:800,color:C.teal,textTransform:"uppercase",letterSpacing:1,marginBottom:4,fontFamily:F.m}}>Recommended</div>}
+                      <div style={{fontSize:11,fontWeight:700,color:C.navy,fontFamily:F.h}}>{t.n}</div>
+                      <div style={{fontSize:16,fontWeight:800,color:t.rec?C.teal:C.navy,fontFamily:F.m}}>${t.p.adjusted.toLocaleString()}{t.mo?"/mo":""}</div>
+                      <div style={{fontSize:10,color:C.textFaint,fontFamily:F.m}}>{t.h} hours</div>
+                    </div>
+                  ))}
+                </div>
+                <p style={{fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:8,lineHeight:1.5}}>Pricing based on ARIA Score ({aria.total}/30, {aria.mult}x multiplier). Final scope confirmed in discovery call. Framework informed by NIST AI RMF principles and enterprise AI adoption research.</p>
+              </div>
 
-              {/* Intelligent CTA — The Honest Assessment */}
+              {/* Honest Assessment */}
               <div style={{marginTop:24,padding:20,borderRadius:14,background:C.bgSoft,border:`1px solid ${C.border}`}}>
                 <h4 style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:8}}>The Honest Assessment</h4>
                 <p style={{fontSize:13,color:C.textMuted,lineHeight:1.7,marginBottom:8}}>{cta.honest}</p>
                 <p style={{fontSize:12,color:C.textSoft,lineHeight:1.7}}>{cta.practical}</p>
               </div>
-
-              {/* Priority Gap Cards */}
+              {/* Priority Gaps */}
               <div style={{marginTop:16,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                 {sorted.slice(0,2).map((d,i)=>(
                   <div key={d.name} style={{padding:16,borderRadius:12,border:`1px solid ${d.score<40?C.rose+"30":C.coral+"30"}`,background:d.score<40?C.rose+"05":C.coral+"05"}}>
@@ -721,49 +943,49 @@ function Assessment({id}) {
                   </div>
                 ))}
               </div>
-
-              {/* Recommended Next Step */}
+              {/* Recommended + Value justification */}
               <div style={{marginTop:16,padding:20,borderRadius:14,background:C.tealBg,border:`1px solid ${C.teal}15`}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:8}}>
                   <div>
                     <h4 style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.tealDark}}>Recommended: {cta.pkg.name}</h4>
                     <span style={{fontSize:13,fontWeight:600,fontFamily:F.m,color:C.teal}}>{cta.pkg.price}</span>
                   </div>
                 </div>
-                <p style={{fontSize:12,color:C.textMuted,lineHeight:1.7,marginBottom:12}}>{cta.pkg.what}</p>
-                <div style={{padding:14,borderRadius:10,background:C.bg,border:`1px solid ${C.border}`}}>
-                  <p style={{fontSize:13,fontWeight:700,color:C.navy,marginBottom:4}}>The next step costs nothing.</p>
-                  <p style={{fontSize:12,color:C.textSoft,lineHeight:1.6}}>A 30-minute discovery call where we walk through this report and tell you what we'd prioritize first. No pitch, no commitment.</p>
-                </div>
-              </div>
-
-              {/* Email capture */}
-              {!sent ? (
-                <div style={{marginTop:16,padding:20,borderRadius:14,background:C.bg,border:`1px solid ${C.border}`}}>
-                  <p style={{fontSize:14,fontWeight:600,color:C.navy,marginBottom:10}}>Get your full report with personalized AI roadmap</p>
-                  <div style={{display:"flex",gap:8}}>
-                    <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="your@email.com"
-                      style={{flex:1,padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none"}} />
-                    <button onClick={sendReport} disabled={sending}
-                      style={{padding:"10px 24px",borderRadius:10,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff"}}>
-                      {sending ? "Sending..." : "Send Report"}
-                    </button>
+                <p style={{fontSize:12,color:C.textMuted,lineHeight:1.7,marginBottom:8}}>{cta.pkg.what}</p>
+                <p style={{fontSize:11,fontWeight:600,color:C.tealDark,padding:"8px 12px",background:C.teal+"08",borderRadius:8}}>{cta.pkg.value}</p>
+                {/* Free vs Paid comparison */}
+                <div style={{marginTop:12,padding:14,borderRadius:10,background:C.bg,border:`1px solid ${C.border}`}}>
+                  <p style={{fontSize:12,fontWeight:700,color:C.navy,marginBottom:8}}>What this assessment told you vs. what a Quick Scan reveals:</p>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:0,fontSize:11}}>
+                    <div style={{padding:6,fontWeight:700,color:C.textFaint}}></div>
+                    <div style={{padding:6,fontWeight:700,color:C.textFaint,borderBottom:`1px solid ${C.border}`}}>Free (this)</div>
+                    <div style={{padding:6,fontWeight:700,color:C.teal,borderBottom:`1px solid ${C.border}`}}>Quick Scan</div>
+                    <div style={{padding:6,fontWeight:600,borderBottom:`1px solid ${C.borderLight}`}}>Method</div>
+                    <div style={{padding:6,color:C.textSoft,borderBottom:`1px solid ${C.borderLight}`}}>Self-reported survey</div>
+                    <div style={{padding:6,color:C.navy,fontWeight:600,borderBottom:`1px solid ${C.borderLight}`}}>Our scripts on your systems</div>
+                    <div style={{padding:6,fontWeight:600,borderBottom:`1px solid ${C.borderLight}`}}>Finding</div>
+                    <div style={{padding:6,color:C.textSoft,borderBottom:`1px solid ${C.borderLight}`}}>"Data Foundation: {domainResults.find(d=>d.name==='Data Foundation')?.score||0}%"</div>
+                    <div style={{padding:6,color:C.navy,fontWeight:600,borderBottom:`1px solid ${C.borderLight}`}}>"14K files, 3 DLP gaps, $47K savings"</div>
+                    <div style={{padding:6,fontWeight:600}}>Output</div>
+                    <div style={{padding:6,color:C.textSoft}}>PDF report</div>
+                    <div style={{padding:6,color:C.navy,fontWeight:600}}>Evidence + exec briefing</div>
                   </div>
                 </div>
-              ) : (
-                <div style={{marginTop:16,padding:20,borderRadius:14,background:C.tealBg,border:`1px solid ${C.teal}15`,textAlign:"center"}}>
-                  <span style={{color:C.teal,fontSize:14,fontWeight:600}}>✓ Report sent! We'll follow up within 24 hours.</span>
+                <div style={{marginTop:12,padding:14,borderRadius:10,background:C.bg,border:`1px solid ${C.border}`}}>
+                  <p style={{fontSize:13,fontWeight:700,color:C.navy,marginBottom:4}}>The next step costs nothing.</p>
+                  <p style={{fontSize:12,color:C.textSoft,lineHeight:1.6}}>30-minute discovery call. We walk through this report and tell you what we'd prioritize. No pitch.</p>
                 </div>
-              )}
+              </div>
+              {/* Action buttons */}
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginTop:16}}>
-                <button onClick={()=>{setStarted(false);setStep(0);setAns({});setDone(false);setSent(false);setEmail("")}}
+                <button onClick={()=>{setPhase("landing");setStep(0);setAns({});setSaved(false);}}
                   style={{padding:"10px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted}}>Retake</button>
                 <button onClick={generatePDF}
                   style={{padding:"10px",borderRadius:10,border:"none",background:C.teal,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,color:"#fff"}}>📄 Download PDF</button>
                 <button onClick={()=>document.getElementById("contact")?.scrollIntoView({behavior:"smooth"})}
                   style={{padding:"10px",borderRadius:10,border:"none",background:C.violetBg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.violet}}>Book Discovery Call →</button>
               </div>
-              <p style={{fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:12,lineHeight:1.5,fontStyle:"italic"}}>Results vary based on organizational readiness, implementation approach, and market conditions. Industry statistics from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), and BCG (2024).</p>
+              <p style={{fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:12,lineHeight:1.5,fontStyle:"italic"}}>Results vary. Stats from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), BCG (2024). Pricing illustrative.</p>
             </div>
           </div>
         </div>
@@ -771,13 +993,12 @@ function Assessment({id}) {
     );
   }
 
-  // Questions state
+  // ═══ QUESTIONS ═══
   return (
     <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
       <div style={{maxWidth:800,margin:"0 auto",padding:"0 24px"}}>
-        <SH tag="Takes 5 minutes" title="Is your business AI-ready?" />
+        <SH tag={`Step 2 of 2 — ${intake.company}`} title="AI Readiness Questions" />
         <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,overflow:"hidden",boxShadow:C.shadowMd}}>
-          {/* Header */}
           <div style={{padding:"14px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${C.border}`}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <Tag color={C.teal}>Domain {step+1}/7</Tag>
@@ -785,11 +1006,9 @@ function Assessment({id}) {
             </div>
             <span style={{color:C.textFaint,fontSize:12,fontFamily:F.m}}>{answered}/{total}</span>
           </div>
-          {/* Progress bar */}
           <div style={{height:3,background:C.bgMuted}}>
             <div style={{height:"100%",background:`linear-gradient(90deg,${C.teal},${C.blue})`,width:`${(step/7)*100}%`,transition:"width .3s"}} />
           </div>
-          {/* Questions */}
           <div style={{padding:"20px 24px"}}>
             {cur.q.map((q, qi) => {
               const val = ans[step+"-"+qi];
@@ -808,9 +1027,8 @@ function Assessment({id}) {
               );
             })}
           </div>
-          {/* Nav */}
           <div style={{padding:"14px 24px",display:"flex",justifyContent:"space-between",borderTop:`1px solid ${C.border}`}}>
-            <button disabled={step===0} onClick={()=>setStep(step-1)}
+            <button disabled={step===0} onClick={()=>step===0?setPhase("intake"):setStep(step-1)}
               style={{padding:"10px 22px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:step===0?"default":"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted,opacity:step===0?.4:1}}>
               ← Back
             </button>
@@ -820,7 +1038,7 @@ function Assessment({id}) {
                 Next Domain →
               </button>
             ) : (
-              <button onClick={()=>setDone(true)}
+              <button onClick={()=>setPhase("results")}
                 style={{padding:"10px 28px",borderRadius:10,border:"none",background:`linear-gradient(135deg,${C.teal},${C.blue})`,color:"#fff",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h}}>
                 See My Results →
               </button>
