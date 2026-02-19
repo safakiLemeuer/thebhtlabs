@@ -7,7 +7,7 @@ export default function AdminPortal() {
   const [token, setToken] = useState(null);
   const [pass, setPass] = useState('');
   const [err, setErr] = useState('');
-  const [tab, setTab] = useState('posts');
+  const [tab, setTab] = useState('leads');
 
   useEffect(() => {
     const t = typeof window !== 'undefined' && sessionStorage.getItem('bht_admin');
@@ -39,6 +39,7 @@ export default function AdminPortal() {
   );
 
   const tabs = [
+    { id: 'leads', label: 'Leads & Analytics', icon: '🎯' },
     { id: 'posts', label: 'Blog Posts', icon: '📝' },
     { id: 'cases', label: 'Case Studies', icon: '📋' },
     { id: 'comments', label: 'Comments', icon: '💬' },
@@ -67,10 +68,364 @@ export default function AdminPortal() {
       </div>
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
+        {tab === 'leads' && <LeadsManager headers={headers} token={token} />}
         {tab === 'posts' && <BlogManager headers={headers} />}
         {tab === 'cases' && <CaseManager headers={headers} />}
         {tab === 'comments' && <CommentManager headers={headers} />}
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════ BLOG MANAGER ═══════════════ */
+
+/* ═══════════════ LEADS & ANALYTICS DASHBOARD ═══════════════ */
+function LeadsManager({ headers, token }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [filter, setFilter] = useState({ industry: '', minScore: '', maxScore: '', tier: '' });
+  const [view, setView] = useState('dashboard'); // dashboard, leads, lead-detail
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      let url = '/api/assessment?limit=200';
+      if (filter.industry) url += `&industry=${filter.industry}`;
+      if (filter.minScore) url += `&minScore=${filter.minScore}`;
+      if (filter.maxScore) url += `&maxScore=${filter.maxScore}`;
+      const r = await fetch(url, { headers });
+      if (r.ok) setData(await r.json());
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }, [headers, filter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const exportCSV = async () => {
+    try {
+      const r = await fetch('/api/assessment?format=csv&limit=500', { headers });
+      if (!r.ok) { alert('Export failed'); return; }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'bht-leads.csv'; a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) { alert('Export failed'); }
+  };
+
+  const tierColor = (t) => t === 'Enterprise' ? '#7C3AED' : t === 'Professional' ? '#3B82F6' : '#0D9488';
+  const stageColor = (s) => s === 'AI-Leading' ? '#0D9488' : s === 'AI-Ready' ? '#3B82F6' : s === 'AI-Building' ? '#F97316' : '#E11D48';
+
+  // AI Intelligence - generate approach recommendation
+  const aiIntel = (lead) => {
+    const pains = (() => { try { return JSON.parse(lead.pains || '[]'); } catch { return []; } })();
+    const weakest = [
+      { name: 'Data Foundation', score: lead.domain_foundation },
+      { name: 'Process Maturity', score: lead.domain_process },
+      { name: 'Technology', score: lead.domain_tech },
+      { name: 'People & Culture', score: lead.domain_people },
+      { name: 'Strategy & ROI', score: lead.domain_strategy },
+      { name: 'Governance', score: lead.domain_governance },
+      { name: 'Use Case Clarity', score: lead.domain_usecase },
+    ].sort((a, b) => a.score - b.score);
+
+    const tier = lead.aria_tier || 'Standard';
+    const isReg = ['Financial Services', 'Healthcare', 'Government / Defense', 'Insurance / Benefits', 'Legal', 'Energy / Utilities'].includes(lead.industry_label);
+
+    let approach = `**${lead.name}** (${lead.title || 'Executive'}) at **${lead.company}** · ${lead.industry_label} · ${lead.employees} employees`;
+    approach += `\n\nScore: ${lead.overall_score}% (${lead.stage}) · ARIA: ${lead.aria_score || '?'}/30 (${tier})`;
+    approach += `\n\n**Biggest gaps:** ${weakest[0].name} (${weakest[0].score}%), ${weakest[1].name} (${weakest[1].score}%)`;
+
+    if (pains.length) approach += `\n**Self-reported pains:** ${pains.join(', ')}`;
+
+    approach += '\n\n**Recommended approach:**\n';
+
+    if (lead.overall_score < 40) {
+      approach += `→ This is a foundational engagement. Lead with empathy — they know they're behind. Open with: "Your ${weakest[0].name} score tells us exactly where to focus first."`;
+      approach += `\n→ Recommend: AI Quick Scan to show them real findings from their environment.`;
+      if (isReg) approach += `\n→ Compliance angle: Their Governance score is ${lead.domain_governance}% — in ${lead.industry_label}, this is a risk vector. Reference EY stat (1 in 3 companies lack proper AI governance).`;
+      if (pains.includes('Compliance or governance gaps')) approach += `\n→ They self-identified compliance as a pain. Lead with CMMC/governance conversation.`;
+    } else if (lead.overall_score < 65) {
+      approach += `→ Mid-range — they have some foundation but gaps are blocking deployment. Position Sprint as the path to a boardroom-ready plan.`;
+      approach += `\n→ Lead with: "You're ahead of ${lead.overall_score > 52 ? 'most' : 'some'} ${lead.industry_label} organizations. The gaps in ${weakest[0].name} and ${weakest[1].name} are what's keeping you from production AI."`;
+      if (pains.includes('AI tools deployed but not delivering ROI')) approach += `\n→ They have AI tools that aren't working. This is a remediation play — Copilot Studio diagnostic, SharePoint grounding fix.`;
+    } else {
+      approach += `→ High-readiness — they're ready to deploy. Position Launchpad as implementation. They don't need assessment, they need execution.`;
+      approach += `\n→ Lead with: "You've done the hard work on foundations. Let's pick 1-2 high-impact use cases and build production agents."`;
+    }
+
+    if (tier === 'Enterprise') approach += `\n\n**Pricing note:** Enterprise tier (${lead.aria_score}/30). This is a $7,500+ Quick Scan or $22,500+ Sprint. Scope carefully — there's real margin here.`;
+    else if (tier === 'Professional') approach += `\n\n**Pricing note:** Professional tier (${lead.aria_score}/30). Quick Scan at $4,500, Sprint at $13,500.`;
+
+    return approach;
+  };
+
+  const card = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20, };
+  const stat = (label, value, color) => (
+    <div style={{ ...card, textAlign: 'center', flex: 1, minWidth: 120 }}>
+      <div style={{ fontSize: 28, fontWeight: 800, color: color || C.navy, fontFamily: "'IBM Plex Mono',monospace" }}>{value}</div>
+      <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: 1 }}>{label}</div>
+    </div>
+  );
+
+  if (loading) return <div style={{ padding: 40, textAlign: 'center', color: C.textMuted }}>Loading leads...</div>;
+  if (!data) return <div style={{ padding: 40, textAlign: 'center', color: C.red }}>Failed to load data. Check API auth.</div>;
+
+  const { analytics, leads } = data;
+
+  // Lead detail view
+  if (view === 'lead-detail' && selectedLead) {
+    const l = selectedLead;
+    const pains = (() => { try { return JSON.parse(l.pains || '[]'); } catch { return []; } })();
+    const domains = [
+      { name: 'Data Foundation', score: l.domain_foundation },
+      { name: 'Process Maturity', score: l.domain_process },
+      { name: 'Technology Readiness', score: l.domain_tech },
+      { name: 'People & Culture', score: l.domain_people },
+      { name: 'Strategy & ROI', score: l.domain_strategy },
+      { name: 'Governance & Compliance', score: l.domain_governance },
+      { name: 'Use Case Clarity', score: l.domain_usecase },
+    ];
+
+    return (
+      <div>
+        <button onClick={() => { setView('leads'); setSelectedLead(null); }}
+          style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, cursor: 'pointer', fontSize: 13, fontWeight: 600, color: C.textMuted, marginBottom: 16 }}>
+          ← Back to Leads
+        </button>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          {/* Left: Profile */}
+          <div style={card}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: 800, color: C.navy, marginBottom: 4 }}>{l.name}</h2>
+                <p style={{ fontSize: 13, color: C.textMuted }}>{l.title || 'N/A'} · {l.company}</p>
+                <p style={{ fontSize: 12, color: C.textMuted }}>{l.industry_label} · {l.employees} employees · {l.revenue}</p>
+                <a href={`mailto:${l.email}`} style={{ fontSize: 13, color: C.teal, fontWeight: 600 }}>{l.email}</a>
+                {l.phone && <div><a href={`tel:${l.phone}`} style={{ fontSize: 13, color: C.navy, fontWeight: 600 }}>📞 {l.phone}</a></div>}
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                {l.suspicious ? <div style={{ fontSize: 10, fontWeight: 700, color: '#E11D48', marginBottom: 4 }}>⚠️ RUSHED ({l.time_spent}s)</div> : null}
+                <div style={{ fontSize: 32, fontWeight: 800, color: stageColor(l.stage), fontFamily: "'IBM Plex Mono',monospace" }}>{l.overall_score}%</div>
+                <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: stageColor(l.stage) + '15', color: stageColor(l.stage) }}>{l.stage}</span>
+              </div>
+            </div>
+            {/* ARIA */}
+            {l.aria_score > 0 && (
+              <div style={{ padding: 12, borderRadius: 10, background: tierColor(l.aria_tier) + '08', border: `1px solid ${tierColor(l.aria_tier)}20`, marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: tierColor(l.aria_tier) }}>ARIA: {l.aria_score}/30 · {l.aria_tier}</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: C.textMuted }}>{l.aria_mult}x multiplier</span>
+                </div>
+              </div>
+            )}
+            {/* Domains */}
+            <h4 style={{ fontSize: 12, fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginTop: 8 }}>Domain Scores</h4>
+            {domains.map(d => (
+              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: C.navy, flex: 1 }}>{d.name}</span>
+                <div style={{ width: 120, height: 5, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${d.score}%`, height: '100%', borderRadius: 3, background: d.score >= 65 ? '#0D9488' : d.score >= 40 ? '#F97316' : '#E11D48' }} />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'IBM Plex Mono',monospace", width: 32, textAlign: 'right', color: d.score >= 65 ? '#0D9488' : d.score >= 40 ? '#F97316' : '#E11D48' }}>{d.score}%</span>
+              </div>
+            ))}
+            {/* Pains */}
+            {pains.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <h4 style={{ fontSize: 12, fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Pain Points</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {pains.map(p => <span key={p} style={{ padding: '4px 10px', borderRadius: 6, background: '#FFF7ED', border: '1px solid #FDBA7433', fontSize: 10, fontWeight: 600, color: '#9A3412' }}>{p}</span>)}
+                </div>
+              </div>
+            )}
+            <p style={{ fontSize: 10, color: C.textMuted, marginTop: 12 }}>Submitted: {new Date(l.created_at).toLocaleString()}</p>
+          </div>
+          {/* Right: AI Intelligence */}
+          <div style={{ ...card, background: '#FAFBFF', borderColor: '#7C3AED20' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#7C3AED', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>🧠 AI Sales Intelligence</h3>
+            <pre style={{ fontSize: 12, color: C.navy, lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: "'Plus Jakarta Sans',sans-serif", margin: 0 }}>{aiIntel(l)}</pre>
+            <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+              <a href={`mailto:${l.email}?subject=Your AI Readiness Results — ${l.company}&body=Hi ${l.name.split(' ')[0]},%0A%0AThank you for completing the AI Readiness Assessment. I reviewed your results and wanted to share a few observations...`}
+                style={{ padding: '8px 16px', borderRadius: 8, background: C.teal, color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none', cursor: 'pointer' }}>
+                📧 Email {l.name.split(' ')[0]}
+              </a>
+              <button onClick={() => navigator.clipboard.writeText(aiIntel(l))}
+                style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, fontSize: 12, fontWeight: 600, cursor: 'pointer', color: C.textMuted }}>
+                📋 Copy Intel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Dashboard + Leads list view
+  return (
+    <div>
+      {/* View toggle */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {['dashboard', 'leads'].map(v => (
+            <button key={v} onClick={() => setView(v)}
+              style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${view === v ? C.teal : C.border}`, background: view === v ? C.teal + '0D' : C.bg, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: view === v ? C.teal : C.textMuted }}>
+              {v === 'dashboard' ? '📊 Analytics' : '👤 All Leads'}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={load} style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: C.textMuted }}>🔄 Refresh</button>
+          <button onClick={exportCSV} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.teal, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#fff' }}>📥 Export CSV</button>
+        </div>
+      </div>
+
+      {view === 'dashboard' && (
+        <>
+          {/* KPI cards */}
+          <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+            {stat('Total Leads', analytics.total, C.teal)}
+            {stat('Avg Score', analytics.avgScore + '%', analytics.avgScore >= 65 ? '#0D9488' : analytics.avgScore >= 40 ? '#F97316' : '#E11D48')}
+            {stat('This Week', leads.filter(l => new Date(l.created_at) > new Date(Date.now() - 7 * 86400000)).length, C.navy)}
+            {stat('Enterprise', leads.filter(l => l.aria_tier === 'Enterprise').length, '#7C3AED')}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            {/* By Stage */}
+            <div style={card}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: C.navy, marginBottom: 12 }}>By Readiness Stage</h4>
+              {(analytics.byStage || []).map(s => (
+                <div key={s.stage} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <span style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: stageColor(s.stage) + '15', color: stageColor(s.stage), minWidth: 80, textAlign: 'center' }}>{s.stage}</span>
+                  <div style={{ flex: 1, height: 8, background: '#F1F5F9', borderRadius: 4, overflow: 'hidden' }}>
+                    <div style={{ width: `${analytics.total ? (s.count / analytics.total * 100) : 0}%`, height: '100%', background: stageColor(s.stage), borderRadius: 4 }} />
+                  </div>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: C.navy, fontFamily: "'IBM Plex Mono',monospace", minWidth: 24 }}>{s.count}</span>
+                </div>
+              ))}
+            </div>
+            {/* By Industry */}
+            <div style={card}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: C.navy, marginBottom: 12 }}>By Industry</h4>
+              {(analytics.byIndustry || []).slice(0, 8).map(i => (
+                <div key={i.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: `1px solid ${C.border}22` }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: C.navy }}>{i.label}</span>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <span style={{ fontSize: 11, color: C.textMuted }}>{i.avg}% avg</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: C.teal, fontFamily: "'IBM Plex Mono',monospace" }}>{i.count}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Top Pain Points */}
+            <div style={card}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: C.navy, marginBottom: 12 }}>Top Pain Points</h4>
+              {(analytics.painRanking || []).slice(0, 8).map((p, i) => (
+                <div key={p.pain} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: `1px solid ${C.border}22` }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: C.navy }}>{i + 1}. {p.pain}</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#F97316', fontFamily: "'IBM Plex Mono',monospace" }}>{p.count}</span>
+                </div>
+              ))}
+            </div>
+            {/* By Company Size */}
+            <div style={card}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: C.navy, marginBottom: 12 }}>By Company Size</h4>
+              {(analytics.byEmployees || []).map(e => (
+                <div key={e.employees} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: `1px solid ${C.border}22` }}>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: C.navy }}>{e.employees} employees</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: C.teal, fontFamily: "'IBM Plex Mono',monospace" }}>{e.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent leads quick view */}
+          <div style={card}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: C.navy }}>Recent Leads</h4>
+              <button onClick={() => setView('leads')} style={{ fontSize: 11, color: C.teal, fontWeight: 700, background: 'none', border: 'none', cursor: 'pointer' }}>View All →</button>
+            </div>
+            {leads.slice(0, 5).map(l => (
+              <div key={l.id} onClick={() => { setSelectedLead(l); setView('lead-detail'); }}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${C.border}22`, cursor: 'pointer' }}>
+                <div>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: C.navy }}>{l.name}</span>
+                  <span style={{ fontSize: 12, color: C.textMuted, marginLeft: 8 }}>{l.company} · {l.industry_label}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  {l.aria_tier && <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: tierColor(l.aria_tier) + '15', color: tierColor(l.aria_tier) }}>{l.aria_tier}</span>}
+                  <span style={{ fontSize: 14, fontWeight: 800, color: stageColor(l.stage), fontFamily: "'IBM Plex Mono',monospace" }}>{l.overall_score}%</span>
+                  <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: stageColor(l.stage) + '15', color: stageColor(l.stage) }}>{l.stage}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {view === 'leads' && (
+        <>
+          {/* Filters */}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <select value={filter.industry} onChange={e => setFilter(f => ({ ...f, industry: e.target.value }))}
+              style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12, background: C.bg }}>
+              <option value="">All Industries</option>
+              {(analytics.byIndustry || []).map(i => <option key={i.label} value={i.label}>{i.label} ({i.count})</option>)}
+            </select>
+            <select value={filter.minScore} onChange={e => setFilter(f => ({ ...f, minScore: e.target.value }))}
+              style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${C.border}`, fontSize: 12, background: C.bg }}>
+              <option value="">Min Score</option>
+              {[0, 20, 40, 60, 80].map(s => <option key={s} value={s}>{s}%+</option>)}
+            </select>
+            <button onClick={load} style={{ padding: '6px 14px', borderRadius: 8, background: C.teal, border: 'none', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Apply</button>
+            {(filter.industry || filter.minScore) && <button onClick={() => { setFilter({ industry: '', minScore: '', maxScore: '', tier: '' }); }} style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, fontSize: 12, cursor: 'pointer', color: C.textMuted }}>Clear</button>}
+          </div>
+          {/* Leads table */}
+          <div style={card}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <thead>
+                  <tr style={{ borderBottom: `2px solid ${C.border}` }}>
+                    {['Name', 'Company', 'Industry', 'Size', 'Score', 'Stage', 'ARIA', 'Date', ''].map(h => (
+                      <th key={h} style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 700, color: C.textMuted, fontSize: 10, textTransform: 'uppercase', letterSpacing: 1 }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {leads.map(l => (
+                    <tr key={l.id} onClick={() => { setSelectedLead(l); setView('lead-detail'); }}
+                      style={{ borderBottom: `1px solid ${C.border}22`, cursor: 'pointer' }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#F8FAFC'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                      <td style={{ padding: '10px' }}>
+                        <div style={{ fontWeight: 700, color: C.navy }}>{l.name}</div>
+                        <div style={{ fontSize: 10, color: C.textMuted }}>{l.email}</div>
+                      </td>
+                      <td style={{ padding: '10px', fontWeight: 600, color: C.navy }}>{l.company}</td>
+                      <td style={{ padding: '10px', color: C.textMuted }}>{l.industry_label}</td>
+                      <td style={{ padding: '10px', color: C.textMuted }}>{l.employees}</td>
+                      <td style={{ padding: '10px' }}>
+                        <span style={{ fontWeight: 800, color: stageColor(l.stage), fontFamily: "'IBM Plex Mono',monospace" }}>{l.overall_score}%</span>
+                      </td>
+                      <td style={{ padding: '10px' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: stageColor(l.stage) + '15', color: stageColor(l.stage) }}>{l.stage}</span>
+                      </td>
+                      <td style={{ padding: '10px' }}>
+                        {l.aria_tier && <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: tierColor(l.aria_tier) + '15', color: tierColor(l.aria_tier) }}>{l.aria_score} · {l.aria_tier}</span>}
+                      </td>
+                      <td style={{ padding: '10px', color: C.textMuted, fontSize: 10 }}>{new Date(l.created_at).toLocaleDateString()}</td>
+                      <td style={{ padding: '10px' }}>
+                        <span style={{ color: C.teal, fontWeight: 700, fontSize: 11 }}>View →</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {leads.length === 0 && <p style={{ textAlign: 'center', color: C.textMuted, padding: 40 }}>No leads yet. Assessment submissions will appear here.</p>}
+          </div>
+        </>
+      )}
     </div>
   );
 }

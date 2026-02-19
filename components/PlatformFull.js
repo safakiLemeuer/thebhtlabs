@@ -570,8 +570,10 @@ function Assessment({id}) {
   const [ans, setAns] = useState({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [intake, setIntake] = useState({name:"",email:"",title:"",company:"",industry:"",employees:"",revenue:"",pains:[]});
+  const [intake, setIntake] = useState({name:"",email:"",title:"",company:"",industry:"",employees:"",revenue:"",phone:"",pains:[]});
   const [intakeErr, setIntakeErr] = useState("");
+  const [startTime, setStartTime] = useState(null); // time gate
+  const [companySuggest, setCompanySuggest] = useState("");
   const upI = (k,v) => setIntake(p=>({...p,[k]:v}));
   const togglePain = (p) => setIntake(prev => ({...prev, pains: prev.pains.includes(p) ? prev.pains.filter(x=>x!==p) : prev.pains.length < 3 ? [...prev.pains, p] : prev.pains}));
 
@@ -620,10 +622,12 @@ function Assessment({id}) {
     const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
     const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
     const aria = calcARIA(intake, dScores);
+    const elapsed = startTime ? Math.round((Date.now() - startTime) / 1000) : 999;
     try {
       await fetch("/api/assessment", {method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({...intake, industryLabel:indObj.l, overallScore:overall(), stage:lvl(overall()).l, domains, rawAnswers:ans,
-          ariaScore:aria.total, ariaTier:aria.tierLabel, ariaMult:aria.mult, ariaPricing:aria.pricing})});
+          ariaScore:aria.total, ariaTier:aria.tierLabel, ariaMult:aria.mult, ariaPricing:aria.pricing,
+          timeSpent:elapsed, suspicious:elapsed<60})});
       setSaved(true);
     } catch(e) { console.error(e); setSaved(true); }
     setSaving(false);
@@ -769,45 +773,90 @@ function Assessment({id}) {
 
   // ═══ INTAKE FORM ═══
   if (phase==="intake") {
+    const DISPOSABLE = /mailinator|guerrillamail|tempmail|throwaway|fakeinbox|yopmail|sharklasers|trashmail|maildrop|dispostable|getnada|10minutemail|temp-mail/i;
     const validate = () => {
-      if(!intake.name.trim()) return "Your full name is required";
-      if(!intake.email.trim() || !intake.email.includes("@") || !intake.email.includes(".")) return "Valid business email required";
-      if(intake.email.match(/@(gmail|yahoo|hotmail|outlook|aol|icloud)\./i)) return "Please use your business email for a personalized report";
-      if(!intake.company.trim()) return "Company name is required";
+      const n = intake.name.trim();
+      if(!n) return "Your full name is required";
+      if(n.split(/\s+/).length < 2) return "Please enter your full name (first and last)";
+      if(n.length < 4) return "Please enter your real name";
+      if(/^(test|asdf|aaa|xxx|abc|fake|none|na|n\/a)/i.test(n)) return "Please enter your real name for a personalized report";
+      const em = intake.email.trim().toLowerCase();
+      if(!em || !em.includes("@") || !em.includes(".")) return "Valid business email required";
+      if(em.match(/@(gmail|yahoo|hotmail|outlook|aol|icloud|protonmail|zoho|mail|yandex|live|msn|comcast|att|verizon|cox)\./i)) return "Please use your work email so we can personalize your report to your organization";
+      if(DISPOSABLE.test(em)) return "Disposable email addresses are not accepted";
+      const domain = em.split("@")[1]?.split(".")[0];
+      if(domain && domain.length < 3) return "Please use a valid business email";
+      const co = intake.company.trim();
+      if(!co) return "Company name is required";
+      if(co.length < 2) return "Please enter your real company name";
+      if(/^(test|asdf|aaa|xxx|abc|fake|none|na|n\/a|company|my company)/i.test(co)) return "Please enter your real company name for accurate benchmarking";
       if(!intake.industry) return "Select your industry for benchmark comparison";
       if(!intake.employees) return "Select employee range";
+      const ph = intake.phone.replace(/\D/g,'');
+      if(!ph || ph.length < 10) return "Valid phone number required (10+ digits) — we'll use it to walk through your results";
       return "";
     };
-    const proceed = () => { const err = validate(); if(err){setIntakeErr(err);return;} setIntakeErr(""); setPhase("questions"); };
+    // Auto-suggest company from email domain
+    const onEmailBlur = () => {
+      const em = intake.email.trim().toLowerCase();
+      if(em.includes("@") && !intake.company.trim()) {
+        const domain = em.split("@")[1]?.split(".")[0];
+        if(domain && domain.length >= 3 && !/gmail|yahoo|hotmail|outlook|aol/i.test(domain)) {
+          const suggested = domain.charAt(0).toUpperCase() + domain.slice(1);
+          setCompanySuggest(suggested);
+        }
+      }
+    };
+    const acceptSuggest = () => { upI("company", companySuggest); setCompanySuggest(""); };
+    const proceed = () => { const err = validate(); if(err){setIntakeErr(err);return;} setIntakeErr(""); setStartTime(Date.now()); setPhase("questions"); };
+    const formatPhone = (v) => {
+      const d = v.replace(/\D/g,'').slice(0,11);
+      if(d.length<=3) return d;
+      if(d.length<=6) return `(${d.slice(0,3)}) ${d.slice(3)}`;
+      return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6)}`;
+    };
     const inp = {padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none",width:"100%",background:C.bg,color:C.text};
     const sel = {...inp, cursor:"pointer"};
+    const lbl = {fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4};
     return (
       <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
         <div style={{maxWidth:640,margin:"0 auto",padding:"0 24px"}}>
           <SH tag="Step 1 of 2 — About You" title="Tell us about your organization" desc="So we can benchmark your results against industry peers and personalize your report." />
           <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,padding:"32px",boxShadow:C.shadowMd}}>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Full Name *</label>
+              <div><label style={lbl}>Full Name *</label>
                 <input value={intake.name} onChange={e=>upI("name",e.target.value)} placeholder="Jane Smith" style={inp}/></div>
-              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Business Email *</label>
-                <input type="email" value={intake.email} onChange={e=>upI("email",e.target.value)} placeholder="jane@company.com" style={inp}/></div>
-              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Job Title</label>
+              <div><label style={lbl}>Business Email *</label>
+                <input type="email" value={intake.email} onChange={e=>upI("email",e.target.value)} onBlur={onEmailBlur} placeholder="jane@company.com" style={inp}/></div>
+              <div><label style={lbl}>Job Title</label>
                 <select value={intake.title} onChange={e=>upI("title",e.target.value)} style={sel}>
                   <option value="">Select title...</option>{JOB_TITLES.map(t=><option key={t} value={t}>{t}</option>)}</select></div>
-              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Company *</label>
-                <input value={intake.company} onChange={e=>upI("company",e.target.value)} placeholder="Acme Corp" style={inp}/></div>
-              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Industry *</label>
+              <div><label style={lbl}>Direct Phone *</label>
+                <input type="tel" value={intake.phone} onChange={e=>upI("phone",formatPhone(e.target.value))} placeholder="(555) 123-4567" style={inp}/>
+                <span style={{fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:2,display:"block"}}>For your report walkthrough — we don't cold call</span></div>
+              <div style={{position:"relative"}}>
+                <label style={lbl}>Company *</label>
+                <input value={intake.company} onChange={e=>{upI("company",e.target.value);setCompanySuggest("");}} placeholder="Acme Corp" style={inp}/>
+                {companySuggest && !intake.company && (
+                  <div style={{position:"absolute",top:"100%",left:0,right:0,zIndex:10,marginTop:2}}>
+                    <button onClick={acceptSuggest} style={{width:"100%",padding:"8px 14px",borderRadius:8,border:`1px solid ${C.teal}33`,background:C.tealBg,fontSize:12,fontWeight:600,color:C.teal,cursor:"pointer",textAlign:"left",fontFamily:F.h}}>
+                      Did you mean <strong>{companySuggest}</strong>?
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div><label style={lbl}>Industry *</label>
                 <select value={intake.industry} onChange={e=>upI("industry",e.target.value)} style={sel}>
                   <option value="">Select industry...</option>{INDUSTRIES.map(i=><option key={i.v} value={i.v}>{i.l}</option>)}</select></div>
-              <div><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Employees *</label>
+              <div><label style={lbl}>Employees *</label>
                 <select value={intake.employees} onChange={e=>upI("employees",e.target.value)} style={sel}>
                   <option value="">Select range...</option>{EMP_RANGES.map(r=><option key={r} value={r}>{r}</option>)}</select></div>
-              <div style={{gridColumn:"1/-1"}}><label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:4}}>Annual Revenue</label>
+              <div><label style={lbl}>Annual Revenue</label>
                 <select value={intake.revenue} onChange={e=>upI("revenue",e.target.value)} style={sel}>
                   <option value="">Select range (optional)...</option>{REV_RANGES.map(r=><option key={r} value={r}>{r}</option>)}</select></div>
             </div>
             <div style={{marginTop:20}}>
-              <label style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:8}}>Top Business Pains (select up to 3)</label>
+              <label style={{...lbl,marginBottom:8}}>Top Business Pains (select up to 3)</label>
               <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
                 {PAIN_POINTS.map(p=>(
                   <button key={p} onClick={()=>togglePain(p)}
@@ -817,7 +866,9 @@ function Assessment({id}) {
                 ))}
               </div>
             </div>
-            {intakeErr && <p style={{color:C.rose,fontSize:12,fontWeight:600,fontFamily:F.m,marginTop:12}}>{intakeErr}</p>}
+            {intakeErr && <div style={{marginTop:12,padding:"10px 14px",borderRadius:8,background:C.rose+"08",border:`1px solid ${C.rose}20`}}>
+              <p style={{color:C.rose,fontSize:12,fontWeight:600,fontFamily:F.m,margin:0}}>{intakeErr}</p>
+            </div>}
             <div style={{marginTop:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <button onClick={()=>setPhase("landing")} style={{padding:"10px 20px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted}}>← Back</button>
               <button onClick={proceed} style={{padding:"12px 32px",borderRadius:10,border:"none",background:C.teal,color:"#fff",cursor:"pointer",fontSize:14,fontWeight:700,fontFamily:F.h}}>

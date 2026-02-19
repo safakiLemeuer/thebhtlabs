@@ -5,8 +5,9 @@ const { getDb } = require('../../../lib/db');
 export async function POST(request) {
   try {
     const data = await request.json();
-    const { name, email, title, company, industry, industryLabel, employees, revenue, pains,
-            overallScore, stage, domains, rawAnswers, ariaScore, ariaTier, ariaMult, ariaPricing } = data;
+    const { name, email, title, company, industry, industryLabel, employees, revenue, pains, phone,
+            overallScore, stage, domains, rawAnswers, ariaScore, ariaTier, ariaMult, ariaPricing,
+            timeSpent, suspicious } = data;
     if (!email || !name || !company) return NextResponse.json({ error: 'Name, email, company required' }, { status: 400 });
 
     const db = getDb();
@@ -29,8 +30,8 @@ export async function POST(request) {
       (name, email, title, company, industry, industry_label, employees, revenue, pains,
        overall_score, stage, domain_data, domain_foundation, domain_process, domain_tech,
        domain_people, domain_strategy, domain_governance, domain_usecase, raw_answers,
-       aria_score, aria_tier, aria_mult, aria_pricing, ip_address, user_agent)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+       aria_score, aria_tier, aria_mult, aria_pricing, phone, time_spent, suspicious, ip_address, user_agent)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
 
     const result = stmt.run(
       name, email, title || '', company, industry || '', industryLabel || '', employees || '', revenue || '',
@@ -39,6 +40,7 @@ export async function POST(request) {
       domainMap.people||0, domainMap.strategy||0, domainMap.governance||0, domainMap.usecase||0,
       JSON.stringify(rawAnswers || {}),
       ariaScore||0, ariaTier||'', ariaMult||1.0, JSON.stringify(ariaPricing||{}),
+      phone||'', timeSpent||0, suspicious?1:0,
       ip, ua
     );
     const leadId = result.lastInsertRowid;
@@ -62,7 +64,9 @@ export async function POST(request) {
               <tr><td style="padding:6px 8px;font-weight:bold">Company</td><td style="padding:6px 8px">${company}</td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold">Industry</td><td style="padding:6px 8px">${industryLabel || industry}</td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold">Size</td><td style="padding:6px 8px">${employees || '?'} employees · ${revenue || '?'} revenue</td></tr>
+              <tr><td style="padding:6px 8px;font-weight:bold">Phone</td><td style="padding:6px 8px"><a href="tel:${phone}">${phone || 'N/A'}</a></td></tr>
               <tr><td style="padding:6px 8px;font-weight:bold;color:#7C3AED">ARIA Score</td><td style="padding:6px 8px;font-weight:bold">${ariaScore||'?'}/30 — ${ariaTier||'?'} (${ariaMult||1}x)</td></tr>
+              ${suspicious ? '<tr><td style="padding:6px 8px;font-weight:bold;color:#E11D48">⚠️ FLAG</td><td style="padding:6px 8px;color:#E11D48">Completed in ' + timeSpent + 's — possibly rushed</td></tr>' : ''}
             </table>
             <h3 style="color:#0F172A">Score: ${overallScore}% — ${stage}</h3>
             <table style="width:100%;border-collapse:collapse;margin-bottom:16px">${domainList}</table>
@@ -99,8 +103,8 @@ export async function GET(request) {
   const rows = db.prepare(query).all(...params);
 
   if (format === 'csv') {
-    const h = ['id','name','email','title','company','industry_label','employees','revenue','pains','overall_score','stage',
-      'aria_score','aria_tier','aria_mult',
+    const h = ['id','name','email','phone','title','company','industry_label','employees','revenue','pains','overall_score','stage',
+      'aria_score','aria_tier','aria_mult','time_spent','suspicious',
       'domain_foundation','domain_process','domain_tech','domain_people','domain_strategy','domain_governance','domain_usecase','created_at'];
     const csv = [h.join(','), ...rows.map(r => h.map(k => { let v=String(r[k]||''); return v.includes(',')?`"${v.replace(/"/g,'""')}"`:v; }).join(','))].join('\n');
     return new Response(csv, { headers: { 'Content-Type': 'text/csv', 'Content-Disposition': 'attachment; filename=bht-leads.csv' } });
