@@ -603,51 +603,54 @@ function Assessment({id}) {
 function LiveCaseStudies({id, items, loading}) {
   const [open, setOpen] = useState(null);
   const [showIndustry, setShowIndustry] = useState(false);
+  const [cases, setCases] = useState([]);
+  const [casesLoading, setCasesLoading] = useState(true);
+
+  useEffect(()=>{
+    fetch('/api/cases').then(r=>r.json()).then(d=>{setCases(d.cases||[]);setCasesLoading(false)}).catch(()=>setCasesLoading(false));
+  },[]);
 
   return (
     <section id={id} style={{padding:"80px 0",background:C.bg}}>
       <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
-        <SH tag="Real Engagements · Verifiable Results" title="What we've built" desc="Not hypotheticals — real implementations with measurable outcomes. Click to expand challenge, solution, and source references." />
+        <SH tag="Real Engagements · Verifiable Results" title="What we've built" desc="Not hypotheticals — real implementations with measurable outcomes. Click to expand challenge, solution, and results." />
 
-        {/* YOUR 4 CASE STUDIES */}
+        {casesLoading ? <p style={{color:C.textFaint,textAlign:"center",padding:40,fontFamily:F.m}}>Loading case studies...</p> :
         <div className="g2" style={{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:20}}>
-          {CASES.map((c, i) => (
-            <div key={i} onClick={()=>setOpen(open===i?null:i)} style={{background:C.bg,border:`1px solid ${open===i?c.color+"44":C.border}`,borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"all .2s",boxShadow:open===i?C.shadowMd:C.shadow}}>
+          {cases.map((c, i) => (
+            <div key={c.id} onClick={()=>setOpen(open===c.id?null:c.id)} style={{background:C.bg,border:`1px solid ${open===c.id?c.color+"44":C.border}`,borderRadius:16,overflow:"hidden",cursor:"pointer",transition:"all .2s",boxShadow:open===c.id?C.shadowMd:C.shadow}}>
               <div style={{padding:24}}>
                 <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
                   {c.tags.map(t => <Tag key={t} color={c.color}>{t}</Tag>)}
                 </div>
-                <h3 style={{fontSize:18,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:2}}>{c.client}</h3>
+                <h3 style={{fontSize:18,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:2}}>{c.title}</h3>
                 <p style={{color:C.textMuted,fontSize:13,marginBottom:2}}>{c.subtitle}</p>
-                <p style={{color:C.textFaint,fontSize:12,fontFamily:F.m}}>{c.industry}</p>
-                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginTop:16}}>
-                  {c.results.map(r => (
-                    <div key={r.l} style={{textAlign:"center",padding:"10px 4px",borderRadius:10,background:c.color+"06"}}>
-                      <div style={{color:c.color,fontSize:20,fontWeight:800,fontFamily:F.m,lineHeight:1}}>{r.m}<span style={{fontSize:12,fontWeight:600}}>{r.u}</span></div>
-                      <div style={{color:C.textFaint,fontSize:10,fontFamily:F.m,marginTop:4}}>{r.l}</div>
+                <p style={{color:C.textFaint,fontSize:12,fontFamily:F.m}}>{c.client} · {c.industry}</p>
+                {c.metrics.length>0 && <div style={{display:"grid",gridTemplateColumns:`repeat(${Math.min(c.metrics.length,4)},1fr)`,gap:8,marginTop:16}}>
+                  {c.metrics.map(m => (
+                    <div key={m.label} style={{textAlign:"center",padding:"10px 4px",borderRadius:10,background:c.color+"06"}}>
+                      <div style={{color:c.color,fontSize:18,fontWeight:800,fontFamily:F.m,lineHeight:1}}>{m.value}</div>
+                      <div style={{color:C.textFaint,fontSize:10,fontFamily:F.m,marginTop:4}}>{m.label}</div>
                     </div>
                   ))}
-                </div>
+                </div>}
               </div>
-              {open === i && (
+              {open === c.id && (
                 <div style={{padding:"0 24px 24px",borderTop:`1px solid ${C.borderLight}`,paddingTop:16}}>
-                  <p style={{color:C.textSoft,fontSize:13,lineHeight:1.7,marginBottom:8}}><strong style={{color:C.navy}}>Challenge: </strong>{c.challenge}</p>
-                  <p style={{color:C.textSoft,fontSize:13,lineHeight:1.7,marginBottom:14}}><strong style={{color:C.navy}}>Solution: </strong>{c.solution}</p>
-                  <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                    {c.refs.map(r => (
-                      <a key={r.t} href={r.u} target="_blank" rel="noopener" onClick={e=>e.stopPropagation()}
-                        style={{display:"inline-flex",alignItems:"center",gap:4,padding:"6px 14px",borderRadius:8,background:C.tealBg,color:C.tealDark,fontSize:12,fontFamily:F.m,fontWeight:600,border:`1px solid ${C.teal}15`,textDecoration:"none"}}>
-                        📄 {r.t} ↗
-                      </a>
-                    ))}
-                  </div>
+                  {c.challenge && <p style={{color:C.textSoft,fontSize:13,lineHeight:1.7,marginBottom:8}}><strong style={{color:C.navy}}>Challenge: </strong>{c.challenge}</p>}
+                  {c.solution && <p style={{color:C.textSoft,fontSize:13,lineHeight:1.7,marginBottom:8}}><strong style={{color:C.navy}}>Solution: </strong>{c.solution}</p>}
+                  {c.results && <p style={{color:C.textSoft,fontSize:13,lineHeight:1.7,marginBottom:14}}><strong style={{color:C.navy}}>Results: </strong>{c.results}</p>}
+                  {c.pdf_path && <a href={c.pdf_path} target="_blank" rel="noopener" onClick={e=>e.stopPropagation()}
+                    style={{display:"inline-flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:10,background:c.color+"0D",color:c.color,fontSize:13,fontWeight:700,fontFamily:F.m,border:`1px solid ${c.color}22`,textDecoration:"none"}}>
+                    📄 Download Case Study PDF ↗
+                  </a>}
                 </div>
               )}
             </div>
           ))}
-        </div>
+        </div>}
 
-        {/* INDUSTRY AI NEWS — RSS powered, clearly labeled */}
+        {/* INDUSTRY AI NEWS — RSS powered */}
         <div style={{marginTop:56}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
             <div>
@@ -1462,7 +1465,7 @@ function TheBuilder({id}) {
                     <span key={t} style={{padding:"4px 10px",borderRadius:8,background:C.teal+"0A",border:`1px solid ${C.teal}15`,fontSize:11,fontWeight:700,fontFamily:F.m,color:C.tealDark}}>{t}</span>
                   ))}
                 </div>
-                <a href="https://www.linkedin.com/in/nitinnagar/" target="_blank" rel="noopener noreferrer"
+                <a href="https://www.linkedin.com/in/nitin-nagar-22004b4/" target="_blank" rel="noopener noreferrer"
                   style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"12px 24px",borderRadius:12,background:C.navy,color:"#fff",fontSize:14,fontWeight:700,fontFamily:F.h,textDecoration:"none",boxShadow:`0 4px 16px ${C.navy}22`,transition:"all .2s",width:"100%"}}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
                   Connect on LinkedIn
@@ -1580,62 +1583,59 @@ function TheBuilder({id}) {
   );
 }
 
-/* ═══════════════ FIELD NOTES — The blog/proof-of-work feed ═══════════════ */
-const FIELD_NOTES = [
-  {
-    id:"copilot-studio-mistakes",
-    date:"Feb 2025",
-    tag:"Copilot Studio",
-    tagColor:C.blue,
-    title:"3 Copilot Studio mistakes every defense contractor is making right now",
-    body:"We audited six Copilot Studio deployments last month. Every single one had the same three problems: no data grounding strategy (the bot hallucinates because it's not connected to SharePoint), no governance wrapper (who approved this agent to talk to customers?), and no fallback logic (when the AI doesn't know, it makes things up instead of routing to a human).\n\nThe fix isn't complicated. Connect your agent to a curated SharePoint library, wrap it in a Purview DLP policy, and add a confidence threshold that escalates to a human below 70%. We built all three in a single sprint.\n\nStop deploying demo agents to production. Your CISO will thank you.",
-    readTime:"2 min",
-  },
-  {
-    id:"cmmc-90-days",
-    date:"Feb 2025",
-    tag:"CMMC",
-    tagColor:C.coral,
-    title:"We helped a defense contractor hit 110/110 NIST 800-171 practices in 90 days. Here's how.",
-    body:"Everyone says CMMC takes 12-18 months. That's true if you're working with a consultancy that bills by the hour and has zero incentive to finish.\n\nHere's what we actually did: Week 1-2 — full gap assessment against all 110 practices. Found 67 gaps. Week 3-4 — migrated from consumer M365 to GCC-High, deployed Intune MDM to 200+ devices, configured Purview DLP with CUI sensitivity labels. Week 5-8 — SSP documentation, POA&M for remaining gaps, PowerShell continuous monitoring scripts. Week 9-12 — remediation of final gaps, pre-audit dry run, C3PAO readiness review.\n\nThe secret? We didn't start with documentation. We started with infrastructure. Get the tenant right, get the devices managed, get the DLP policies enforced. Then document what you built. Most firms do it backwards — they document what they wish they had, then scramble to build it.\n\n90 days. 110/110. The client kept their DoD contract.",
-    readTime:"3 min",
-  },
-  {
-    id:"ai-governance-gap",
-    date:"Jan 2025",
-    tag:"AI Governance",
-    tagColor:C.violet,
-    title:"The AI governance gap that will cost small contractors their clearance",
-    body:"Here's a scenario playing out right now at hundreds of defense contractors: an employee uses ChatGPT to summarize a document that contains CUI. That document is now in OpenAI's training data. The contractor has just violated NIST 800-171 and doesn't even know it.\n\nThe fix is an AI acceptable use policy — and almost nobody has one. We built a generator for it (it's free on this site). But the policy alone isn't enough. You need Purview DLP rules that detect when CUI is being pasted into unauthorized AI tools. You need Conditional Access policies in Entra ID that block access to consumer AI services from managed devices. You need training that explains WHY, not just WHAT.\n\nThe federal AI landscape is changing fast. The organizations that get governance right now will have a massive advantage when the auditors come knocking.",
-    readTime:"2 min",
-  },
-  {
-    id:"powershell-savings",
-    date:"Jan 2025",
-    tag:"Automation",
-    tagColor:C.teal,
-    title:"3 lines of PowerShell that saved a client $145K/year",
-    body:"A client had two full-time employees whose entire job was pulling data from three systems, reconciling it in Excel, and emailing a report to 12 managers every Monday morning. Eight hours each, every week. 832 hours per year.\n\nWe replaced it with a Power Automate flow that pulls from all three APIs, a PowerShell script that does the reconciliation (3 lines — Get-Data, Compare-Object, Export-Csv), and a scheduled Teams message that delivers the report at 7am Monday.\n\nTotal build time: 2 days. Annual savings: $145K in labor. Those two employees? They're now doing analysis instead of data entry. Better work, better outcomes, better morale.\n\nThis is what AI readiness actually looks like. Not chatbots. Not copilots. Just automating the dumb stuff so smart people can do smart work.",
-    readTime:"2 min",
-  },
-  {
-    id:"gcc-high-reality",
-    date:"Jan 2025",
-    tag:"Azure Gov",
-    tagColor:C.blue,
-    title:"The uncomfortable truth about GCC-High migrations",
-    body:"Nobody tells you this upfront: a GCC-High migration is not a \"migration.\" It's a rebuild. Your consumer M365 tenant and your GCC-High tenant are completely separate environments. You can't move data between them natively. Every mailbox, every SharePoint site, every Teams channel — rebuilt from scratch.\n\nWe've done enough of these to know where the landmines are: third-party apps that don't work in GCC-High (most of them), Conditional Access policies that need complete reconfiguration, Power Platform connectors that aren't available in the government cloud.\n\nOur approach: we build the GCC-High environment in parallel, test everything in a pilot group, then migrate in waves. Never big-bang. The organizations that try to do it all at once are the ones calling us to fix it three months later.\n\nBudget 4-8 weeks minimum. Plan for app compatibility issues. And for the love of everything, test your DLP policies before you migrate CUI.",
-    readTime:"3 min",
-  },
-];
-
+/* ═══════════════ FIELD NOTES — Dynamic blog from API ═══════════════ */
 function FieldNotes({id}) {
+  const [posts, setPosts] = useState([]);
+  const [tagCloud, setTagCloud] = useState({});
   const [expanded, setExpanded] = useState(null);
+  const [activeTag, setActiveTag] = useState(null);
+  const [search, setSearch] = useState('');
+  const [showAll, setShowAll] = useState(false);
+  const [comment, setComment] = useState({name:'',body:'',website:''});
+  const [commentPost, setCommentPost] = useState(null);
+  const [commentMsg, setCommentMsg] = useState('');
+  const [comments, setComments] = useState({});
+  const tagColors = [C.teal,C.blue,C.violet,C.coral,C.rose];
+
+  useEffect(()=>{
+    const q = new URLSearchParams();
+    if(activeTag) q.set('tag',activeTag);
+    if(search) q.set('q',search);
+    fetch(`/api/blog?${q.toString()}`).then(r=>r.json()).then(d=>{
+      setPosts(d.posts||[]);
+      setTagCloud(d.tagCloud||{});
+    }).catch(()=>{});
+  },[activeTag,search]);
+
+  const loadComments = async(postId)=>{
+    const r = await fetch(`/api/blog/comments?post_id=${postId}`);
+    const d = await r.json();
+    setComments(prev=>({...prev,[postId]:d.comments||[]}));
+  };
+
+  const submitComment = async(postId)=>{
+    if(!comment.name||!comment.body) return;
+    if(comment.website) return; // honeypot
+    await fetch('/api/blog/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...comment,post_id:postId})});
+    setComment({name:'',body:'',website:''});
+    setCommentMsg('Comment submitted for review!');
+    setTimeout(()=>setCommentMsg(''),3000);
+  };
+
+  const shareLinkedIn = (post)=>{
+    const url = `https://thebhtlabs.com/#notes`;
+    const text = `${post.title}\n\n${post.excerpt||post.body.substring(0,200)}\n\nRead more at TheBHTLabs.com`;
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}&summary=${encodeURIComponent(text)}`,'_blank');
+  };
+
+  const displayed = showAll ? posts : posts.slice(0,3);
+  const sortedTags = Object.entries(tagCloud).sort((a,b)=>b[1]-a[1]);
+
   return (
     <section id={id} style={{padding:"100px 0",background:C.bgSoft}}>
       <div style={{maxWidth:900,margin:"0 auto",padding:"0 24px"}}>
         {/* Header */}
-        <div style={{textAlign:"center",marginBottom:56}}>
+        <div style={{textAlign:"center",marginBottom:40}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:C.teal+"0A",border:`1px solid ${C.teal}15`,marginBottom:16}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:C.teal}} />
             <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.tealDark,letterSpacing:".5px"}}>FIELD NOTES</span>
@@ -1644,56 +1644,102 @@ function FieldNotes({id}) {
             Dispatches from the field.
           </h2>
           <p style={{color:C.textMuted,fontSize:16,marginTop:14,lineHeight:1.7,fontFamily:F.b,maxWidth:600,margin:"14px auto 0"}}>
-            Real problems. Real solutions. No thought leadership fluff. Written from active client engagements, not a content calendar.
+            Real problems. Real solutions. No thought leadership fluff.
           </p>
         </div>
 
-        {/* Notes feed */}
+        {/* Word Cloud + Search */}
+        <div style={{marginBottom:32}}>
+          <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",marginBottom:16}}>
+            <input value={search} onChange={e=>{setSearch(e.target.value);setActiveTag(null)}} placeholder="Search field notes..."
+              style={{padding:"8px 16px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none",width:220}} />
+            {activeTag && <button onClick={()=>setActiveTag(null)} style={{padding:"4px 12px",borderRadius:8,border:`1px solid ${C.red}33`,background:C.roseBg,color:C.rose,fontSize:11,fontWeight:700,fontFamily:F.m,cursor:"pointer"}}>✕ {activeTag}</button>}
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {sortedTags.map(([tag,count],i)=>(
+              <button key={tag} onClick={()=>{setActiveTag(activeTag===tag?null:tag);setSearch('')}}
+                style={{padding:"5px 14px",borderRadius:20,border:"none",cursor:"pointer",transition:"all .15s",
+                  fontSize:Math.min(14,10+count*2),fontWeight:activeTag===tag?700:500,fontFamily:F.h,
+                  background:activeTag===tag?tagColors[i%tagColors.length]:tagColors[i%tagColors.length]+"0D",
+                  color:activeTag===tag?"#fff":tagColors[i%tagColors.length]}}>
+                {tag} <span style={{fontSize:9,opacity:.7}}>({count})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Posts feed */}
+        {displayed.length===0 && <p style={{textAlign:"center",color:C.textMuted,padding:40}}>No posts found.</p>}
         <div style={{display:"flex",flexDirection:"column",gap:16}}>
-          {FIELD_NOTES.map((note,i)=>{
+          {displayed.map((note)=>{
             const isOpen = expanded === note.id;
+            const postComments = comments[note.id] || [];
+            const dateStr = note.published_at ? new Date(note.published_at).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '';
             return (
-              <article key={note.id}
-                style={{background:C.bg,border:`1px solid ${isOpen?C.teal+"33":C.border}`,borderRadius:16,overflow:"hidden",transition:"all .2s",boxShadow:isOpen?C.shadowMd:C.shadow}}>
-                <div
-                  onClick={()=>setExpanded(isOpen?null:note.id)}
+              <article key={note.id} style={{background:C.bg,border:`1px solid ${isOpen?C.teal+"33":C.border}`,borderRadius:16,overflow:"hidden",transition:"all .2s",boxShadow:isOpen?C.shadowMd:C.shadow}}>
+                <div onClick={()=>{setExpanded(isOpen?null:note.id);if(!isOpen)loadComments(note.id)}}
                   style={{padding:"24px 28px",cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:16}}>
                   <div style={{flex:1}}>
                     <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,flexWrap:"wrap"}}>
-                      <Tag color={note.tagColor}>{note.tag}</Tag>
-                      <span style={{fontSize:12,color:C.textFaint,fontFamily:F.m}}>{note.date}</span>
-                      <span style={{fontSize:11,color:C.textFaint,fontFamily:F.m}}>· {note.readTime} read</span>
+                      {note.tags.map((t,i)=><Tag key={t} color={tagColors[i%tagColors.length]}>{t}</Tag>)}
+                      <span style={{fontSize:12,color:C.textFaint,fontFamily:F.m}}>{dateStr}</span>
+                      <span style={{fontSize:11,color:C.textFaint,fontFamily:F.m}}>· {note.read_time} read</span>
                     </div>
-                    <h3 style={{fontSize:18,fontWeight:700,fontFamily:F.h,color:C.navy,lineHeight:1.35}}>
-                      {note.title}
-                    </h3>
-                    {!isOpen && <p style={{color:C.textMuted,fontSize:14,marginTop:8,lineHeight:1.6}}>
-                      {note.body.substring(0,160).trim()}...
-                    </p>}
+                    <h3 style={{fontSize:18,fontWeight:700,fontFamily:F.h,color:C.navy,lineHeight:1.35}}>{note.title}</h3>
+                    {!isOpen && <p style={{color:C.textMuted,fontSize:14,marginTop:8,lineHeight:1.6}}>{(note.excerpt||note.body.substring(0,160)).trim()}...</p>}
                   </div>
-                  <div style={{flexShrink:0,width:32,height:32,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:C.bgSoft,color:C.textMuted,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(180deg)":""}}>
-                    ▾
-                  </div>
+                  <div style={{flexShrink:0,width:32,height:32,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:C.bgSoft,color:C.textMuted,fontSize:16,transition:"transform .2s",transform:isOpen?"rotate(180deg)":""}}>▾</div>
                 </div>
                 {isOpen && (
                   <div style={{padding:"0 28px 28px",animation:"fadeUp .3s ease"}}>
                     <div style={{borderTop:`1px solid ${C.borderLight}`,paddingTop:20}}>
                       {note.body.split("\n\n").map((p,j)=>(
-                        <p key={j} style={{fontSize:15,lineHeight:1.8,color:C.textSoft,marginBottom:j<note.body.split("\n\n").length-1?16:0,fontFamily:F.b}}>{p}</p>
+                        <p key={j} style={{fontSize:15,lineHeight:1.8,color:C.textSoft,marginBottom:16,fontFamily:F.b}}>{p}</p>
                       ))}
                     </div>
-                    <div style={{marginTop:24,paddingTop:16,borderTop:`1px solid ${C.borderLight}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+                    {/* Author + share */}
+                    <div style={{marginTop:16,paddingTop:16,borderTop:`1px solid ${C.borderLight}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
                       <div style={{display:"flex",alignItems:"center",gap:10}}>
                         <div style={{width:32,height:32,borderRadius:8,background:`linear-gradient(135deg,${C.navy},${C.tealDark})`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:12,fontWeight:800,fontFamily:F.h}}>NN</div>
-                        <div>
-                          <div style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy}}>Nitin Nagar</div>
-                          <div style={{fontSize:11,color:C.textFaint,fontFamily:F.m}}>Founder, BHT Solutions</div>
-                        </div>
+                        <div><div style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy}}>Nitin Nagar</div><div style={{fontSize:11,color:C.textFaint,fontFamily:F.m}}>Founder, BHT Solutions</div></div>
                       </div>
-                      <a href="https://www.linkedin.com/in/nitinnagar/" target="_blank" rel="noopener"
-                        style={{display:"inline-flex",alignItems:"center",gap:6,padding:"8px 16px",borderRadius:10,background:C.navy,color:"#fff",fontSize:12,fontWeight:700,fontFamily:F.m,textDecoration:"none"}}>
-                        Follow for more ↗
-                      </a>
+                      <div style={{display:"flex",gap:8}}>
+                        <button onClick={(e)=>{e.stopPropagation();shareLinkedIn(note)}}
+                          style={{display:"inline-flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:10,background:"#0A66C2",color:"#fff",fontSize:12,fontWeight:700,fontFamily:F.m,border:"none",cursor:"pointer"}}>
+                          Share on LinkedIn
+                        </button>
+                        <a href="https://www.linkedin.com/in/nitin-nagar-22004b4/" target="_blank" rel="noopener"
+                          style={{display:"inline-flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:10,background:C.navy,color:"#fff",fontSize:12,fontWeight:700,fontFamily:F.m,textDecoration:"none"}}>Follow ↗</a>
+                      </div>
+                    </div>
+                    {/* Comments */}
+                    <div style={{marginTop:20,paddingTop:16,borderTop:`1px solid ${C.borderLight}`}}>
+                      <h4 style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:12}}>Comments {postComments.length>0&&`(${postComments.length})`}</h4>
+                      {postComments.map(c=>(
+                        <div key={c.id} style={{padding:"10px 14px",borderRadius:10,background:C.bgSoft,marginBottom:8}}>
+                          <div style={{fontSize:12,fontWeight:700,color:C.navy}}>{c.name} <span style={{fontWeight:400,color:C.textFaint,fontSize:10}}>{new Date(c.created_at).toLocaleDateString()}</span></div>
+                          <p style={{fontSize:13,color:C.textSoft,marginTop:4,lineHeight:1.5}}>{c.body}</p>
+                        </div>
+                      ))}
+                      {commentPost===note.id ? (
+                        <div style={{display:"flex",flexDirection:"column",gap:8}} onClick={e=>e.stopPropagation()}>
+                          <input value={comment.name} onChange={e=>setComment({...comment,name:e.target.value})} placeholder="Your name *"
+                            style={{padding:"8px 12px",borderRadius:8,border:`1px solid ${C.border}`,fontSize:13,outline:"none"}} />
+                          <textarea value={comment.body} onChange={e=>setComment({...comment,body:e.target.value})} placeholder="Your comment *" rows={3}
+                            style={{padding:"8px 12px",borderRadius:8,border:`1px solid ${C.border}`,fontSize:13,outline:"none",resize:"vertical"}} />
+                          <div style={{position:"absolute",left:"-9999px"}}><input value={comment.website} onChange={e=>setComment({...comment,website:e.target.value})} tabIndex={-1} /></div>
+                          {commentMsg && <p style={{color:C.teal,fontSize:12,fontWeight:600}}>{commentMsg}</p>}
+                          <div style={{display:"flex",gap:8}}>
+                            <button onClick={()=>submitComment(note.id)} style={{padding:"8px 16px",borderRadius:8,border:"none",background:C.teal,color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>Submit</button>
+                            <button onClick={()=>setCommentPost(null)} style={{padding:"8px 16px",borderRadius:8,border:`1px solid ${C.border}`,background:C.bg,fontSize:12,fontWeight:600,cursor:"pointer"}}>Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button onClick={(e)=>{e.stopPropagation();setCommentPost(note.id)}}
+                          style={{padding:"8px 16px",borderRadius:8,border:`1px solid ${C.border}`,background:C.bg,fontSize:12,fontWeight:600,cursor:"pointer",color:C.textMuted}}>
+                          💬 Leave a comment
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1702,14 +1748,19 @@ function FieldNotes({id}) {
           })}
         </div>
 
-        {/* CTA */}
-        <div style={{textAlign:"center",marginTop:40}}>
-          <a href="https://www.linkedin.com/in/nitinnagar/" target="_blank" rel="noopener"
-            style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 32px",borderRadius:12,background:C.navy,color:"#fff",fontSize:15,fontWeight:700,fontFamily:F.h,textDecoration:"none",boxShadow:`0 4px 16px ${C.navy}22`,transition:"all .2s"}}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-            Follow Nitin on LinkedIn
-          </a>
-          <p style={{color:C.textFaint,fontSize:12,fontFamily:F.m,marginTop:10}}>New field notes posted weekly from active engagements</p>
+        {/* Show all / CTA */}
+        <div style={{textAlign:"center",marginTop:32}}>
+          {posts.length>3 && !showAll && <button onClick={()=>setShowAll(true)}
+            style={{padding:"12px 28px",borderRadius:12,border:`1px solid ${C.border}`,background:C.bg,fontSize:14,fontWeight:700,fontFamily:F.h,cursor:"pointer",color:C.navy,marginBottom:16}}>
+            Show all {posts.length} posts
+          </button>}
+          <div style={{marginTop:16}}>
+            <a href="https://www.linkedin.com/in/nitin-nagar-22004b4/" target="_blank" rel="noopener"
+              style={{display:"inline-flex",alignItems:"center",gap:8,padding:"14px 32px",borderRadius:12,background:C.navy,color:"#fff",fontSize:15,fontWeight:700,fontFamily:F.h,textDecoration:"none",boxShadow:`0 4px 16px ${C.navy}22`}}>
+              Follow Nitin on LinkedIn
+            </a>
+            <p style={{color:C.textFaint,fontSize:12,fontFamily:F.m,marginTop:10}}>New field notes posted weekly from active engagements</p>
+          </div>
         </div>
       </div>
     </section>
