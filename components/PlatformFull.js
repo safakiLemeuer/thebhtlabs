@@ -209,6 +209,7 @@ export default function TheBHTLabs() {
         @media(max-width:540px){.g4{grid-template-columns:1fr!important}.snav{display:none!important}.hero-t{font-size:34px!important}}
       `}</style>
       <Hero scrollTo={scrollTo} nav={nav} />
+      <FreeValueStack />
       <ValueProps />
       <Assessment id="assess" />
       <LiveCaseStudies id="cases" items={caseItems} loading={feedStatus.loading} />
@@ -235,68 +236,70 @@ export default function TheBHTLabs() {
 /* ═══════════════ CLIENT TICKER — Scrolling logos by industry ═══════════════ */
 const CLIENTS = [
   // Technology
-  {n:"Microsoft",u:"https://www.microsoft.com",logo:"https://logo.clearbit.com/microsoft.com",cat:"Technology"},
-  {n:"IBM",u:"https://www.ibm.com",logo:"https://logo.clearbit.com/ibm.com",cat:"Technology"},
-  {n:"NTT Data",u:"https://www.nttdata.com",logo:"https://logo.clearbit.com/nttdata.com",cat:"Technology"},
-  {n:"Hitachi",u:"https://www.hitachiconsulting.com",logo:"https://logo.clearbit.com/hitachi.com",cat:"Technology"},
-  {n:"HID Global",u:"https://www.hidglobal.com",logo:"https://logo.clearbit.com/hidglobal.com",cat:"Technology"},
-  {n:"iRobot",u:"https://www.irobot.com",logo:"https://logo.clearbit.com/irobot.com",cat:"Technology"},
-  {n:"Parex Technology",u:"https://www.parextechnologies.com",logo:null,cat:"Technology"},
-  // Consulting & Professional Services
-  {n:"Ernst & Young",u:"https://www.ey.com",logo:"https://logo.clearbit.com/ey.com",cat:"Consulting"},
-  {n:"PwC",u:"https://www.pwc.com",logo:"https://logo.clearbit.com/pwc.com",cat:"Consulting"},
-  {n:"Bain & Company",u:"https://www.bain.com",logo:"https://logo.clearbit.com/bain.com",cat:"Consulting"},
-  {n:"Bank of America",u:"https://www.bankofamerica.com",logo:"https://logo.clearbit.com/bankofamerica.com",cat:"Financial Services"},
-  {n:"SWBC",u:"https://www.swbc.com",logo:"https://logo.clearbit.com/swbc.com",cat:"Financial Services"},
-  {n:"Standard Insurance",u:"https://www.standard.com",logo:"https://logo.clearbit.com/standard.com",cat:"Financial Services"},
+  {n:"Microsoft",u:"https://www.microsoft.com",cat:"Technology",cc:"#00A4EF"},
+  {n:"IBM",u:"https://www.ibm.com",cat:"Technology",cc:"#0530AD"},
+  {n:"NTT Data",u:"https://www.nttdata.com",cat:"Technology",cc:"#0072C6"},
+  {n:"Hitachi",u:"https://www.hitachiconsulting.com",cat:"Technology",cc:"#E60012"},
+  {n:"HID Global",u:"https://www.hidglobal.com",cat:"Technology",cc:"#003DA5"},
+  {n:"iRobot",u:"https://www.irobot.com",cat:"Technology",cc:"#8BC540"},
+  {n:"Parex Technology",u:"https://www.parextechnologies.com",cat:"Technology",cc:"#0072C6"},
+  // Consulting
+  {n:"Ernst & Young",u:"https://www.ey.com",cat:"Consulting",cc:"#FFE600"},
+  {n:"PwC",u:"https://www.pwc.com",cat:"Consulting",cc:"#EB8C00"},
+  {n:"Bain & Company",u:"https://www.bain.com",cat:"Consulting",cc:"#CC0000"},
+  // Financial Services
+  {n:"Bank of America",u:"https://www.bankofamerica.com",cat:"Financial",cc:"#012169"},
+  {n:"SWBC",u:"https://www.swbc.com",cat:"Financial",cc:"#003366"},
+  {n:"Standard Insurance",u:"https://www.standard.com",cat:"Financial",cc:"#00539B"},
   // Energy
-  {n:"bp",u:"https://www.bp.com",logo:"https://logo.clearbit.com/bp.com",cat:"Energy"},
-  {n:"Devon Energy",u:"https://www.devonenergy.com",logo:"https://logo.clearbit.com/devonenergy.com",cat:"Energy"},
-  {n:"Phillips 66",u:"https://www.phillips66.com",logo:"https://logo.clearbit.com/phillips66.com",cat:"Energy"},
-  {n:"CenterPoint Energy",u:"https://www.centerpointenergy.com",logo:"https://logo.clearbit.com/centerpointenergy.com",cat:"Energy"},
-  {n:"Consolidated Edison",u:"https://www.coned.com",logo:"https://logo.clearbit.com/coned.com",cat:"Energy"},
-  {n:"Speedway",u:"https://www.speedway.com",logo:"https://logo.clearbit.com/speedway.com",cat:"Energy"},
-  {n:"NOV",u:"https://www.nov.com",logo:"https://logo.clearbit.com/nov.com",cat:"Energy"},
-  {n:"Apache",u:"https://www.apachecorp.com",logo:"https://logo.clearbit.com/apachecorp.com",cat:"Energy"},
-  // Healthcare & Pharma
-  {n:"Eli Lilly",u:"https://www.lilly.com",logo:"https://logo.clearbit.com/lilly.com",cat:"Healthcare"},
-  {n:"McKesson",u:"https://www.mckesson.com",logo:"https://logo.clearbit.com/mckesson.com",cat:"Healthcare"},
-  {n:"Healthcare Assoc. of Hawaii",u:"https://www.hah.org",logo:null,cat:"Healthcare"},
-  // Retail & Consumer
-  {n:"Kroger",u:"https://www.kroger.com",logo:"https://logo.clearbit.com/kroger.com",cat:"Retail"},
-  {n:"GE Power",u:"https://www.ge.com",logo:"https://logo.clearbit.com/ge.com",cat:"Industrial"},
-  {n:"Foodland",u:"https://www.foodland.com",logo:"https://logo.clearbit.com/foodland.com",cat:"Retail"},
+  {n:"bp",u:"https://www.bp.com",cat:"Energy",cc:"#009B3A"},
+  {n:"Devon Energy",u:"https://www.devonenergy.com",cat:"Energy",cc:"#00843D"},
+  {n:"Phillips 66",u:"https://www.phillips66.com",cat:"Energy",cc:"#D71920"},
+  {n:"CenterPoint Energy",u:"https://www.centerpointenergy.com",cat:"Energy",cc:"#00A94F"},
+  {n:"Consolidated Edison",u:"https://www.coned.com",cat:"Energy",cc:"#0066B3"},
+  {n:"Speedway",u:"https://www.speedway.com",cat:"Energy",cc:"#ED1C24"},
+  {n:"NOV",u:"https://www.nov.com",cat:"Energy",cc:"#005DA6"},
+  {n:"Apache",u:"https://www.apachecorp.com",cat:"Energy",cc:"#CE1126"},
+  // Healthcare
+  {n:"Eli Lilly",u:"https://www.lilly.com",cat:"Healthcare",cc:"#D52B1E"},
+  {n:"McKesson",u:"https://www.mckesson.com",cat:"Healthcare",cc:"#0072CE"},
+  {n:"Healthcare Assoc. of Hawaii",u:"https://www.hah.org",cat:"Healthcare",cc:"#00AEEF"},
+  // Retail & Industrial
+  {n:"Kroger",u:"https://www.kroger.com",cat:"Retail",cc:"#0033A0"},
+  {n:"GE Power",u:"https://www.ge.com",cat:"Industrial",cc:"#3B73B9"},
+  {n:"Foodland",u:"https://www.foodland.com",cat:"Retail",cc:"#E31837"},
   // Nonprofit
-  {n:"Bill & Melinda Gates Foundation",u:"https://www.gatesfoundation.org",logo:"https://logo.clearbit.com/gatesfoundation.org",cat:"Nonprofit"},
-  // Federal & State Government
-  {n:"U.S. Department of Justice",u:"https://www.justice.gov",logo:"https://logo.clearbit.com/justice.gov",cat:"Federal"},
-  {n:"U.S. SEC",u:"https://www.sec.gov",logo:"https://logo.clearbit.com/sec.gov",cat:"Federal"},
-  {n:"U.S. Department of Homeland Security",u:"https://www.dhs.gov",logo:"https://logo.clearbit.com/dhs.gov",cat:"Federal"},
-  {n:"State of Hawaii",u:"https://www.hawaii.gov",logo:null,cat:"State Gov"},
-  {n:"State of Arkansas Dept. of Education",u:"https://dese.ade.arkansas.gov",logo:null,cat:"State Gov"},
-  {n:"City of San Diego",u:"https://www.sandiego.gov",logo:null,cat:"State Gov"},
+  {n:"Bill & Melinda Gates Foundation",u:"https://www.gatesfoundation.org",cat:"Nonprofit",cc:"#1D6FA5"},
+  // Federal
+  {n:"U.S. Department of Justice",u:"https://www.justice.gov",cat:"Federal",cc:"#002F6C"},
+  {n:"U.S. SEC",u:"https://www.sec.gov",cat:"Federal",cc:"#002868"},
+  {n:"U.S. DHS",u:"https://www.dhs.gov",cat:"Federal",cc:"#003366"},
+  // State & Local
+  {n:"State of Hawaii",u:"https://www.hawaii.gov",cat:"State Gov",cc:"#003DA5"},
+  {n:"Arkansas Dept. of Education",u:"https://dese.ade.arkansas.gov",cat:"State Gov",cc:"#C41230"},
+  {n:"City of San Diego",u:"https://www.sandiego.gov",cat:"State Gov",cc:"#00457C"},
 ];
+
+const CAT_COLORS = {Technology:"#0072C6",Consulting:"#EB8C00",Financial:"#012169",Energy:"#00843D",Healthcare:"#D52B1E",Retail:"#0033A0",Industrial:"#3B73B9",Nonprofit:"#1D6FA5",Federal:"#002F6C","State Gov":"#C41230"};
 
 function ClientTicker() {
   const [hovered, setHovered] = useState(false);
-  // Duplicate for seamless loop
   const items = [...CLIENTS, ...CLIENTS];
   return (
-    <div style={{overflow:"hidden",position:"relative",width:"100%",maskImage:"linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)"}}>
-      <div
-        onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
-        style={{display:"flex",gap:36,animation:"tickerScroll 60s linear infinite",animationPlayState:hovered?"paused":"running",width:"max-content"}}>
+    <div style={{overflow:"hidden",position:"relative",width:"100%",maskImage:"linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)"}}>
+      <div onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}
+        style={{display:"flex",gap:6,animation:"tickerScroll 80s linear infinite",animationPlayState:hovered?"paused":"running",width:"max-content"}}>
         {items.map((c,i)=>(
           <a key={c.n+i} href={c.u} target="_blank" rel="noopener noreferrer" title={`${c.n} — ${c.cat}`}
-            style={{display:"flex",alignItems:"center",gap:8,flexShrink:0,padding:"8px 14px",borderRadius:10,textDecoration:"none",transition:"all .15s",background:"transparent",border:"1px solid transparent"}}
-            onMouseEnter={e=>{e.currentTarget.style.background=C.bgSoft;e.currentTarget.style.borderColor=C.border}}
+            style={{display:"inline-flex",alignItems:"center",gap:7,flexShrink:0,padding:"7px 14px",borderRadius:8,textDecoration:"none",transition:"all .15s",
+              background:"transparent",border:`1px solid transparent`}}
+            onMouseEnter={e=>{e.currentTarget.style.background=c.cc+"0A";e.currentTarget.style.borderColor=c.cc+"20"}}
             onMouseLeave={e=>{e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor="transparent"}}>
-            {c.logo ? (
-              <img src={c.logo} alt={c.n} style={{width:22,height:22,borderRadius:4,objectFit:"contain"}} onError={e=>{e.target.style.display="none";e.target.nextSibling&&(e.target.nextSibling.style.display="flex")}} />
-            ) : null}
-            {!c.logo && <div style={{width:22,height:22,borderRadius:4,background:C.teal+"12",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:C.teal,fontFamily:F.h}}>{c.n.charAt(0)}</div>}
-            {c.logo && <div style={{display:"none",width:22,height:22,borderRadius:4,background:C.teal+"12",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:C.teal,fontFamily:F.h}}>{c.n.charAt(0)}</div>}
+            <div style={{width:20,height:20,borderRadius:5,background:c.cc+"15",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <span style={{fontSize:9,fontWeight:800,color:c.cc,fontFamily:F.m}}>{c.n.replace(/^U\.S\.\s/,"").charAt(0)}</span>
+            </div>
             <span style={{fontSize:12,fontWeight:600,fontFamily:F.h,color:C.textMuted,whiteSpace:"nowrap"}}>{c.n}</span>
+            <span style={{fontSize:8,fontWeight:700,fontFamily:F.m,color:CAT_COLORS[c.cat]||C.textFaint,opacity:.5,textTransform:"uppercase",letterSpacing:.5}}>{c.cat}</span>
           </a>
         ))}
       </div>
@@ -414,6 +417,52 @@ function Hero({scrollTo, nav}) {
   );
 }
 
+/* ═══════════════ FREE VALUE STACK — What visitors get at $0 ═══════════════ */
+function FreeValueStack() {
+  const tools = [
+    {icon:"◈",t:"35-Point AI Readiness Assessment",d:"7 domains, 35 questions, personalized score. Downloadable PDF report with gap analysis and 90-day action plan.",val:"Consultants charge $5-10K for this",c:C.teal},
+    {icon:"⬡",t:"AI ROI Calculator",d:"Input your team size, salaries, and hours on repetitive tasks. Get projected 1-3 year savings with executive-ready numbers.",val:"Know your business case in 60 seconds",c:C.blue},
+    {icon:"△",t:"AI Policy Generator",d:"Select industry, compliance requirements, and use cases. Get a production-ready AI acceptable use policy in 30 seconds.",val:"Legal teams charge $3-8K for this",c:C.violet},
+    {icon:"□",t:"Compliance Countdown",d:"Live tracker for CMMC 2.0 phases, EU AI Act deadlines, NIST AI RMF updates, and state AI regulations. Never miss a deadline.",val:"Updated in real time",c:C.coral},
+    {icon:"○",t:"AI Career Risk Assessment",d:"Enter your job title, get an honest analysis of AI automation impact on your role with personalized upskilling recommendations.",val:"Based on industry research",c:C.tealDark},
+    {icon:"◇",t:"Curated Learning Paths",d:"Hand-picked free courses from Microsoft, Harvard, Google, NIST, and Anthropic. Organized by role: leaders, builders, compliance.",val:"50+ hours of free training",c:C.navy},
+  ];
+  return (
+    <section style={{padding:"64px 0 48px",background:`linear-gradient(180deg,${C.bgSoft} 0%,${C.bg} 100%)`}}>
+      <div style={{maxWidth:1000,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{textAlign:"center",marginBottom:36}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"5px 14px",borderRadius:20,background:C.teal+"0A",border:`1px solid ${C.teal}15`,marginBottom:14}}>
+            <span style={{fontSize:11,fontWeight:800,fontFamily:F.m,color:C.teal,textTransform:"uppercase",letterSpacing:1}}>$0 · No Account · No Catch</span>
+          </div>
+          <h2 style={{fontSize:"clamp(24px,3.5vw,36px)",fontWeight:800,fontFamily:F.h,color:C.navy,lineHeight:1.15,marginBottom:8}}>
+            Everything below is free.<br/><span style={{color:C.teal}}>Right now.</span>
+          </h2>
+          <p style={{color:C.textMuted,fontSize:15,fontFamily:F.b,maxWidth:560,margin:"0 auto"}}>
+            Most firms gate this behind a sales call. We built it because the best way to earn trust is to give value first.
+          </p>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12}} className="g3">
+          {tools.map(t=>(
+            <div key={t.t} style={{padding:"22px 20px",borderRadius:14,background:C.bg,border:`1px solid ${C.border}`,transition:"all .2s",cursor:"default",position:"relative",overflow:"hidden"}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=t.c+"30";e.currentTarget.style.boxShadow=`0 4px 20px ${t.c}08`}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.boxShadow="none"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+                <div style={{width:32,height:32,borderRadius:8,background:t.c+"0A",display:"flex",alignItems:"center",justifyContent:"center",color:t.c,fontSize:15,fontWeight:700,flexShrink:0}}>{t.icon}</div>
+                <h3 style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy,lineHeight:1.25}}>{t.t}</h3>
+              </div>
+              <p style={{fontSize:12,lineHeight:1.6,color:C.textSoft,fontFamily:F.b,marginBottom:10}}>{t.d}</p>
+              <div style={{fontSize:10,fontWeight:700,fontFamily:F.m,color:t.c,textTransform:"uppercase",letterSpacing:.5}}>{t.val}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{textAlign:"center",marginTop:24}}>
+          <p style={{fontSize:12,color:C.textFaint,fontFamily:F.m}}>All tools run in your browser. We don't store your data. No account required. No email gate. Just use them.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ═══════════════ VALUE PROPS ═══════════════ */
 function ValueProps() {
   const items = [
@@ -451,7 +500,39 @@ function Assessment({id}) {
   const cur = AQ[step], total = 35, answered = Object.keys(ans).length;
   const ds = (di) => { let y=0; for(let q=0;q<5;q++){const v=ans[di+"-"+q]; if(v==="yes")y++; else if(v==="partial")y+=.5} return Math.round((y/5)*100); };
   const overall = () => { let y=0; Object.values(ans).forEach(v=>{if(v==="yes")y++;else if(v==="partial")y+=.5}); return Math.round((y/total)*100); };
-  const lvl = (s) => s>=80?{l:"AI-Ready",c:C.teal,d:"Strong foundations. You're ready to deploy AI and should focus on high-impact use cases."}:s>=60?{l:"AI-Emerging",c:C.blue,d:"Good foundations with gaps. A 60-90 day prep phase will position you for success."}:s>=40?{l:"AI-Building",c:C.coral,d:"Key foundations need work. Our Readiness Sprint can bridge critical gaps in 2-4 weeks."}:{l:"AI-Exploring",c:C.rose,d:"Early stage — many businesses start here. We'll map a clear path from where you are today."};
+  const lvl = (s) => s>=80?{l:"AI-Leading",c:C.teal,d:"Above-average maturity. Focus shifts to scaling, governance, and systematic competitive advantage."}:s>=65?{l:"AI-Ready",c:C.blue,d:"Strong foundations — ready for production deployment. The window of advantage is open."}:s>=40?{l:"AI-Building",c:C.coral,d:"Partial readiness — some domains strong, critical gaps remain. Right time to act."}:{l:"AI-Unready",c:C.rose,d:"Foundational gaps will limit any AI investment. Addressing these first has the highest ROI."};
+
+  // CTA intelligence — maps score to specific recommendation
+  const getCTA = (s, domains) => {
+    const sorted = [...domains].sort((a,b)=>a.score-b.score);
+    const low1 = sorted[0], low2 = sorted[1];
+    const domainInsight = (name, score) => {
+      if(name==="Data Foundation"&&score<40) return "Gartner reports that 85% of AI projects fail due to poor data quality. Fixing data foundations first has the highest leverage.";
+      if(name==="Process Maturity"&&score<40) return "McKinsey's 2025 survey found organizations reporting significant AI returns were twice as likely to have redesigned workflows before selecting tools.";
+      if(name==="People & Culture"&&score<50) return "BCG research suggests AI success is 70% people, processes, and culture — only 10% algorithms. Change management is critical.";
+      if(name==="Governance & Compliance"&&score<50) return "The EY Responsible AI Pulse survey found only 1 in 3 companies have proper AI governance controls despite broad AI integration.";
+      if(name==="Technology Readiness"&&score<50) return "This isn't about buying more tools — it's about ensuring your existing stack is configured, connected, and AI-ready.";
+      if(name==="Strategy & ROI"&&score<50) return "McKinsey found only 39% of organizations report enterprise-level EBIT impact from AI despite widespread adoption. A structured strategy changes that.";
+      if(name==="Use Case Clarity"&&score<50) return "The right starting point is narrowing to 1-2 high-impact, low-risk use cases that demonstrate ROI fast.";
+      return "Targeted improvements in this domain will unlock measurable AI capabilities.";
+    };
+    const pkg = s>=80?{name:"AI Launchpad",price:"$7,500/mo",what:"End-to-end implementation: Copilot Studio agents, custom automations, staff training for up to 20 people, monthly reviews, and priority support."}
+      :s>=65?{name:"AI Launchpad",price:"$7,500/mo",what:"Production deployment: Copilot Studio agents, 1-2 custom automations, staff training, monthly reviews. Everything in Sprint plus implementation."}
+      :s>=40?{name:"AI Readiness Sprint",price:"$2,500",what:"Full 35-point deep-dive assessment, data and process audit, prioritized AI roadmap, tool recommendations, executive briefing, and 90-day action plan."}
+      :{name:"AI Readiness Sprint",price:"$2,500",what:"Focused engagement to address your lowest-scoring domains, build missing foundations, and create a prioritized 90-day roadmap with executive briefing."};
+    return {low1,low2,domainInsight,pkg,
+      honest: s>=80
+        ? `At ${s}%, your organization is in the AI-Leading stage — ahead of most. Your foundations are strong. The focus now shifts to scaling and governance to maintain that advantage.`
+        : s>=65
+        ? `At ${s}%, your organization is AI-Ready — which puts you ahead of the majority. Your critical gaps are ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%). Addressing these unlocks production deployment.`
+        : s>=40
+        ? `At ${s}%, your organization is in the AI-Building stage — which is where most organizations find themselves right now. Your critical gaps are ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%). Industry research consistently identifies these as the primary drivers of AI deployment failure.`
+        : `At ${s}%, your organization is in the early stages of AI readiness. ${low1.name} (${low1.score}%) and ${low2.name} (${low2.score}%) need foundational work before any AI tool deployment will deliver returns.`,
+      practical: s>=65
+        ? `Organizations at your level that deploy AI into well-prepared workflows typically see measurable results within 60-90 days. McKinsey reports that companies redesigning workflows before selecting tools are twice as likely to achieve enterprise-level impact.`
+        : `S&P Global reported that 42% of companies abandoned most AI initiatives in 2025 — up from 17% the prior year — largely because they deployed tools before data and processes were ready. Addressing foundations first is the highest-ROI investment you can make.`,
+    };
+  };
 
   const sendReport = async () => {
     if(!email)return; setSending(true);
@@ -486,24 +567,27 @@ function Assessment({id}) {
   const generatePDF = () => {
     const s = overall(), lv = lvl(s);
     const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
-    // Build PDF using a new window (zero dependencies, works everywhere)
+    const cta = getCTA(s, domains);
     const w = window.open('','_blank');
     w.document.write(`<!DOCTYPE html><html><head><title>AI Readiness Report — TheBHTLabs</title>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;700&display=swap');
       *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;color:#0F172A;padding:48px;max-width:800px;margin:0 auto}
-      @media print{body{padding:24px}button{display:none!important}}
+      @media print{body{padding:24px}button,.no-print{display:none!important}.page-break{page-break-before:always}}
       h1{font-size:28px;font-weight:800;letter-spacing:-0.03em}
+      h2{font-size:18px;font-weight:700;margin:28px 0 14px}
       .score-circle{width:120px;height:120px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 auto 16px}
-      .domain-bar{height:20px;border-radius:4px;transition:width .3s}
       .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
       .card{padding:16px;border-radius:12px;border:1px solid #E2E8F0}
+      .cta-section{padding:24px;border-radius:14px;margin:16px 0}
+      .insight{font-size:13px;color:#475569;line-height:1.7;margin-bottom:10px}
+      .footer-note{font-size:9px;color:#94A3B8;font-style:italic;margin-top:8px;line-height:1.5}
     </style></head><body>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-bottom:16px;border-bottom:2px solid #0D9488">
       <div><h1 style="color:#0F172A">AI Readiness Report</h1>
       <p style="color:#64748B;font-size:13px;margin-top:4px">Generated by TheBHTLabs · ${new Date().toLocaleDateString()}</p></div>
       <div style="text-align:right"><div style="font-weight:800;font-size:15px;color:#0F172A">TheBHT<span style="color:#0D9488">Labs</span></div>
-      <div style="font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">CAGE: 7DBB9 · bhtsolutions.com</div></div>
+      <div style="font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">CAGE: 7DBB9 · thebhtlabs.com</div></div>
     </div>
     <div style="text-align:center;margin:32px 0">
       <div class="score-circle" style="background:${lv.c}11;border:3px solid ${lv.c}">
@@ -512,41 +596,68 @@ function Assessment({id}) {
       </div>
       <p style="color:#475569;font-size:14px;max-width:500px;margin:0 auto">${lv.d}</p>
     </div>
-    <h2 style="font-size:18px;font-weight:700;margin:28px 0 14px">Domain Breakdown</h2>
+    <h2>Domain Breakdown</h2>
     ${domains.map(d=>`
       <div style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;margin-bottom:4px">
           <span style="font-size:13px;font-weight:600">${d.name}</span>
-          <span style="font-size:13px;font-weight:700;color:${d.score>=80?'#0D9488':d.score>=60?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};font-family:'IBM Plex Mono',monospace">${d.score}%</span>
+          <span style="font-size:13px;font-weight:700;color:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};font-family:'IBM Plex Mono',monospace">${d.score}%</span>
         </div>
         <div style="height:20px;background:#F1F5F9;border-radius:4px;overflow:hidden">
-          <div style="height:100%;width:${d.score}%;background:${d.score>=80?'#0D9488':d.score>=60?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};border-radius:4px"></div>
+          <div style="height:100%;width:${d.score}%;background:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};border-radius:4px"></div>
         </div>
       </div>
     `).join('')}
-    <h2 style="font-size:18px;font-weight:700;margin:32px 0 14px">Your Top 3 Quick Wins</h2>
+    <h2>Priority Gap Analysis</h2>
     <div class="grid">
-    ${domains.sort((a,b)=>a.score-b.score).slice(0,3).map((d,i)=>`
+    ${[...domains].sort((a,b)=>a.score-b.score).slice(0,3).map((d,i)=>`
       <div class="card">
-        <div style="font-size:12px;font-weight:700;color:#E11D48;margin-bottom:4px">Priority ${i+1}</div>
-        <div style="font-size:15px;font-weight:700;margin-bottom:4px">${d.name} · ${d.score}%</div>
-        <p style="font-size:13px;color:#64748B">${d.score<40?'Foundational gap — address this first for maximum impact.':d.score<60?'Partial coverage — targeted improvements will unlock AI capabilities here.':'Close to ready — a focused sprint can bring this to full readiness.'}</p>
+        <div style="font-size:11px;font-weight:700;color:#E11D48;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Priority ${i+1}</div>
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px">${d.name} · ${d.score}%</div>
+        <p style="font-size:12px;color:#64748B;line-height:1.6">${cta.domainInsight(d.name, d.score)}</p>
       </div>
     `).join('')}
     </div>
-    <h2 style="font-size:18px;font-weight:700;margin:32px 0 14px">Recommended Next Step</h2>
-    <div style="padding:20px;border-radius:14px;background:#F0FDFA;border:1px solid #CCFBF1">
-      <p style="font-size:14px;color:#0F766E;font-weight:600;margin-bottom:8px">${s>=80?'AI Launchpad — You\'re ready to deploy':'AI Readiness Sprint — Bridge your gaps in 2-4 weeks'}</p>
-      <p style="font-size:13px;color:#475569">${s>=80?'Your organization is positioned for AI implementation. We recommend starting with 1-2 high-impact use cases and building from there. Our Launchpad package includes Copilot Studio agents, custom automations, and staff training.':'A focused engagement to address your lowest-scoring domains, build missing foundations, and create a 90-day AI roadmap. Includes executive briefing, tool recommendations, and prioritized action plan.'}</p>
+
+    <div class="page-break"></div>
+    <h2 style="margin-top:32px">The Honest Assessment</h2>
+    <div class="cta-section" style="background:#F8FAFC;border:1px solid #E2E8F0">
+      <p class="insight">${cta.honest}</p>
+      <p class="insight">${cta.practical}</p>
     </div>
-    <div style="margin-top:32px;padding-top:16px;border-top:2px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-weight:700;font-size:13px;color:#0F172A">Ready to act on these results?</div>
-      <div style="font-size:12px;color:#64748B">info@bhtsolutions.com · bhtsolutions.com · (832) 850-4047</div></div>
-      <div style="text-align:right;font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">
-        SBA 8(a) · EDWOSB · WOSB<br>CAGE: 7DBB9 · UEI: ZW6GMVL368J6<br>CyberAB RP · SAFe 5 · T4 Clearance
+
+    <h2>Your Recommended Next Step</h2>
+    <div class="cta-section" style="background:#F0FDFA;border:1px solid #CCFBF1">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:#0F766E">${cta.pkg.name}</div>
+          <div style="font-size:13px;color:#0D9488;font-weight:600;font-family:'IBM Plex Mono',monospace">${cta.pkg.price}</div>
+        </div>
+      </div>
+      <p class="insight">${cta.pkg.what}</p>
+      <p class="insight" style="margin-top:12px">This is the same foundation we built for a defense contractor that went from incomplete NIST 800-171 documentation to 110/110 practices in 90 days, and an insurance broker that achieved 87% faster document processing through AI automation.</p>
+      <div style="margin-top:16px;padding:16px;background:#fff;border-radius:10px;border:1px solid #E2E8F0">
+        <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:4px">The next step costs nothing.</div>
+        <p style="font-size:13px;color:#64748B;line-height:1.6">A 30-minute discovery call where we walk through this report together and tell you what we would prioritize first. Most people find that conversation clarifying regardless of what they decide to do next.</p>
+        <div style="margin-top:12px;font-size:13px;font-weight:700;color:#0D9488">Schedule your call → thebhtlabs.com · info@bhtsolutions.com · (513) 638-1986</div>
       </div>
     </div>
-    <div style="text-align:center;margin-top:24px">
+
+    <div style="margin-top:24px;padding:20px;background:#F8FAFC;border-radius:12px;border:1px solid #E2E8F0">
+      <div style="font-size:12px;font-weight:700;color:#0F172A;margin-bottom:8px">About BHT Solutions</div>
+      <p style="font-size:11px;color:#64748B;line-height:1.6">Bluebery Hawaii Technology Solutions LLC · SBA 8(a) · EDWOSB · WOSB · Microsoft Certified Azure Solutions Architect · CyberAB Registered Practitioner · Wiz-certified Cloud Security · Active Public Trust clearance, Secret eligible · CAGE: 7DBB9 · UEI: ZW6GMVL368J6</p>
+      <p style="font-size:11px;color:#64748B;line-height:1.6;margin-top:6px">Core capabilities: Azure Government Cloud · M365 GCC/GCC-High · CMMC Level 2 · FedRAMP Advisory · Copilot Studio · Power Platform · AI Governance (NIST RMF)</p>
+      <p class="footer-note" style="margin-top:10px">Results vary based on organizational readiness, implementation approach, and market conditions. Industry statistics cited are from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), and BCG (2024). Engagement scope and pricing are illustrative and subject to discussion. BHT engagement outcomes referenced are based on actual client engagements.</p>
+    </div>
+
+    <div style="margin-top:24px;padding-top:16px;border-top:2px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:700;font-size:13px;color:#0F172A">Ready to act on these results?</div>
+      <div style="font-size:12px;color:#64748B">info@bhtsolutions.com · thebhtlabs.com · (513) 638-1986</div></div>
+      <div style="text-align:right;font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">
+        SBA 8(a) · EDWOSB · WOSB<br>CAGE: 7DBB9 · UEI: ZW6GMVL368J6<br>CyberAB RP · Wiz Certified
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:24px" class="no-print">
       <button onclick="window.print()" style="padding:12px 28px;border-radius:10px;border:none;background:#0D9488;color:#fff;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">
         Save as PDF (Ctrl+P → Save as PDF)
       </button>
@@ -558,6 +669,9 @@ function Assessment({id}) {
   // Results state
   if (done) {
     const sc = overall(), lv = lvl(sc);
+    const domainResults = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    const cta = getCTA(sc, domainResults);
+    const sorted = [...domainResults].sort((a,b)=>a.score-b.score);
     return (
       <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
         <div style={{maxWidth:800,margin:"0 auto",padding:"0 24px"}}>
@@ -578,7 +692,7 @@ function Assessment({id}) {
             <div style={{padding:28}}>
               <h4 style={{fontSize:13,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,marginBottom:16}}>Domain Breakdown</h4>
               {AQ.map((d,i) => {
-                const s = ds(i), c = s>=80?C.teal:s>=60?C.blue:s>=40?C.coral:C.rose;
+                const s = ds(i), c = s>=80?C.teal:s>=65?C.blue:s>=40?C.coral:C.rose;
                 return (
                   <div key={i} style={{display:"flex",alignItems:"center",gap:14,padding:"10px 0",borderBottom:i<6?`1px solid ${C.borderLight}`:"none"}}>
                     <span style={{fontSize:14,fontWeight:600,color:C.navy,flex:1,fontFamily:F.h}}>{d.d}</span>
@@ -589,9 +703,43 @@ function Assessment({id}) {
                   </div>
                 );
               })}
+
+              {/* Intelligent CTA — The Honest Assessment */}
+              <div style={{marginTop:24,padding:20,borderRadius:14,background:C.bgSoft,border:`1px solid ${C.border}`}}>
+                <h4 style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:8}}>The Honest Assessment</h4>
+                <p style={{fontSize:13,color:C.textMuted,lineHeight:1.7,marginBottom:8}}>{cta.honest}</p>
+                <p style={{fontSize:12,color:C.textSoft,lineHeight:1.7}}>{cta.practical}</p>
+              </div>
+
+              {/* Priority Gap Cards */}
+              <div style={{marginTop:16,display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+                {sorted.slice(0,2).map((d,i)=>(
+                  <div key={d.name} style={{padding:16,borderRadius:12,border:`1px solid ${d.score<40?C.rose+"30":C.coral+"30"}`,background:d.score<40?C.rose+"05":C.coral+"05"}}>
+                    <div style={{fontSize:10,fontWeight:700,fontFamily:F.m,color:C.rose,textTransform:"uppercase",letterSpacing:1,marginBottom:4}}>Priority {i+1}</div>
+                    <div style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:6}}>{d.name} · {d.score}%</div>
+                    <p style={{fontSize:11,color:C.textMuted,lineHeight:1.6}}>{cta.domainInsight(d.name, d.score)}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Recommended Next Step */}
+              <div style={{marginTop:16,padding:20,borderRadius:14,background:C.tealBg,border:`1px solid ${C.teal}15`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div>
+                    <h4 style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.tealDark}}>Recommended: {cta.pkg.name}</h4>
+                    <span style={{fontSize:13,fontWeight:600,fontFamily:F.m,color:C.teal}}>{cta.pkg.price}</span>
+                  </div>
+                </div>
+                <p style={{fontSize:12,color:C.textMuted,lineHeight:1.7,marginBottom:12}}>{cta.pkg.what}</p>
+                <div style={{padding:14,borderRadius:10,background:C.bg,border:`1px solid ${C.border}`}}>
+                  <p style={{fontSize:13,fontWeight:700,color:C.navy,marginBottom:4}}>The next step costs nothing.</p>
+                  <p style={{fontSize:12,color:C.textSoft,lineHeight:1.6}}>A 30-minute discovery call where we walk through this report and tell you what we'd prioritize first. No pitch, no commitment.</p>
+                </div>
+              </div>
+
               {/* Email capture */}
               {!sent ? (
-                <div style={{marginTop:24,padding:20,borderRadius:14,background:C.tealBg,border:`1px solid ${C.teal}15`}}>
+                <div style={{marginTop:16,padding:20,borderRadius:14,background:C.bg,border:`1px solid ${C.border}`}}>
                   <p style={{fontSize:14,fontWeight:600,color:C.navy,marginBottom:10}}>Get your full report with personalized AI roadmap</p>
                   <div style={{display:"flex",gap:8}}>
                     <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="your@email.com"
@@ -603,7 +751,7 @@ function Assessment({id}) {
                   </div>
                 </div>
               ) : (
-                <div style={{marginTop:24,padding:20,borderRadius:14,background:C.tealBg,border:`1px solid ${C.teal}15`,textAlign:"center"}}>
+                <div style={{marginTop:16,padding:20,borderRadius:14,background:C.tealBg,border:`1px solid ${C.teal}15`,textAlign:"center"}}>
                   <span style={{color:C.teal,fontSize:14,fontWeight:600}}>✓ Report sent! We'll follow up within 24 hours.</span>
                 </div>
               )}
@@ -612,9 +760,10 @@ function Assessment({id}) {
                   style={{padding:"10px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted}}>Retake</button>
                 <button onClick={generatePDF}
                   style={{padding:"10px",borderRadius:10,border:"none",background:C.teal,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,color:"#fff"}}>📄 Download PDF</button>
-                <button onClick={()=>document.getElementById("partner")?.scrollIntoView({behavior:"smooth"})}
-                  style={{padding:"10px",borderRadius:10,border:"none",background:C.violetBg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.violet}}>Book Consultation →</button>
+                <button onClick={()=>document.getElementById("contact")?.scrollIntoView({behavior:"smooth"})}
+                  style={{padding:"10px",borderRadius:10,border:"none",background:C.violetBg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.violet}}>Book Discovery Call →</button>
               </div>
+              <p style={{fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:12,lineHeight:1.5,fontStyle:"italic"}}>Results vary based on organizational readiness, implementation approach, and market conditions. Industry statistics from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), and BCG (2024).</p>
             </div>
           </div>
         </div>
@@ -1395,7 +1544,7 @@ function Partner({id}) {
   };
   const cards = [
     {icon:"◈",t:"Hire Us",d:"AI, cloud, security expertise. 2-week sprints to 12-month engagements. Cleared resources.",c:C.teal},
-    {icon:"⬡",t:"Partner",d:"Prime contractors: SBA 8(a), EDWOSB, WOSB certified. Active T4 clearance. Let's team.",c:C.violet},
+    {icon:"⬡",t:"Partner",d:"Prime contractors: SBA 8(a), EDWOSB, WOSB certified. Cleared resources. Let's team.",c:C.violet},
     {icon:"△",t:"Assess",d:"35-point AI evaluation. Cloud readiness. Security posture. Executive briefing.",c:C.blue},
     {icon:"○",t:"Train",d:"Custom AI, cloud, security training for 5-200 people. In-person or virtual.",c:C.coral},
   ];
@@ -1473,7 +1622,7 @@ function Partner({id}) {
 function ProofBar() {
   const stats = [
     {v:"20+",l:"Years Experience"},{v:"7DBB9",l:"CAGE Code"},{v:"9",l:"Certifications"},{v:"SBA 8(a)",l:"Set-Aside Eligible"},
-    {v:"T4",l:"Active Clearance"},{v:"11+",l:"NAICS Codes"},{v:"CyberAB",l:"Registered Practitioner"},{v:"20+",l:"Years Enterprise IT"},
+    {v:"34+",l:"Enterprise Clients"},{v:"11+",l:"NAICS Codes"},{v:"CyberAB",l:"Registered Practitioner"},{v:"20+",l:"Years Enterprise IT"},
   ];
   return (
     <section style={{padding:"48px 0",borderTop:`1px solid ${C.border}`,borderBottom:`1px solid ${C.border}`,background:C.bg}}>
@@ -1542,7 +1691,7 @@ function TheBuilder({id}) {
                 <h3 style={{fontSize:22,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:2}}>Nitin Nagar</h3>
                 <p style={{color:C.teal,fontSize:13,fontWeight:700,fontFamily:F.m,marginBottom:12}}>Founder & Principal Architect</p>
                 <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:16}}>
-                  {["T4 Cleared","20+ Years","SBA 8(a)"].map(t=>(
+                  {["Cleared","20+ Years","SBA 8(a)"].map(t=>(
                     <span key={t} style={{padding:"4px 10px",borderRadius:8,background:C.teal+"0A",border:`1px solid ${C.teal}15`,fontSize:11,fontWeight:700,fontFamily:F.m,color:C.tealDark}}>{t}</span>
                   ))}
                 </div>
@@ -1608,7 +1757,9 @@ function TheBuilder({id}) {
                     style={{display:"inline-flex",alignItems:"center",gap:5,padding:"5px 12px",borderRadius:10,background:C.navy+"06",border:`1px solid ${C.navy}0A`,fontSize:12,fontWeight:600,fontFamily:F.h,color:C.navy,textDecoration:"none",transition:"all .15s"}}
                     onMouseEnter={e=>{e.currentTarget.style.background=C.teal+"0D";e.currentTarget.style.borderColor=C.teal+"22"}}
                     onMouseLeave={e=>{e.currentTarget.style.background=C.navy+"06";e.currentTarget.style.borderColor=C.navy+"0A"}}>
-                    {c.logo && <img src={c.logo} alt="" style={{width:14,height:14,borderRadius:2,objectFit:"contain"}} onError={e=>e.target.style.display="none"} />}
+                    <div style={{width:12,height:12,borderRadius:3,background:(c.cc||C.teal)+"20",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <span style={{fontSize:7,fontWeight:800,color:c.cc||C.teal,fontFamily:F.m}}>{c.n.replace(/^U\.S\.\s/,"").charAt(0)}</span>
+                    </div>
                     {c.n}
                   </a>
                 ))}
@@ -1633,7 +1784,7 @@ function TheBuilder({id}) {
             {showCreds && <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:16,animation:"fadeUp .3s ease"}} className="g2">
               {[
                 {l:"SBA 8(a)",d:"Small Business Administration"},{l:"EDWOSB",d:"Econ. Disadvantaged Women-Owned"},
-                {l:"WOSB",d:"Women-Owned Small Business"},{l:"T4 Clearance",d:"Active Public Trust + Secret Eligible"},
+                {l:"WOSB",d:"Women-Owned Small Business"},{l:"Cleared",d:"Public Trust + Secret Eligible"},
                 {l:"CyberAB RP",d:"Registered Practitioner"},{l:"Wiz Certified",d:"Cloud Security Delivery"},
                 {l:"SAFe 5",d:"Agile Practitioner"},{l:"ITIL v3",d:"IT Service Management"},
               ].map(c=>(
@@ -1982,7 +2133,7 @@ function Footer() {
     {name:"X (Twitter)",icon:SocialIcons.x,url:"https://x.com/bhtsolutions",color:C.navy},
     {name:"Facebook",icon:SocialIcons.facebook,url:"https://www.facebook.com/bhtsolutions",color:"#1877F2"},
     {name:"YouTube",icon:SocialIcons.youtube,url:"https://www.youtube.com/@bhtsolutions",color:"#FF0000"},
-    {name:"WhatsApp",icon:SocialIcons.whatsapp,url:"https://wa.me/17138889999",color:"#25D366"},
+    {name:"WhatsApp",icon:SocialIcons.whatsapp,url:"https://wa.me/15136381986",color:"#25D366"},
     {name:"Email",icon:SocialIcons.email,url:"mailto:info@bhtsolutions.com",color:C.teal},
   ];
   return (
