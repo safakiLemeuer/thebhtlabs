@@ -633,6 +633,31 @@ function Assessment({id}) {
     setSaving(false);
   };
 
+  const [discoveryStatus, setDiscoveryStatus] = useState(""); // "", sending, sent, error
+
+  const bookDiscovery = async () => {
+    if(discoveryStatus === "sent" || discoveryStatus === "sending") return;
+    setDiscoveryStatus("sending");
+    const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
+    const aria = calcARIA(intake, dScores);
+    const sorted = [...domains].sort((a,b)=>a.score-b.score);
+    try {
+      const r = await fetch("/api/discovery", {method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          name:intake.name, email:intake.email, phone:intake.phone, company:intake.company,
+          title:intake.title, industry:indObj.l, employees:intake.employees, revenue:intake.revenue,
+          overallScore:overall(), stage:lvl(overall()).l,
+          weakest1:sorted[0]?.name+" ("+sorted[0]?.score+"%)", weakest2:sorted[1]?.name+" ("+sorted[1]?.score+"%)",
+          ariaScore:aria.total, ariaTier:aria.tierLabel, ariaMult:aria.mult,
+          recPackage:getCTA(overall(), domains, aria).pkg.name,
+          recPrice:getCTA(overall(), domains, aria).pkg.price
+        })});
+      if(r.ok) setDiscoveryStatus("sent");
+      else setDiscoveryStatus("error");
+    } catch(e) { setDiscoveryStatus("error"); }
+  };
+
   const generatePDF = () => {
     if(!saved) saveResults();
     const s = overall(), lv = lvl(s);
@@ -1033,8 +1058,11 @@ function Assessment({id}) {
                   style={{padding:"10px",borderRadius:10,border:`1px solid ${C.border}`,background:C.bg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.textMuted}}>Retake</button>
                 <button onClick={generatePDF}
                   style={{padding:"10px",borderRadius:10,border:"none",background:C.teal,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,color:"#fff"}}>📄 Download PDF</button>
-                <button onClick={()=>document.getElementById("partner")?.scrollIntoView({behavior:"smooth"})}
-                  style={{padding:"10px",borderRadius:10,border:"none",background:C.violetBg,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,color:C.violet}}>Book Discovery Call →</button>
+                <button onClick={bookDiscovery} disabled={discoveryStatus==="sent"||discoveryStatus==="sending"}
+                  style={{padding:"10px",borderRadius:10,border:"none",background:discoveryStatus==="sent"?"#10B981":C.violetBg,cursor:discoveryStatus==="sent"?"default":"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,
+                    color:discoveryStatus==="sent"?"#fff":C.violet}}>
+                  {discoveryStatus===""?"Book Discovery Call →":discoveryStatus==="sending"?"Sending...":discoveryStatus==="sent"?"✓ Request Sent — Check Email":"Try Again"}
+                </button>
               </div>
               <p style={{fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:12,lineHeight:1.5,fontStyle:"italic"}}>Results vary. Stats from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), BCG (2024). Pricing illustrative.</p>
             </div>

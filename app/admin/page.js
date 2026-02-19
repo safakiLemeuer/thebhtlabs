@@ -530,6 +530,8 @@ function ContactsManager({ headers }) {
                   <a href={`mailto:${c.email}`} style={{ fontSize: 12, color: C.teal, fontWeight: 600 }}>{c.email}</a>
                   {c.phone && <a href={`tel:${c.phone}`} style={{ fontSize: 12, color: C.navy, fontWeight: 600 }}>📞 {c.phone}</a>}
                   {c.company && <span style={{ fontSize: 11, color: C.textMuted }}>· {c.company}</span>}
+                  {c.source === 'discovery_call' && <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: '#7C3AED15', color: '#7C3AED' }}>Discovery Call</span>}
+                  {c.source === 'contact_form' && <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: '#3B82F615', color: '#3B82F6' }}>Contact Form</span>}
                 </div>
                 {c.interest && c.interest !== "I'm interested in..." && <span style={{ fontSize: 11, color: C.textMuted, display: 'block', marginTop: 2 }}>Interest: {c.interest}</span>}
                 {c.message && <p style={{ fontSize: 12, color: C.navy, lineHeight: 1.6, marginTop: 6, padding: 10, background: '#F8FAFC', borderRadius: 8, border: `1px solid ${C.border}22` }}>{c.message}</p>}
