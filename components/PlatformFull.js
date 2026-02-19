@@ -223,69 +223,109 @@ export default function TheBHTLabs() {
       <Radar id="insights" items={newsItems} status={feedStatus} />
       <OpsDashboard status={feedStatus} newsCount={newsItems.length} caseCount={caseItems.length} />
       <Partner id="partner" />
+      <FAQ id="faq" />
       <ProofBar />
       <Footer />
       <ChatWidget />
+      <CookieNotice />
     </div>
   );
 }
 function Hero({scrollTo, nav}) {
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(()=>{
+    const h=()=>setScrolled(window.scrollY>50);
+    window.addEventListener("scroll",h,{passive:true});
+    return ()=>window.removeEventListener("scroll",h);
+  },[]);
   const navItems = [{id:"assess",l:"Assessment"},{id:"cases",l:"Results"},{id:"roi",l:"ROI Calc"},{id:"policy",l:"AI Policy"},{id:"packages",l:"Packages"},{id:"notes",l:"Field Notes"},{id:"builder",l:"The Builder"},{id:"partner",l:"Work With Us"}];
+
+  /* Unique logo — lambda inside hexagonal shape */
+  const Logo = () => (
+    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36">
+          <stop offset="0%" stopColor={C.teal}/>
+          <stop offset="100%" stopColor={C.tealDark}/>
+        </linearGradient>
+      </defs>
+      <path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill="url(#logoGrad)" rx="2"/>
+      <text x="18" y="23" textAnchor="middle" fill="#fff" fontFamily="'IBM Plex Mono',monospace" fontWeight="800" fontSize="18">λ</text>
+    </svg>
+  );
+
   return (
-    <header style={{borderBottom:`1px solid ${C.border}`,background:`linear-gradient(180deg, ${C.bg} 0%, ${C.bgSoft} 100%)`}}>
-      {/* Top nav */}
-      <div style={{maxWidth:1200,margin:"0 auto",padding:"16px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:36,height:36,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",background:`linear-gradient(135deg,${C.teal},${C.tealDark})`,color:"#fff",fontWeight:800,fontSize:16,fontFamily:F.m}}>λ</div>
-          <div>
-            <span style={{fontWeight:800,fontSize:17,fontFamily:F.h,color:C.navy}}>TheBHT<span style={{color:C.teal}}>Labs</span></span>
-            <div style={{fontSize:10,color:C.textFaint,fontFamily:F.m,letterSpacing:1}}>SKUNKWORKS · BHT SOLUTIONS</div>
+    <>
+      {/* Sticky Navigation */}
+      <nav style={{
+        position:"fixed",top:0,left:0,right:0,zIndex:999,
+        background:scrolled?"rgba(255,255,255,.92)":C.bg,
+        backdropFilter:scrolled?"blur(20px) saturate(180%)":"none",
+        WebkitBackdropFilter:scrolled?"blur(20px) saturate(180%)":"none",
+        borderBottom:`1px solid ${scrolled?C.border:"transparent"}`,
+        boxShadow:scrolled?"0 1px 8px rgba(15,23,42,.06)":"none",
+        transition:"all .3s ease",
+      }}>
+        <div style={{maxWidth:1200,margin:"0 auto",padding:scrolled?"10px 24px":"16px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",transition:"padding .3s ease"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}>
+            <Logo />
+            <div>
+              <span style={{fontWeight:800,fontSize:17,fontFamily:F.h,color:C.navy}}>TheBHT<span style={{color:C.teal}}>Labs</span></span>
+              <a href="https://www.bhtsolutions.com" target="_blank" rel="noopener noreferrer"
+                style={{display:"block",fontSize:10,color:C.textFaint,fontFamily:F.m,letterSpacing:1,textDecoration:"none",transition:"color .15s"}}
+                onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color=C.textFaint}>
+                SKUNKWORKS · BHT SOLUTIONS ↗
+              </a>
+            </div>
           </div>
-        </div>
-        <div className="snav" style={{display:"flex",gap:2}}>
-          {navItems.map(n=>(
-            <button key={n.id} onClick={()=>scrollTo(n.id)} style={{padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:F.h,border:"none",transition:"all .15s",
-              background:nav===n.id?C.tealBg:"transparent",color:nav===n.id?C.tealDark:C.textMuted}}>{n.l}</button>
-          ))}
-        </div>
-        <button onClick={()=>scrollTo("assess")} style={{padding:"9px 20px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 2px 8px ${C.teal}33`,transition:"all .2s"}}>
-          Free Assessment →
-        </button>
-      </div>
-      {/* Hero content */}
-      <div style={{maxWidth:1200,margin:"0 auto",padding:"60px 24px 48px",textAlign:"center"}}>
-        <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.12)",marginBottom:20}}>
-          <div style={{width:6,height:6,borderRadius:"50%",background:C.rose,animation:"pulse 2s infinite"}} />
-          <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>91% of orgs lack AI governance. We fix that.</span>
-        </div>
-        <h1 className="hero-t" style={{fontSize:"clamp(36px,5vw,58px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:C.navy,letterSpacing:"-0.03em",maxWidth:800,margin:"0 auto"}}>
-          Stop talking about AI.<br/><span style={{color:C.teal}}>Start shipping it.</span>
-        </h1>
-        <p style={{color:C.textMuted,fontSize:18,lineHeight:1.7,maxWidth:620,margin:"20px auto 14px",fontFamily:F.b}}>
-          We took 20 years of Fortune 500 and federal IT experience, added a lab, and built the tools to make your organization AI-ready in weeks, not quarters.
-        </p>
-        <p style={{color:C.textFaint,fontSize:13,fontFamily:F.m,maxWidth:500,margin:"0 auto 32px"}}>
-          CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · SBA 8(a) · EDWOSB · T4 Cleared · ISO 27001 · CMMI ML3
-        </p>
-        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
-          <button onClick={()=>scrollTo("assess")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s"}}>
-            Take the 35-Point Assessment
-          </button>
-          <button onClick={()=>scrollTo("cases")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:`1.5px solid ${C.border}`,background:"transparent",color:C.navy,transition:"all .2s"}}>
-            See What We've Shipped
-          </button>
-        </div>
-        {/* Client logos bar */}
-        <div style={{marginTop:40,paddingTop:28,borderTop:`1px solid ${C.borderLight}`}}>
-          <p style={{color:C.textFaint,fontSize:11,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Trusted by teams at</p>
-          <div style={{display:"flex",justifyContent:"center",gap:32,flexWrap:"wrap",alignItems:"center"}}>
-            {["Microsoft","bp","Eli Lilly","GE Power","iRobot","Kroger","NOV","Apache","NTT Data","Hitachi"].map(c=>(
-              <span key={c} style={{color:C.textFaint,fontSize:13,fontWeight:600,fontFamily:F.h,opacity:0.5}}>{c}</span>
+          <div className="snav" style={{display:"flex",gap:2}}>
+            {navItems.map(n=>(
+              <button key={n.id} onClick={()=>scrollTo(n.id)} style={{padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:F.h,border:"none",transition:"all .15s",
+                background:nav===n.id?C.tealBg:"transparent",color:nav===n.id?C.tealDark:C.textMuted}}>{n.l}</button>
             ))}
           </div>
+          <button onClick={()=>scrollTo("assess")} style={{padding:"9px 20px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 2px 8px ${C.teal}33`,transition:"all .2s"}}>
+            Free Assessment →
+          </button>
         </div>
-      </div>
-    </header>
+      </nav>
+
+      {/* Hero content — with top padding for sticky nav */}
+      <header style={{borderBottom:`1px solid ${C.border}`,background:`linear-gradient(180deg, ${C.bg} 0%, ${C.bgSoft} 100%)`,paddingTop:80}}>
+        <div style={{maxWidth:1200,margin:"0 auto",padding:"60px 24px 48px",textAlign:"center"}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.12)",marginBottom:20}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:C.rose,animation:"pulse 2s infinite"}} />
+            <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>91% of orgs lack AI governance. We fix that.</span>
+          </div>
+          <h1 className="hero-t" style={{fontSize:"clamp(36px,5vw,58px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:C.navy,letterSpacing:"-0.03em",maxWidth:800,margin:"0 auto"}}>
+            Stop talking about AI.<br/><span style={{color:C.teal}}>Start shipping it.</span>
+          </h1>
+          <p style={{color:C.textMuted,fontSize:18,lineHeight:1.7,maxWidth:620,margin:"20px auto 14px",fontFamily:F.b}}>
+            We took 20 years of Fortune 500 and federal IT experience, added a lab, and built the tools to make your organization AI-ready in weeks, not quarters.
+          </p>
+          <p style={{color:C.textFaint,fontSize:13,fontFamily:F.m,maxWidth:500,margin:"0 auto 32px"}}>
+            CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · SBA 8(a) · EDWOSB · T4 Cleared · ISO 27001 · CMMI ML3
+          </p>
+          <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+            <button onClick={()=>scrollTo("assess")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s"}}>
+              Take the 35-Point Assessment
+            </button>
+            <button onClick={()=>scrollTo("cases")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:`1.5px solid ${C.border}`,background:"transparent",color:C.navy,transition:"all .2s"}}>
+              See What We've Shipped
+            </button>
+          </div>
+          {/* Client logos bar */}
+          <div style={{marginTop:40,paddingTop:28,borderTop:`1px solid ${C.borderLight}`}}>
+            <p style={{color:C.textFaint,fontSize:11,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Trusted by teams at</p>
+            <div style={{display:"flex",justifyContent:"center",gap:32,flexWrap:"wrap",alignItems:"center"}}>
+              {["Microsoft","bp","Eli Lilly","GE Power","iRobot","Kroger","NOV","Apache","NTT Data","Hitachi"].map(c=>(
+                <span key={c} style={{color:C.textFaint,fontSize:13,fontWeight:600,fontFamily:F.h,opacity:0.5}}>{c}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </header>
+    </>
   );
 }
 
@@ -1676,33 +1716,164 @@ function FieldNotes({id}) {
   );
 }
 
+/* ═══════════════ FAQ ═══════════════ */
+function FAQ({id}) {
+  const [open, setOpen] = useState(null);
+  const faqs = [
+    {q:"What is TheBHTLabs?",a:"TheBHTLabs is the R&D and innovation arm of BHT Solutions (Bluebery Hawaii Technology Solutions LLC). We build free AI readiness tools, governance frameworks, and automation solutions for organizations navigating AI adoption. Every tool on this site is built from 20+ years of Fortune 500 and federal IT experience."},
+    {q:"Is the AI Readiness Assessment really free?",a:"Yes. The 35-point assessment across 7 domains is completely free with no strings attached. You get a downloadable PDF report with your scores, domain analysis, and actionable recommendations. We built it because we believe every organization deserves to know where they stand — not just those who can afford a $25K consulting engagement."},
+    {q:"What certifications does BHT Solutions hold?",a:"SBA 8(a), EDWOSB (Economically Disadvantaged Women-Owned Small Business), WOSB, NMSDC MBE (Minority Business Enterprise), ISO 27001, ISO 9001:2015, ISO/IEC 20000-1, and CMMI ML3. We maintain active T4 security clearance. CAGE Code: 7DBB9, UEI: ZW6GMVL368J6."},
+    {q:"What industries do you serve?",a:"We specialize in federal agencies, defense contractors, and regulated industries. Our core capabilities include Azure Government Cloud, Microsoft 365 GCC/GCC-High, CMMC Level 2 compliance, FedRAMP advisory, Copilot Studio agent development, and AI governance frameworks aligned with NIST AI RMF."},
+    {q:"How long does a typical engagement take?",a:"It depends on scope. A discovery call is 30 minutes. An AI Sprint (assessment + roadmap) takes 2-3 weeks. An AI Launchpad (full implementation) runs 1-3 months. CMMC Level 2 certification can be done in as fast as 90 days — we've done it. Enterprise AI transformations are custom-scoped."},
+    {q:"Do you work with small businesses?",a:"Absolutely. Our free tools are designed specifically for small and mid-size businesses. Our SBA 8(a) certification means we understand the challenges small businesses face. We offer packages starting at $2,500 and scale up based on your needs."},
+    {q:"Is my data safe when using your tools?",a:"Yes. All tools (ROI Calculator, Policy Generator, Assessment) run entirely in your browser. We don't store your inputs unless you explicitly submit them via the contact form. Our chatbot uses a secure server-side proxy — no API keys are exposed client-side. See our Privacy Policy for full details."},
+    {q:"How do I get started?",a:"Take the free 35-point AI Readiness Assessment — it takes about 10 minutes and gives you a clear picture of where you stand. From there, you can book a free discovery call, or reach out via the contact form, LinkedIn, email, or WhatsApp."},
+  ];
+  return (
+    <section id={id} style={{padding:"80px 0",background:C.bg}}>
+      <div style={{maxWidth:800,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Common Questions" title="Frequently Asked Questions" desc="Everything you need to know about TheBHTLabs and BHT Solutions." />
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {faqs.map((f,i)=>{
+            const isOpen = open===i;
+            return (
+              <div key={i} style={{border:`1px solid ${isOpen?C.teal+"33":C.border}`,borderRadius:14,overflow:"hidden",transition:"all .2s",background:C.bg}}>
+                <button onClick={()=>setOpen(isOpen?null:i)}
+                  style={{width:"100%",padding:"18px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",background:"none",border:"none",cursor:"pointer",textAlign:"left"}}>
+                  <span style={{fontSize:15,fontWeight:700,fontFamily:F.h,color:C.navy,paddingRight:16}}>{f.q}</span>
+                  <span style={{flexShrink:0,fontSize:18,color:C.textMuted,transition:"transform .2s",transform:isOpen?"rotate(45deg)":""}}>+</span>
+                </button>
+                {isOpen && <div style={{padding:"0 24px 18px",animation:"fadeUp .2s ease"}}>
+                  <p style={{fontSize:14,lineHeight:1.7,color:C.textSoft,fontFamily:F.b}}>{f.a}</p>
+                </div>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ SOCIAL ICONS SVGs ═══════════════ */
+const SocialIcons = {
+  linkedin: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>,
+  x: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>,
+  facebook: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>,
+  youtube: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>,
+  whatsapp: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>,
+  email: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>,
+};
+
+/* ═══════════════ COOKIE NOTICE ═══════════════ */
+function CookieNotice() {
+  const [show, setShow] = useState(false);
+  useEffect(()=>{
+    try { if(!localStorage.getItem("bht_cookie_ack")) setShow(true); } catch(e){ setShow(true); }
+  },[]);
+  const accept = () => { try { localStorage.setItem("bht_cookie_ack","1"); } catch(e){} setShow(false); };
+  if(!show) return null;
+  return (
+    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:998,background:C.navy,color:"#fff",padding:"14px 24px",display:"flex",justifyContent:"center",alignItems:"center",gap:16,flexWrap:"wrap",fontSize:13,fontFamily:F.b}}>
+      <p style={{maxWidth:600,lineHeight:1.5,margin:0}}>
+        We use only essential cookies for basic site functionality. No tracking, no ads, no third-party cookies. <span style={{opacity:.6}}>See our Privacy Policy for details.</span>
+      </p>
+      <button onClick={accept} style={{padding:"8px 20px",borderRadius:8,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff",flexShrink:0}}>Got it</button>
+    </div>
+  );
+}
+
 /* ═══════════════ FOOTER ═══════════════ */
 function Footer() {
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const socials = [
+    {name:"LinkedIn",icon:SocialIcons.linkedin,url:"https://www.linkedin.com/company/bht-solutions-llc",color:"#0A66C2"},
+    {name:"X (Twitter)",icon:SocialIcons.x,url:"https://x.com/bhtsolutions",color:C.navy},
+    {name:"Facebook",icon:SocialIcons.facebook,url:"https://www.facebook.com/bhtsolutions",color:"#1877F2"},
+    {name:"YouTube",icon:SocialIcons.youtube,url:"https://www.youtube.com/@bhtsolutions",color:"#FF0000"},
+    {name:"WhatsApp",icon:SocialIcons.whatsapp,url:"https://wa.me/17138889999",color:"#25D366"},
+    {name:"Email",icon:SocialIcons.email,url:"mailto:info@bhtsolutions.com",color:C.teal},
+  ];
   return (
-    <footer style={{padding:"36px 0",background:C.bg,borderTop:`1px solid ${C.border}`}}>
+    <footer style={{padding:"60px 0 36px",background:C.navy,color:"#fff"}}>
       <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12,marginBottom:12}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontWeight:800,fontSize:15,fontFamily:F.h,color:C.navy}}>TheBHT<span style={{color:C.teal}}>Labs</span></span>
-            <span style={{color:C.textFaint,fontSize:12}}>Skunkworks Division · BHT Solutions</span>
+        {/* Top: Logo + links + social */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:40,marginBottom:40}} className="g4">
+          {/* Brand */}
+          <div>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+              <svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill={C.teal}/><text x="18" y="23" textAnchor="middle" fill="#fff" fontFamily="monospace" fontWeight="800" fontSize="18">λ</text></svg>
+              <span style={{fontWeight:800,fontSize:17,fontFamily:F.h}}>TheBHT<span style={{color:C.teal}}>Labs</span></span>
+            </div>
+            <p style={{fontSize:13,lineHeight:1.7,color:"rgba(255,255,255,.6)",marginBottom:16}}>
+              The skunkworks innovation lab of BHT Solutions. Free AI readiness tools built from 20+ years of enterprise IT experience.
+            </p>
+            <a href="https://www.bhtsolutions.com" target="_blank" rel="noopener" style={{color:C.teal,fontSize:13,fontWeight:600,fontFamily:F.m,textDecoration:"none"}}>
+              bhtsolutions.com ↗
+            </a>
           </div>
-          <div style={{display:"flex",gap:20}}>
-            <a href="https://bhtsolutions.com" target="_blank" rel="noopener" style={{color:C.textMuted,fontSize:12,fontFamily:F.m}}>bhtsolutions.com</a>
-            <a href="https://www.linkedin.com/company/bht-solutions-llc" target="_blank" rel="noopener" style={{color:C.textMuted,fontSize:12,fontFamily:F.m}}>LinkedIn</a>
-            <a href="https://bhtsolutions.com/capability-statement/" target="_blank" rel="noopener" style={{color:C.textMuted,fontSize:12,fontFamily:F.m}}>Capability Statement</a>
-            <button onClick={()=>setShowPrivacy(true)} style={{background:"none",border:"none",cursor:"pointer",color:C.textMuted,fontSize:12,fontFamily:F.m,padding:0}}>Privacy Policy</button>
+
+          {/* Quick links */}
+          <div>
+            <h4 style={{fontSize:11,fontWeight:700,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,color:"rgba(255,255,255,.4)",marginBottom:16}}>Tools</h4>
+            {[{l:"AI Assessment",id:"assess"},{l:"ROI Calculator",id:"roi"},{l:"AI Policy Generator",id:"policy"},{l:"Compliance Countdown",id:"packages"},{l:"Field Notes",id:"notes"}].map(l=>(
+              <button key={l.id} onClick={()=>document.getElementById(l.id)?.scrollIntoView({behavior:"smooth"})}
+                style={{display:"block",background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,.7)",fontSize:13,fontFamily:F.b,padding:"4px 0",transition:"color .15s"}}
+                onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color="rgba(255,255,255,.7)"}>{l.l}</button>
+            ))}
+          </div>
+
+          {/* Company */}
+          <div>
+            <h4 style={{fontSize:11,fontWeight:700,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,color:"rgba(255,255,255,.4)",marginBottom:16}}>Company</h4>
+            {[
+              {l:"The Builder",id:"builder"},{l:"Packages",id:"packages"},{l:"FAQ",id:"faq"},
+            ].map(l=>(
+              <button key={l.id} onClick={()=>document.getElementById(l.id)?.scrollIntoView({behavior:"smooth"})}
+                style={{display:"block",background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,.7)",fontSize:13,fontFamily:F.b,padding:"4px 0",transition:"color .15s"}}
+                onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color="rgba(255,255,255,.7)"}>{l.l}</button>
+            ))}
+            <button onClick={()=>setShowPrivacy(true)}
+              style={{display:"block",background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,.7)",fontSize:13,fontFamily:F.b,padding:"4px 0",transition:"color .15s"}}
+              onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color="rgba(255,255,255,.7)"}>Privacy Policy</button>
+            <a href="https://bhtsolutions.com/capability-statement/" target="_blank" rel="noopener"
+              style={{display:"block",color:"rgba(255,255,255,.7)",fontSize:13,fontFamily:F.b,padding:"4px 0",textDecoration:"none",transition:"color .15s"}}
+              onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color="rgba(255,255,255,.7)"}>Capability Statement ↗</a>
+          </div>
+
+          {/* Connect */}
+          <div>
+            <h4 style={{fontSize:11,fontWeight:700,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,color:"rgba(255,255,255,.4)",marginBottom:16}}>Connect With Us</h4>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:16}}>
+              {socials.map(s=>(
+                <a key={s.name} href={s.url} target={s.url.startsWith("mailto")?"_self":"_blank"} rel="noopener noreferrer" title={s.name}
+                  style={{width:40,height:40,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,.08)",color:"rgba(255,255,255,.7)",transition:"all .15s",textDecoration:"none"}}
+                  onMouseEnter={e=>{e.currentTarget.style.background=s.color;e.currentTarget.style.color="#fff"}}
+                  onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,.08)";e.currentTarget.style.color="rgba(255,255,255,.7)"}}>
+                  {s.icon}
+                </a>
+              ))}
+            </div>
+            <p style={{fontSize:12,color:"rgba(255,255,255,.5)",fontFamily:F.m,lineHeight:1.6}}>
+              info@bhtsolutions.com<br/>
+              Cypress, TX 77433
+            </p>
           </div>
         </div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
-          <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m}}>CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · DUNS: 801352894 · FEIN: 26-0374906 · Primary NAICS: 541512</span>
-          <span style={{color:C.textFaint,fontSize:10,fontFamily:F.m}}>© 2026 Bluebery Hawaii Technology Solutions LLC · SBA 8(a) · EDWOSB · WOSB · NMSDC MBE · Houston, TX</span>
+
+        {/* Divider */}
+        <div style={{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:20}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+            <span style={{color:"rgba(255,255,255,.35)",fontSize:10,fontFamily:F.m}}>CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · DUNS: 801352894 · FEIN: 26-0374906 · Primary NAICS: 541512</span>
+            <span style={{color:"rgba(255,255,255,.35)",fontSize:10,fontFamily:F.m}}>© {new Date().getFullYear()} Bluebery Hawaii Technology Solutions LLC · SBA 8(a) · EDWOSB · WOSB · Houston, TX</span>
+          </div>
         </div>
       </div>
+
       {/* Privacy Policy Modal */}
       {showPrivacy && (
         <div style={{position:"fixed",inset:0,zIndex:2000,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",padding:24}} onClick={()=>setShowPrivacy(false)}>
-          <div style={{background:C.bg,borderRadius:20,maxWidth:640,width:"100%",maxHeight:"80vh",overflow:"auto",padding:32,boxShadow:C.shadowLg}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:C.bg,borderRadius:20,maxWidth:640,width:"100%",maxHeight:"80vh",overflow:"auto",padding:32,boxShadow:C.shadowLg,color:C.text}} onClick={e=>e.stopPropagation()}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
               <h2 style={{fontSize:22,fontWeight:800,fontFamily:F.h,color:C.navy}}>Privacy Policy</h2>
               <button onClick={()=>setShowPrivacy(false)} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:C.textMuted}}>✕</button>
@@ -1714,6 +1885,8 @@ function Footer() {
               <p style={{marginBottom:8}}><strong>Voluntarily Provided:</strong> When you submit the contact form or assessment, we collect information you provide: name, email, company name, and assessment responses.</p>
               <p style={{marginBottom:8}}><strong>Automatically Collected:</strong> Standard web analytics (page views, referral source). We do not use third-party tracking cookies or sell data to advertisers.</p>
               <p style={{marginBottom:8}}><strong>Tools (ROI Calculator, Policy Generator, Assessment):</strong> All calculations run in your browser. We do not store your inputs or outputs unless you explicitly submit them via the contact/assessment form.</p>
+              <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>Cookies</h3>
+              <p style={{marginBottom:8}}>We use only essential cookies required for basic site functionality. We do not use third-party tracking cookies, advertising cookies, or analytics cookies that track individual users. No data is sold or shared with third parties.</p>
               <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>How We Use Information</h3>
               <p style={{marginBottom:8}}>We use voluntarily provided information solely to: respond to your inquiry, deliver assessment results, and follow up on requested consultations. We do not sell, rent, or share your personal information with third parties for marketing purposes.</p>
               <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>Data Security</h3>
@@ -1721,7 +1894,7 @@ function Footer() {
               <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>AI Chatbot</h3>
               <p style={{marginBottom:8}}>Our AI chatbot is powered by Anthropic's Claude. Conversations are processed through our secure server-side proxy. Do not share sensitive personal, financial, or health information in the chat. Chat conversations are not stored permanently.</p>
               <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>Your Rights</h3>
-              <p style={{marginBottom:8}}>You may request deletion of any personal information we hold by emailing info@bhtsolutions.com. We will respond within 30 days.</p>
+              <p style={{marginBottom:8}}>You may request deletion of any personal information we hold by emailing info@bhtsolutions.com. We will respond within 30 days. California residents: We do not sell or share personal information as defined by the CCPA/CPRA.</p>
               <h3 style={{fontSize:15,fontWeight:700,color:C.navy,marginTop:20,marginBottom:8}}>Contact</h3>
               <p>Bluebery Hawaii Technology Solutions LLC · 20223 Granite Birch Ln, Cypress, TX 77433 · info@bhtsolutions.com</p>
             </div>
