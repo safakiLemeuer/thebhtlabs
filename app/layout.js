@@ -42,8 +42,8 @@ export const metadata = {
     locale: 'en_US',
     url: 'https://thebhtlabs.com',
     siteName: 'TheBHTLabs',
-    title: 'TheBHTLabs — Stop talking about AI. Start shipping it.',
-    description: 'Free AI readiness tools: 35-point assessment with PDF report, ROI calculator, AI policy generator, compliance countdown. SBA 8(a) · EDWOSB · ISO 27001 · CMMI ML3.',
+    title: 'TheBHTLabs — AI-Ready in Weeks. Not Quarters.',
+    description: 'Free AI readiness tools: 35-point assessment with PDF report, ROI calculator, AI policy generator, compliance countdown. SBA 8(a) · EDWOSB · CyberAB RP · T4 Cleared.',
     images: [{
       url: '/og-image.png',
       width: 1200,

@@ -20,8 +20,8 @@ const jsonLd = {
         {"@type":"EducationalOccupationalCredential","name":"SBA 8(a) Certified"},
         {"@type":"EducationalOccupationalCredential","name":"EDWOSB Certified"},
         {"@type":"EducationalOccupationalCredential","name":"WOSB Certified"},
-        {"@type":"EducationalOccupationalCredential","name":"ISO 27001"},
-        {"@type":"EducationalOccupationalCredential","name":"CMMI ML3"}
+        {"@type":"EducationalOccupationalCredential","name":"Microsoft Certified: Azure Solutions Architect"},
+        {"@type":"EducationalOccupationalCredential","name":"CyberAB Registered Practitioner"}
       ]
     },
     {
@@ -37,7 +37,7 @@ const jsonLd = {
       "@type": "FAQPage",
       "mainEntity": [
         {"@type":"Question","name":"What is an AI Readiness Assessment?","acceptedAnswer":{"@type":"Answer","text":"Our 35-point assessment evaluates your organization across 7 domains: Data Foundation, Process Maturity, Technology Readiness, People & Culture, Strategy & ROI, Governance & Compliance, and Use Case Clarity. You receive a detailed PDF report with actionable recommendations."}},
-        {"@type":"Question","name":"What certifications does BHT Solutions hold?","acceptedAnswer":{"@type":"Answer","text":"SBA 8(a), EDWOSB, WOSB, NMSDC MBE, ISO 27001, ISO 9001:2015, ISO/IEC 20000-1, CMMI ML3. CAGE: 7DBB9, UEI: ZW6GMVL368J6. Active T4 clearance."}},
+        {"@type":"Question","name":"What certifications does BHT Solutions hold?","acceptedAnswer":{"@type":"Answer","text":"SBA 8(a), EDWOSB, WOSB. Microsoft Certified Azure Solutions Architect. CyberAB Registered Practitioner. SAFe 5 Agile. Wiz-certified cloud security. CAGE: 7DBB9, UEI: ZW6GMVL368J6. Active T4 Public Trust clearance, Secret eligible."}},
         {"@type":"Question","name":"What Azure and Microsoft services does BHT specialize in?","acceptedAnswer":{"@type":"Answer","text":"Azure Government Cloud, M365 GCC/GCC-High, CMMC Level 2 compliance, FedRAMP advisory, Copilot Studio agents, Power Platform automation, Entra ID, and DevSecOps."}}
       ]
     }
@@ -83,11 +83,12 @@ export default function Home() {
           <li>SBA 8(a) Certified Small Business</li>
           <li>EDWOSB — Economically Disadvantaged Women-Owned Small Business</li>
           <li>WOSB — Women-Owned Small Business</li>
-          <li>NMSDC MBE — Minority Business Enterprise</li>
-          <li>ISO 27001 — Information Security Management</li>
-          <li>ISO 9001:2015 — Quality Management System</li>
-          <li>ISO/IEC 20000-1 — IT Service Management</li>
-          <li>CMMI ML3 — Capability Maturity Model v2.0</li>
+          <li>WOSB — Women-Owned Small Business</li>
+          <li>Microsoft Certified: Azure Solutions Architect</li>
+          <li>CyberAB Registered Practitioner (RP)</li>
+          <li>Wiz Partner Technical Foundations & Cloud Delivery</li>
+          <li>SAFe 5 Agile Practitioner</li>
+          <li>ITIL v3 Foundation — IT Service Management</li>
           <li>T4 Active Security Clearance</li>
         </ul>
 

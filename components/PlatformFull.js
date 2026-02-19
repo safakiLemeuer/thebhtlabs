@@ -219,6 +219,7 @@ export default function TheBHTLabs() {
       <Learning id="learn" />
       <AIRiskChecker />
       <TheBuilder id="builder" />
+      <HowWeWork />
       <FieldNotes id="notes" />
       <Radar id="insights" items={newsItems} status={feedStatus} />
       <OpsDashboard status={feedStatus} newsCount={newsItems.length} caseCount={caseItems.length} />
@@ -295,16 +296,16 @@ function Hero({scrollTo, nav}) {
         <div style={{maxWidth:1200,margin:"0 auto",padding:"60px 24px 48px",textAlign:"center"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.12)",marginBottom:20}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:C.rose,animation:"pulse 2s infinite"}} />
-            <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>91% of orgs lack AI governance. We fix that.</span>
+            <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>Only 1 in 3 companies have proper AI governance controls — EY 2025 Responsible AI Pulse</span>
           </div>
           <h1 className="hero-t" style={{fontSize:"clamp(36px,5vw,58px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:C.navy,letterSpacing:"-0.03em",maxWidth:800,margin:"0 auto"}}>
-            Stop talking about AI.<br/><span style={{color:C.teal}}>Start shipping it.</span>
+            AI-ready in weeks.<br/><span style={{color:C.teal}}>Not quarters.</span>
           </h1>
           <p style={{color:C.textMuted,fontSize:18,lineHeight:1.7,maxWidth:620,margin:"20px auto 14px",fontFamily:F.b}}>
-            We took 20 years of Fortune 500 and federal IT experience, added a lab, and built the tools to make your organization AI-ready in weeks, not quarters.
+            20 years of Fortune 500 and federal IT. We built the tools, frameworks, and cleared team to take your organization from evaluation to production — with compliance baked in from day one.
           </p>
           <p style={{color:C.textFaint,fontSize:13,fontFamily:F.m,maxWidth:500,margin:"0 auto 32px"}}>
-            CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · SBA 8(a) · EDWOSB · T4 Cleared · ISO 27001 · CMMI ML3
+            CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · SBA 8(a) · EDWOSB · T4 Cleared · CyberAB RP · SAFe 5
           </p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <button onClick={()=>scrollTo("assess")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s"}}>
@@ -322,6 +323,21 @@ function Hero({scrollTo, nav}) {
                 <span key={c} style={{color:C.textFaint,fontSize:13,fontWeight:600,fontFamily:F.h,opacity:0.5}}>{c}</span>
               ))}
             </div>
+          </div>
+          {/* Outcome metrics bar — all verifiable from case studies */}
+          <div style={{marginTop:28,display:"flex",justifyContent:"center",gap:40,flexWrap:"wrap"}}>
+            {[
+              {v:"110/110",l:"NIST 800-171 practices",sub:"90-day CMMC engagement"},
+              {v:"87%",l:"Faster document processing",sub:"Insurance broker deployment"},
+              {v:"$145K",l:"Annual savings from automation",sub:"PowerShell + Power Automate"},
+              {v:"Zero",l:"Downtime on GCC-High migration",sub:"150-employee federal sub"},
+            ].map(m=>(
+              <div key={m.l} style={{textAlign:"center"}}>
+                <div style={{fontSize:22,fontWeight:800,fontFamily:F.m,color:C.teal,lineHeight:1}}>{m.v}</div>
+                <div style={{fontSize:11,fontWeight:600,fontFamily:F.h,color:C.navy,marginTop:4}}>{m.l}</div>
+                <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint,marginTop:2}}>{m.sub}</div>
+              </div>
+            ))}
           </div>
         </div>
       </header>
@@ -458,7 +474,7 @@ function Assessment({id}) {
       <div><div style="font-weight:700;font-size:13px;color:#0F172A">Ready to act on these results?</div>
       <div style="font-size:12px;color:#64748B">info@bhtsolutions.com · bhtsolutions.com · (832) 850-4047</div></div>
       <div style="text-align:right;font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">
-        SBA 8(a) · EDWOSB · WOSB · NMSDC MBE<br>CAGE: 7DBB9 · UEI: ZW6GMVL368J6<br>ISO 27001 · CMMI ML3 · T4 Clearance
+        SBA 8(a) · EDWOSB · WOSB<br>CAGE: 7DBB9 · UEI: ZW6GMVL368J6<br>CyberAB RP · SAFe 5 · T4 Clearance
       </div>
     </div>
     <div style="text-align:center;margin-top:24px">
@@ -1310,7 +1326,7 @@ function Partner({id}) {
   };
   const cards = [
     {icon:"◈",t:"Hire Us",d:"AI, cloud, security expertise. 2-week sprints to 12-month engagements. Cleared resources.",c:C.teal},
-    {icon:"⬡",t:"Partner",d:"Prime contractors: SBA 8(a), EDWOSB, WOSB, NMSDC MBE certified. Let's team.",c:C.violet},
+    {icon:"⬡",t:"Partner",d:"Prime contractors: SBA 8(a), EDWOSB, WOSB certified. Active T4 clearance. Let's team.",c:C.violet},
     {icon:"△",t:"Assess",d:"35-point AI evaluation. Cloud readiness. Security posture. Executive briefing.",c:C.blue},
     {icon:"○",t:"Train",d:"Custom AI, cloud, security training for 5-200 people. In-person or virtual.",c:C.coral},
   ];
@@ -1355,8 +1371,9 @@ function Partner({id}) {
               <button type="submit" disabled={status==="sending"}
                 style={{padding:"14px",borderRadius:12,border:"none",cursor:status==="sending"?"wait":"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,
                   background:status==="sending"?C.textMuted:C.teal,color:"#fff",boxShadow:`0 4px 14px ${C.teal}22`,textAlign:"center",transition:"background .2s",marginTop:4}}>
-                {status==="sending" ? "Sending..." : "Send Inquiry →"}
+                {status==="sending" ? "Sending..." : "Book a Discovery Call →"}
               </button>
+              {status===""&&<p style={{color:C.textFaint,fontSize:11,fontFamily:F.m,marginTop:8,textAlign:"center"}}>We respond within 1 business day. 30-min call, no pitch, no commitment.</p>}
               {status==="success"&&<div style={{textAlign:"center",color:C.teal,fontSize:14,fontWeight:600,padding:"10px 16px",background:C.teal+"0A",borderRadius:10,border:`1px solid ${C.teal}20`}}>✓ Sent! We'll respond within 24 hours.</div>}
               {status==="fill"&&<p style={{textAlign:"center",color:C.rose,fontSize:13}}>Please fill in all required fields.</p>}
               {status==="email"&&<p style={{textAlign:"center",color:C.rose,fontSize:13}}>Please enter a valid email address.</p>}
@@ -1387,7 +1404,7 @@ function Partner({id}) {
 function ProofBar() {
   const stats = [
     {v:"20+",l:"Years Experience"},{v:"7DBB9",l:"CAGE Code"},{v:"9",l:"Certifications"},{v:"SBA 8(a)",l:"Set-Aside Eligible"},
-    {v:"T4",l:"Active Clearance"},{v:"11+",l:"NAICS Codes"},{v:"ISO 27001",l:"Security Certified"},{v:"CMMI 3",l:"Maturity Level"},
+    {v:"T4",l:"Active Clearance"},{v:"11+",l:"NAICS Codes"},{v:"CyberAB",l:"Registered Practitioner"},{v:"20+",l:"Years Enterprise IT"},
   ];
   return (
     <section style={{padding:"48px 0",borderTop:`1px solid ${C.border}`,borderBottom:`1px solid ${C.border}`,background:C.bg}}>
@@ -1541,10 +1558,9 @@ function TheBuilder({id}) {
             {showCreds && <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:16,animation:"fadeUp .3s ease"}} className="g2">
               {[
                 {l:"SBA 8(a)",d:"Small Business Administration"},{l:"EDWOSB",d:"Econ. Disadvantaged Women-Owned"},
-                {l:"WOSB",d:"Women-Owned Small Business"},{l:"NMSDC MBE",d:"Minority Business Enterprise"},
-                {l:"T4 Clearance",d:"Active Security Clearance"},{l:"ISO 27001",d:"Info Security Management"},
-                {l:"ISO 9001:2015",d:"Quality Management"},{l:"ISO/IEC 20000-1",d:"IT Service Management"},
-                {l:"CMMI ML3",d:"Capability Maturity v2.0"},
+                {l:"WOSB",d:"Women-Owned Small Business"},{l:"T4 Clearance",d:"Active Public Trust + Secret Eligible"},
+                {l:"CyberAB RP",d:"Registered Practitioner"},{l:"Wiz Certified",d:"Cloud Security Delivery"},
+                {l:"SAFe 5",d:"Agile Practitioner"},{l:"ITIL v3",d:"IT Service Management"},
               ].map(c=>(
                 <div key={c.l} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,background:C.bgSoft,border:`1px solid ${C.borderLight}`}}>
                   <span style={{color:C.teal,fontSize:10}}>◆</span>
@@ -1572,6 +1588,44 @@ function TheBuilder({id}) {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ HOW WE WORK — Engagement pathway ═══════════════ */
+function HowWeWork() {
+  const steps = [
+    {n:"01",t:"Discovery",time:"Week 1",d:"30-minute call. We listen, ask the hard questions, and give you an honest assessment of whether AI makes sense for your situation right now. If it doesn't, we'll tell you.",del:"Fit assessment + 2-3 use case recommendations",c:C.teal},
+    {n:"02",t:"Assessment",time:"Weeks 2-3",d:"Full 35-point evaluation across 7 domains — data, process, technology, people, strategy, governance, and use cases. Not a survey. A diagnostic.",del:"Executive briefing + scored report + prioritized roadmap",c:C.blue},
+    {n:"03",t:"Build",time:"Weeks 4-8",d:"We implement the highest-ROI use case first. Production Copilot agents, Power Automate workflows, governance frameworks — whatever the roadmap calls for.",del:"Working solution + documentation + staff training",c:C.violet},
+    {n:"04",t:"Operate",time:"Ongoing",d:"Monthly reviews, performance tracking, and iteration. We stay until the solution runs without us — then we hand you the keys.",del:"Monthly report + optimization + knowledge transfer",c:C.coral},
+  ];
+  return (
+    <section style={{padding:"80px 0",background:C.bg}}>
+      <div style={{maxWidth:1000,margin:"0 auto",padding:"0 24px"}}>
+        <SH tag="Predictable Process · Defined Deliverables" title="How we work" desc="Every engagement follows the same structure. No scope creep, no surprise invoices, no PowerPoint-and-disappear." />
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:2,position:"relative"}} className="g1">
+          {steps.map((s,i)=>(
+            <div key={s.n} style={{position:"relative",padding:"28px 20px",background:C.bgSoft,borderRadius:i===0?"16px 0 0 16px":i===3?"0 16px 16px 0":"0"}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}>
+                <span style={{fontSize:24,fontWeight:800,fontFamily:F.m,color:s.c,opacity:.35}}>{s.n}</span>
+                <div>
+                  <div style={{fontSize:16,fontWeight:800,fontFamily:F.h,color:C.navy}}>{s.t}</div>
+                  <div style={{fontSize:11,fontFamily:F.m,color:s.c,fontWeight:700}}>{s.time}</div>
+                </div>
+              </div>
+              <p style={{fontSize:13,lineHeight:1.65,color:C.textSoft,fontFamily:F.b,marginBottom:14}}>{s.d}</p>
+              <div style={{padding:"8px 12px",borderRadius:8,background:s.c+"08",border:`1px solid ${s.c}15`}}>
+                <div style={{fontSize:9,fontWeight:700,fontFamily:F.m,color:s.c,textTransform:"uppercase",letterSpacing:1,marginBottom:2}}>You receive</div>
+                <div style={{fontSize:12,fontWeight:600,fontFamily:F.h,color:C.navy}}>{s.del}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{textAlign:"center",marginTop:28}}>
+          <p style={{fontSize:13,color:C.textFaint,fontFamily:F.m}}>Most clients go from Discovery to working solution in under 30 days. Every engagement has a defined scope, timeline, and exit criteria.</p>
         </div>
       </div>
     </section>
@@ -1780,14 +1834,16 @@ function FieldNotes({id}) {
 function FAQ({id}) {
   const [open, setOpen] = useState(null);
   const faqs = [
-    {q:"What is TheBHTLabs?",a:"TheBHTLabs is the R&D and innovation arm of BHT Solutions (Bluebery Hawaii Technology Solutions LLC). We build free AI readiness tools, governance frameworks, and automation solutions for organizations navigating AI adoption. Every tool on this site is built from 20+ years of Fortune 500 and federal IT experience."},
-    {q:"Is the AI Readiness Assessment really free?",a:"Yes. The 35-point assessment across 7 domains is completely free with no strings attached. You get a downloadable PDF report with your scores, domain analysis, and actionable recommendations. We built it because we believe every organization deserves to know where they stand — not just those who can afford a $25K consulting engagement."},
-    {q:"What certifications does BHT Solutions hold?",a:"SBA 8(a), EDWOSB (Economically Disadvantaged Women-Owned Small Business), WOSB, NMSDC MBE (Minority Business Enterprise), ISO 27001, ISO 9001:2015, ISO/IEC 20000-1, and CMMI ML3. We maintain active T4 security clearance. CAGE Code: 7DBB9, UEI: ZW6GMVL368J6."},
-    {q:"What industries do you serve?",a:"We specialize in federal agencies, defense contractors, and regulated industries. Our core capabilities include Azure Government Cloud, Microsoft 365 GCC/GCC-High, CMMC Level 2 compliance, FedRAMP advisory, Copilot Studio agent development, and AI governance frameworks aligned with NIST AI RMF."},
-    {q:"How long does a typical engagement take?",a:"It depends on scope. A discovery call is 30 minutes. An AI Sprint (assessment + roadmap) takes 2-3 weeks. An AI Launchpad (full implementation) runs 1-3 months. CMMC Level 2 certification can be done in as fast as 90 days — we've done it. Enterprise AI transformations are custom-scoped."},
-    {q:"Do you work with small businesses?",a:"Absolutely. Our free tools are designed specifically for small and mid-size businesses. Our SBA 8(a) certification means we understand the challenges small businesses face. We offer packages starting at $2,500 and scale up based on your needs."},
-    {q:"Is my data safe when using your tools?",a:"Yes. All tools (ROI Calculator, Policy Generator, Assessment) run entirely in your browser. We don't store your inputs unless you explicitly submit them via the contact form. Our chatbot uses a secure server-side proxy — no API keys are exposed client-side. See our Privacy Policy for full details."},
-    {q:"How do I get started?",a:"Take the free 35-point AI Readiness Assessment — it takes about 10 minutes and gives you a clear picture of where you stand. From there, you can book a free discovery call, or reach out via the contact form, LinkedIn, email, or WhatsApp."},
+    {q:"What is TheBHTLabs?",a:"The skunkworks lab of BHT Solutions. We build AI readiness tools that most consultants charge $25K for — and give them away free. Every tool here was built from real client problems, not a whiteboard. Parent company: Bluebery Hawaii Technology Solutions LLC, Houston, TX. SBA 8(a) certified. Active security clearance."},
+    {q:"What does it cost?",a:"The tools on this site — Assessment, ROI Calculator, Policy Generator, Compliance Tracker — are free. Zero. No trial, no credit card, no \"book a demo\" gate. If you want us to implement solutions, engagements start at $2,500 for an AI Sprint and scale based on scope. We publish our packages transparently on this site."},
+    {q:"Is my data safe?",a:"All tools run in your browser. Nothing is sent to our servers unless you explicitly submit the contact form. We use no tracking cookies, no Google Analytics, no ad pixels, no third-party data sharing. The chatbot routes through a secure server-side proxy — your API keys are never exposed. Full details in our Privacy Policy."},
+    {q:"Who is behind this?",a:"Nitin Nagar — 20+ years in enterprise IT. MS in Computer Science (University of Nevada Reno). Microsoft Certified Azure Solutions Architect. CyberAB Registered Practitioner. SAFe 5 Agile. Wiz-certified cloud security. Founded BHT Solutions in 2016. SBA 8(a), EDWOSB, WOSB. Active T4 Public Trust clearance, Secret eligible. CAGE: 7DBB9, UEI: ZW6GMVL368J6. Client portfolio includes DOJ, DHS, U.S. Army, McKesson, EY, PwC, IBM, Microsoft, Stryker, Bill & Melinda Gates Foundation."},
+    {q:"What industries do you actually serve?",a:"Defense contractors, federal agencies, and regulated industries — insurance, legal, healthcare, financial services. If you handle CUI, need CMMC, operate in GCC-High, or have compliance requirements that keep your CISO up at night, we're built for you."},
+    {q:"How fast can you deliver?",a:"Discovery call: 30 minutes. AI Sprint (assessment + roadmap): 2-3 weeks. Full implementation: 1-3 months. CMMC Level 2 certification: 90 days — we've done it, 110/110 NIST 800-171 practices, first-attempt C3PAO pass. We don't bill by the hour with an incentive to drag things out."},
+    {q:"Do you work with small businesses?",a:"Yes. Our 8(a) certification exists because we are a small business. The free tools are built specifically for organizations that can't afford a Big 4 consulting engagement. We've worked with 5-person startups and 500-person defense primes. Same rigor, scaled to your reality."},
+    {q:"What's your tech stack?",a:"Microsoft ecosystem: Azure, M365, Entra ID, Purview, Copilot Studio, Power Platform, GCC-High, Azure Government. We also work with Azure AI Foundry, Teams AI SDK, SharePoint, and PowerShell automation. If it's Microsoft and enterprise, we've deployed it."},
+    {q:"Can I use the assessment results commercially?",a:"The assessment report is yours. Use it internally, share it with your board, include it in your SSP documentation. We retain no rights to your inputs or outputs. If you want to cite TheBHTLabs as the source, we appreciate it but don't require it."},
+    {q:"How do I get started?",a:"Take the free AI Readiness Assessment — 10 minutes, 35 questions, 7 domains. You'll get a score, a gap analysis, and a clear next step. Or skip straight to the contact form and tell us what you need. No sales pitch. We'll tell you honestly if we're the right fit."},
   ];
   return (
     <section id={id} style={{padding:"80px 0",background:C.bg}}>
