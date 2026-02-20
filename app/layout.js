@@ -1,14 +1,15 @@
-import { Plus_Jakarta_Sans, IBM_Plex_Mono } from 'next/font/google';
+import { Poppins, DM_Mono } from 'next/font/google';
 
-const jakarta = Plus_Jakarta_Sans({
+const poppins = Poppins({
   subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
   variable: '--font-heading',
   display: 'swap',
 });
 
-const ibmMono = IBM_Plex_Mono({
+const dmMono = DM_Mono({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500'],
   variable: '--font-mono',
   display: 'swap',
 });
@@ -91,7 +92,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${ibmMono.variable}`}>
+    <html lang="en" className={`${poppins.variable} ${dmMono.variable}`}>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

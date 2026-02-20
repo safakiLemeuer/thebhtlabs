@@ -1,26 +1,26 @@
 'use client';
 import { useState, useEffect, useRef } from "react";
 
-/* ═══════════════ DESIGN SYSTEM — Light / Stripe-Linear Aesthetic ═══════════════ */
+/* ═══════════════ DESIGN SYSTEM — Warm / Premium Consulting Aesthetic ═══════════════ */
 const C = {
-  bg: "#FFFFFF", bgSoft: "#F8FAFC", bgMuted: "#F1F5F9",
+  bg: "#FFFFFF", bgSoft: "#FAFAF9", bgMuted: "#F5F5F4",
   card: "#FFFFFF", cardHover: "#FEFEFE",
-  navy: "#0F172A", navyLight: "#1E293B",
-  text: "#0F172A", textSoft: "#334155", textMuted: "#64748B", textFaint: "#94A3B8",
-  teal: "#0D9488", tealLight: "#CCFBF1", tealDark: "#0F766E", tealBg: "rgba(13,148,136,.04)",
-  coral: "#F97316", coralBg: "rgba(249,115,22,.04)",
-  blue: "#3B82F6", blueBg: "rgba(59,130,246,.04)",
+  navy: "#1C1917", navyLight: "#292524",
+  text: "#1C1917", textSoft: "#44403C", textMuted: "#78716C", textFaint: "#A8A29E",
+  teal: "#0E7490", tealLight: "#CFFAFE", tealDark: "#155E75", tealBg: "rgba(14,116,144,.04)",
+  coral: "#EA580C", coralBg: "rgba(234,88,12,.04)",
+  blue: "#2563EB", blueBg: "rgba(37,99,235,.04)",
   violet: "#7C3AED", violetBg: "rgba(124,58,237,.04)",
-  rose: "#E11D48", roseBg: "rgba(225,29,72,.04)",
-  border: "#E2E8F0", borderLight: "#F1F5F9",
-  shadow: "0 1px 3px rgba(15,23,42,.04), 0 1px 2px rgba(15,23,42,.02)",
-  shadowMd: "0 4px 12px rgba(15,23,42,.06), 0 2px 4px rgba(15,23,42,.03)",
-  shadowLg: "0 10px 32px rgba(15,23,42,.08), 0 4px 8px rgba(15,23,42,.03)",
+  rose: "#DC2626", roseBg: "rgba(220,38,38,.04)",
+  border: "#E7E5E4", borderLight: "#F5F5F4",
+  shadow: "0 1px 3px rgba(28,25,23,.05), 0 1px 2px rgba(28,25,23,.03)",
+  shadowMd: "0 4px 16px rgba(28,25,23,.07), 0 2px 4px rgba(28,25,23,.04)",
+  shadowLg: "0 12px 40px rgba(28,25,23,.1), 0 4px 12px rgba(28,25,23,.04)",
 };
 const F = {
-  h: "'Plus Jakarta Sans', sans-serif",
-  m: "'IBM Plex Mono', monospace",
-  b: "'Plus Jakarta Sans', sans-serif",
+  h: "'Poppins', sans-serif",
+  m: "'DM Mono', monospace",
+  b: "'Poppins', sans-serif",
 };
 
 /* ═══════════════ MICRO COMPONENTS ═══════════════ */
@@ -198,7 +198,7 @@ export default function TheBHTLabs() {
   return (
     <div style={{background:C.bg,color:C.text,fontFamily:F.b,lineHeight:1.6,WebkitFontSmoothing:"antialiased"}}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
         *{margin:0;padding:0;box-sizing:border-box}
         html{scroll-behavior:smooth}
         ::selection{background:rgba(13,148,136,.15)}
@@ -327,7 +327,7 @@ function Hero({scrollTo, nav}) {
         </linearGradient>
       </defs>
       <path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill="url(#logoGrad)" rx="2"/>
-      <text x="18" y="23" textAnchor="middle" fill="#fff" fontFamily="'IBM Plex Mono',monospace" fontWeight="800" fontSize="18">λ</text>
+      <text x="18" y="23" textAnchor="middle" fill="#fff" fontFamily="'DM Mono',monospace" fontWeight="800" fontSize="18">λ</text>
     </svg>
   );
 
@@ -669,8 +669,8 @@ function Assessment({id}) {
     const w = window.open('','_blank');
     w.document.write(`<!DOCTYPE html><html><head><title>AI Readiness Report — ${co} — TheBHTLabs</title>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=IBM+Plex+Mono:wght@500;700&display=swap');
-      *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',sans-serif;color:#0F172A;padding:40px;max-width:800px;margin:0 auto}
+      @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
+      *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Poppins',sans-serif;color:#1C1917;padding:40px;max-width:800px;margin:0 auto}
       @media print{body{padding:20px}button,.no-print{display:none!important}.page-break{page-break-before:always}}
       h1{font-size:26px;font-weight:800;letter-spacing:-0.03em}h2{font-size:17px;font-weight:700;margin:24px 0 12px}
       .card{padding:16px;border-radius:12px;border:1px solid #E2E8F0}
@@ -681,11 +681,11 @@ function Assessment({id}) {
       <p style="color:#64748B;font-size:12px;margin-top:4px">Prepared for ${intake.name}${intake.title?' · '+intake.title:''} · ${new Date().toLocaleDateString()}</p>
       <p style="color:#94A3B8;font-size:11px">${indObj.l}${intake.employees?' · '+intake.employees+' employees':''}${intake.revenue&&intake.revenue!=='Prefer not to say'?' · '+intake.revenue:''}</p></div>
       <div style="text-align:right"><div style="font-weight:800;font-size:15px;color:#0F172A">TheBHT<span style="color:#0D9488">Labs</span></div>
-      <div style="font-size:10px;color:#94A3B8;font-family:'IBM Plex Mono',monospace">thebhtlabs.com</div></div>
+      <div style="font-size:10px;color:#94A3B8;font-family:'DM Mono',monospace">thebhtlabs.com</div></div>
     </div>
     <div style="display:flex;gap:24px;align-items:center;margin:24px 0;padding:20px;background:#F8FAFC;border-radius:14px">
       <div style="width:100px;height:100px;border-radius:50%;background:${lv.c}11;border:3px solid ${lv.c};display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0">
-        <div style="font-size:32px;font-weight:800;color:${lv.c};font-family:'IBM Plex Mono',monospace">${s}%</div>
+        <div style="font-size:32px;font-weight:800;color:${lv.c};font-family:'DM Mono',monospace">${s}%</div>
         <div style="font-size:10px;font-weight:700;color:${lv.c}">${lv.l}</div>
       </div>
       <div style="flex:1">
@@ -702,7 +702,7 @@ function Assessment({id}) {
     <h2>Domain Breakdown</h2>
     ${domains.map(d=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:3px">
       <span style="font-size:12px;font-weight:600">${d.name}</span>
-      <span style="font-size:12px;font-weight:700;color:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};font-family:'IBM Plex Mono',monospace">${d.score}%</span></div>
+      <span style="font-size:12px;font-weight:700;color:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};font-family:'DM Mono',monospace">${d.score}%</span></div>
       <div style="height:16px;background:#F1F5F9;border-radius:4px;overflow:hidden">
       <div style="height:100%;width:${d.score}%;background:${d.score>=80?'#0D9488':d.score>=65?'#3B82F6':d.score>=40?'#F97316':'#E11D48'};border-radius:4px"></div></div></div>`).join('')}
     ${intake.pains.length?`<h2>Business Pains Identified</h2><div style="display:flex;flex-wrap:wrap;gap:6px">${intake.pains.map(p=>`<span style="padding:5px 12px;border-radius:8px;background:#FFF7ED;border:1px solid #FDBA7433;font-size:11px;font-weight:600;color:#9A3412">${p}</span>`).join('')}</div>`:''}
@@ -710,7 +710,7 @@ function Assessment({id}) {
     <div style="padding:16px;border-radius:12px;background:#F8FAFC;border:1px solid #E2E8F0;margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px">
         <div style="width:56px;height:56px;border-radius:50%;background:${aria.tierColor}15;border:2px solid ${aria.tierColor};display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0">
-          <div style="font-size:20px;font-weight:800;color:${aria.tierColor};font-family:'IBM Plex Mono',monospace">${aria.total}</div>
+          <div style="font-size:20px;font-weight:800;color:${aria.tierColor};font-family:'DM Mono',monospace">${aria.total}</div>
           <div style="font-size:7px;font-weight:700;color:${aria.tierColor}">/30</div>
         </div>
         <div>
@@ -721,7 +721,7 @@ function Assessment({id}) {
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
         ${aria.dimensions.map(d=>`<div style="padding:6px 8px;border-radius:6px;background:#fff;border:1px solid #E2E8F0">
           <div style="font-size:9px;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:.5px">${d.name}</div>
-          <div style="font-size:14px;font-weight:700;color:#0F172A;font-family:'IBM Plex Mono',monospace">${d.score}<span style="font-size:10px;color:#94A3B8">/${d.max}</span></div>
+          <div style="font-size:14px;font-weight:700;color:#0F172A;font-family:'DM Mono',monospace">${d.score}<span style="font-size:10px;color:#94A3B8">/${d.max}</span></div>
         </div>`).join('')}
       </div>
       <p style="font-size:10px;color:#94A3B8;margin-top:8px;line-height:1.5">ARIA Score determines engagement scope and pricing based on organizational complexity. Dimensions: size, revenue, regulatory exposure, technical footprint, data sensitivity, AI adoption scope. Methodology informed by NIST AI RMF principles and enterprise AI adoption research.</p>
@@ -742,7 +742,7 @@ function Assessment({id}) {
     <div style="padding:20px;border-radius:14px;background:#F0FDFA;border:1px solid #CCFBF1">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div><div style="font-size:16px;font-weight:700;color:#0F766E">${cta.pkg.name}</div>
-        <div style="font-size:13px;color:#0D9488;font-weight:600;font-family:'IBM Plex Mono',monospace">${cta.pkg.price}</div></div></div>
+        <div style="font-size:13px;color:#0D9488;font-weight:600;font-family:'DM Mono',monospace">${cta.pkg.price}</div></div></div>
       <p class="insight">${cta.pkg.what}</p>
       <p style="font-size:12px;color:#0F766E;font-weight:600;margin-top:8px;padding:10px;background:#ECFDF5;border-radius:8px">${cta.pkg.value}</p>
       <div style="margin-top:14px;padding:14px;background:#fff;border-radius:10px;border:1px solid #E2E8F0">

@@ -26,7 +26,7 @@ export default function AdminPortal() {
   const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
 
   if (!token) return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bgSoft, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.bgSoft, fontFamily: "'Poppins',sans-serif" }}>
       <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 16, padding: 40, width: 400, textAlign: 'center' }}>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: C.navy, marginBottom: 8 }}>TheBHT<span style={{ color: C.teal }}>Labs</span> Admin</h1>
         <p style={{ color: C.textMuted, fontSize: 14, marginBottom: 24 }}>Enter admin password</p>
@@ -47,7 +47,7 @@ export default function AdminPortal() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bgSoft, fontFamily: "'Plus Jakarta Sans',sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: C.bgSoft, fontFamily: "'Poppins',sans-serif" }}>
       {/* Top bar */}
       <div style={{ background: C.navy, color: '#fff', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -163,7 +163,7 @@ function LeadsManager({ headers, token }) {
   const card = { background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: 20, };
   const stat = (label, value, color) => (
     <div style={{ ...card, textAlign: 'center', flex: 1, minWidth: 120 }}>
-      <div style={{ fontSize: 28, fontWeight: 800, color: color || C.navy, fontFamily: "'IBM Plex Mono',monospace" }}>{value}</div>
+      <div style={{ fontSize: 28, fontWeight: 800, color: color || C.navy, fontFamily: "'DM Mono',monospace" }}>{value}</div>
       <div style={{ fontSize: 11, color: C.textMuted, fontWeight: 600, marginTop: 4, textTransform: 'uppercase', letterSpacing: 1 }}>{label}</div>
     </div>
   );
@@ -206,7 +206,7 @@ function LeadsManager({ headers, token }) {
               </div>
               <div style={{ textAlign: 'right' }}>
                 {l.suspicious ? <div style={{ fontSize: 10, fontWeight: 700, color: '#E11D48', marginBottom: 4 }}>⚠️ RUSHED ({l.time_spent}s)</div> : null}
-                <div style={{ fontSize: 32, fontWeight: 800, color: stageColor(l.stage), fontFamily: "'IBM Plex Mono',monospace" }}>{l.overall_score}%</div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: stageColor(l.stage), fontFamily: "'DM Mono',monospace" }}>{l.overall_score}%</div>
                 <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: stageColor(l.stage) + '15', color: stageColor(l.stage) }}>{l.stage}</span>
               </div>
             </div>
@@ -227,7 +227,7 @@ function LeadsManager({ headers, token }) {
                 <div style={{ width: 120, height: 5, background: '#F1F5F9', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ width: `${d.score}%`, height: '100%', borderRadius: 3, background: d.score >= 65 ? '#0D9488' : d.score >= 40 ? '#F97316' : '#E11D48' }} />
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'IBM Plex Mono',monospace", width: 32, textAlign: 'right', color: d.score >= 65 ? '#0D9488' : d.score >= 40 ? '#F97316' : '#E11D48' }}>{d.score}%</span>
+                <span style={{ fontSize: 12, fontWeight: 700, fontFamily: "'DM Mono',monospace", width: 32, textAlign: 'right', color: d.score >= 65 ? '#0D9488' : d.score >= 40 ? '#F97316' : '#E11D48' }}>{d.score}%</span>
               </div>
             ))}
             {/* Pains */}
@@ -244,7 +244,7 @@ function LeadsManager({ headers, token }) {
           {/* Right: AI Intelligence */}
           <div style={{ ...card, background: '#FAFBFF', borderColor: '#7C3AED20' }}>
             <h3 style={{ fontSize: 14, fontWeight: 800, color: '#7C3AED', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>🧠 AI Sales Intelligence</h3>
-            <pre style={{ fontSize: 12, color: C.navy, lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: "'Plus Jakarta Sans',sans-serif", margin: 0 }}>{aiIntel(l)}</pre>
+            <pre style={{ fontSize: 12, color: C.navy, lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: "'Poppins',sans-serif", margin: 0 }}>{aiIntel(l)}</pre>
             <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
               <a href={`mailto:${l.email}?subject=Your AI Readiness Results — ${l.company}&body=Hi ${l.name.split(' ')[0]},%0A%0AThank you for completing the AI Readiness Assessment. I reviewed your results and wanted to share a few observations...`}
                 style={{ padding: '8px 16px', borderRadius: 8, background: C.teal, color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none', cursor: 'pointer' }}>
@@ -300,7 +300,7 @@ function LeadsManager({ headers, token }) {
                   <div style={{ flex: 1, height: 8, background: '#F1F5F9', borderRadius: 4, overflow: 'hidden' }}>
                     <div style={{ width: `${analytics.total ? (s.count / analytics.total * 100) : 0}%`, height: '100%', background: stageColor(s.stage), borderRadius: 4 }} />
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: C.navy, fontFamily: "'IBM Plex Mono',monospace", minWidth: 24 }}>{s.count}</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: C.navy, fontFamily: "'DM Mono',monospace", minWidth: 24 }}>{s.count}</span>
                 </div>
               ))}
             </div>
@@ -312,7 +312,7 @@ function LeadsManager({ headers, token }) {
                   <span style={{ fontSize: 12, fontWeight: 600, color: C.navy }}>{i.label}</span>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <span style={{ fontSize: 11, color: C.textMuted }}>{i.avg}% avg</span>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: C.teal, fontFamily: "'IBM Plex Mono',monospace" }}>{i.count}</span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: C.teal, fontFamily: "'DM Mono',monospace" }}>{i.count}</span>
                   </div>
                 </div>
               ))}
@@ -323,7 +323,7 @@ function LeadsManager({ headers, token }) {
               {(analytics.painRanking || []).slice(0, 8).map((p, i) => (
                 <div key={p.pain} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: `1px solid ${C.border}22` }}>
                   <span style={{ fontSize: 11, fontWeight: 600, color: C.navy }}>{i + 1}. {p.pain}</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#F97316', fontFamily: "'IBM Plex Mono',monospace" }}>{p.count}</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#F97316', fontFamily: "'DM Mono',monospace" }}>{p.count}</span>
                 </div>
               ))}
             </div>
@@ -333,7 +333,7 @@ function LeadsManager({ headers, token }) {
               {(analytics.byEmployees || []).map(e => (
                 <div key={e.employees} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: `1px solid ${C.border}22` }}>
                   <span style={{ fontSize: 12, fontWeight: 600, color: C.navy }}>{e.employees} employees</span>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: C.teal, fontFamily: "'IBM Plex Mono',monospace" }}>{e.count}</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: C.teal, fontFamily: "'DM Mono',monospace" }}>{e.count}</span>
                 </div>
               ))}
             </div>
@@ -354,7 +354,7 @@ function LeadsManager({ headers, token }) {
                 </div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                   {l.aria_tier && <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: tierColor(l.aria_tier) + '15', color: tierColor(l.aria_tier) }}>{l.aria_tier}</span>}
-                  <span style={{ fontSize: 14, fontWeight: 800, color: stageColor(l.stage), fontFamily: "'IBM Plex Mono',monospace" }}>{l.overall_score}%</span>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: stageColor(l.stage), fontFamily: "'DM Mono',monospace" }}>{l.overall_score}%</span>
                   <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: stageColor(l.stage) + '15', color: stageColor(l.stage) }}>{l.stage}</span>
                 </div>
               </div>
@@ -405,7 +405,7 @@ function LeadsManager({ headers, token }) {
                       <td style={{ padding: '10px', color: C.textMuted }}>{l.industry_label}</td>
                       <td style={{ padding: '10px', color: C.textMuted }}>{l.employees}</td>
                       <td style={{ padding: '10px' }}>
-                        <span style={{ fontWeight: 800, color: stageColor(l.stage), fontFamily: "'IBM Plex Mono',monospace" }}>{l.overall_score}%</span>
+                        <span style={{ fontWeight: 800, color: stageColor(l.stage), fontFamily: "'DM Mono',monospace" }}>{l.overall_score}%</span>
                       </td>
                       <td style={{ padding: '10px' }}>
                         <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 9, fontWeight: 700, background: stageColor(l.stage) + '15', color: stageColor(l.stage) }}>{l.stage}</span>
@@ -493,7 +493,7 @@ function ContactsManager({ headers }) {
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         {[{ l: 'Total', v: analytics.total, c: C.navy }, ...(analytics.byStatus || []).map(s => ({ l: s.status, v: s.count, c: statusColors[s.status] || C.textMuted }))].map(s => (
           <div key={s.l} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px 20px', textAlign: 'center', minWidth: 90 }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: s.c, fontFamily: "'IBM Plex Mono',monospace" }}>{s.v}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: s.c, fontFamily: "'DM Mono',monospace" }}>{s.v}</div>
             <div style={{ fontSize: 10, color: C.textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, marginTop: 2 }}>{s.l}</div>
           </div>
         ))}
@@ -700,7 +700,7 @@ function BlogEditor({ post, headers, onSave, onCancel }) {
           <div style={{ fontSize: 11, fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Markdown Editor</div>
           <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })}
             placeholder="Write your post in Markdown..."
-            style={{ flex: 1, padding: 16, borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: "'IBM Plex Mono',monospace", lineHeight: 1.7, resize: 'none', outline: 'none', background: '#FAFBFC' }} />
+            style={{ flex: 1, padding: 16, borderRadius: 10, border: `1px solid ${C.border}`, fontSize: 14, fontFamily: "'DM Mono',monospace", lineHeight: 1.7, resize: 'none', outline: 'none', background: '#FAFBFC' }} />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Live Preview</div>
