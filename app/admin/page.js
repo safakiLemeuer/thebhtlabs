@@ -41,6 +41,8 @@ export default function AdminPortal() {
   const tabs = [
     { id: 'leads', label: 'Leads & Analytics', icon: '🎯' },
     { id: 'contacts', label: 'Contacts', icon: '📞' },
+    { id: 'healthcheck', label: 'Health Checks', icon: '🔍' },
+    { id: 'partners', label: 'Partners', icon: '🤝' },
     { id: 'posts', label: 'Blog Posts', icon: '📝' },
     { id: 'cases', label: 'Case Studies', icon: '📋' },
     { id: 'comments', label: 'Comments', icon: '💬' },
@@ -71,6 +73,8 @@ export default function AdminPortal() {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
         {tab === 'leads' && <LeadsManager headers={headers} token={token} />}
         {tab === 'contacts' && <ContactsManager headers={headers} />}
+        {tab === 'healthcheck' && <HealthCheckManager headers={headers} />}
+        {tab === 'partners' && <PartnerManager headers={headers} />}
         {tab === 'posts' && <BlogManager headers={headers} />}
         {tab === 'cases' && <CaseManager headers={headers} />}
         {tab === 'comments' && <CommentManager headers={headers} />}
@@ -930,6 +934,158 @@ function CommentManager({ headers }) {
             ))}
           </div>
       }
+    </div>
+  );
+}
+
+/* ═══════════════ HEALTH CHECK MANAGER ═══════════════ */
+function HealthCheckManager({ headers }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch('/api/health-check', { headers }).then(r => r.json()).then(d => { setData(d); setLoading(false); }).catch(() => setLoading(false));
+  }, []);
+  if (loading) return <p>Loading health check data...</p>;
+  if (!data) return <p>Failed to load.</p>;
+  const { stats, scans, pdfDownloads } = data;
+  return (
+    <div>
+      <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: "'Poppins',sans-serif", marginBottom: 16 }}>🔍 Tenant Health Checks</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
+        <div style={{ padding: 20, background: '#fff', borderRadius: 12, border: '1px solid #E7E5E4', textAlign: 'center' }}>
+          <div style={{ fontSize: 32, fontWeight: 800, fontFamily: "'DM Mono',monospace", color: '#0E7490' }}>{stats.total || 0}</div>
+          <div style={{ fontSize: 12, color: '#78716C' }}>Total Scans</div>
+        </div>
+        <div style={{ padding: 20, background: '#fff', borderRadius: 12, border: '1px solid #E7E5E4', textAlign: 'center' }}>
+          <div style={{ fontSize: 32, fontWeight: 800, fontFamily: "'DM Mono',monospace", color: '#7C3AED' }}>{stats.pdfs || 0}</div>
+          <div style={{ fontSize: 12, color: '#78716C' }}>PDF Downloads (Leads)</div>
+        </div>
+        <div style={{ padding: 20, background: '#fff', borderRadius: 12, border: '1px solid #E7E5E4', textAlign: 'center' }}>
+          <div style={{ fontSize: 32, fontWeight: 800, fontFamily: "'DM Mono',monospace", color: '#F97316' }}>{stats.avgScore || 0}%</div>
+          <div style={{ fontSize: 12, color: '#78716C' }}>Average Score</div>
+        </div>
+      </div>
+      <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>📄 PDF Downloads (Lead Captures)</h3>
+      {pdfDownloads && pdfDownloads.length > 0 ? (
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E7E5E4', overflow: 'hidden', marginBottom: 24 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead><tr style={{ background: '#FAFAF9', borderBottom: '1px solid #E7E5E4' }}>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Name</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Email</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Company</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Domain</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Date</th>
+            </tr></thead>
+            <tbody>{pdfDownloads.map(p => (
+              <tr key={p.id} style={{ borderBottom: '1px solid #F5F5F4' }}>
+                <td style={{ padding: '10px 14px', fontWeight: 600 }}>{p.name}</td>
+                <td style={{ padding: '10px 14px' }}><a href={'mailto:' + p.email} style={{ color: '#0E7490' }}>{p.email}</a></td>
+                <td style={{ padding: '10px 14px' }}>{p.company || '-'}</td>
+                <td style={{ padding: '10px 14px', fontFamily: "'DM Mono',monospace" }}>{p.domain}</td>
+                <td style={{ padding: '10px 14px', color: '#78716C' }}>{new Date(p.created_at).toLocaleDateString()}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      ) : <p style={{ color: '#78716C', fontSize: 13 }}>No PDF downloads yet.</p>}
+      <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>🔍 Recent Scans</h3>
+      {scans && scans.length > 0 ? (
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E7E5E4', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead><tr style={{ background: '#FAFAF9', borderBottom: '1px solid #E7E5E4' }}>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Domain</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Score</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Provider</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>SPF</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>DMARC</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>DKIM</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>M365</th>
+              <th style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700 }}>Date</th>
+            </tr></thead>
+            <tbody>{scans.map(s => (
+              <tr key={s.id} style={{ borderBottom: '1px solid #F5F5F4' }}>
+                <td style={{ padding: '10px 14px', fontWeight: 600, fontFamily: "'DM Mono',monospace" }}>{s.domain}</td>
+                <td style={{ padding: '10px 14px', fontWeight: 700, color: s.score >= 75 ? '#0E7490' : s.score >= 50 ? '#F97316' : '#DC2626' }}>{s.score}%</td>
+                <td style={{ padding: '10px 14px' }}>{s.provider || '-'}</td>
+                <td style={{ padding: '10px 14px' }}>{s.spf_status === 'pass' ? '✅' : s.spf_status === 'warn' ? '⚠️' : '❌'}</td>
+                <td style={{ padding: '10px 14px' }}>{s.dmarc_status === 'pass' ? '✅' : s.dmarc_status === 'warn' ? '⚠️' : '❌'}</td>
+                <td style={{ padding: '10px 14px' }}>{s.dkim_status === 'pass' ? '✅' : s.dkim_status === 'warn' ? '⚠️' : '❌'}</td>
+                <td style={{ padding: '10px 14px' }}>{s.has_m365 ? '✅' : '-'}</td>
+                <td style={{ padding: '10px 14px', color: '#78716C' }}>{new Date(s.created_at).toLocaleDateString()}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      ) : <p style={{ color: '#78716C', fontSize: 13 }}>No scans yet.</p>}
+    </div>
+  );
+}
+
+/* ═══════════════ PARTNER APPLICATION MANAGER ═══════════════ */
+function PartnerManager({ headers }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const load = () => fetch('/api/partner', { headers }).then(r => r.json()).then(d => { setData(d); setLoading(false); }).catch(() => setLoading(false));
+  useEffect(() => { load(); }, []);
+  const updateStatus = async (id, status) => {
+    await fetch('/api/partner', { method: 'PATCH', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) });
+    load();
+  };
+  if (loading) return <p>Loading partner applications...</p>;
+  if (!data) return <p>Failed to load.</p>;
+  const { analytics, applications } = data;
+  const tierColor = (t) => t === 'Priority' ? '#7C3AED' : t === 'Qualified' ? '#0E7490' : t === 'Developing' ? '#F97316' : '#A8A29E';
+  const statusColor = (s) => s === 'accepted' ? '#0E7490' : s === 'interview' ? '#7C3AED' : s === 'reviewing' ? '#F97316' : s === 'declined' ? '#DC2626' : '#78716C';
+  return (
+    <div>
+      <h2 style={{ fontSize: 20, fontWeight: 800, fontFamily: "'Poppins',sans-serif", marginBottom: 16 }}>🤝 Partner Applications</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 12, marginBottom: 24 }}>
+        <div style={{ padding: 16, background: '#fff', borderRadius: 12, border: '1px solid #E7E5E4', textAlign: 'center' }}>
+          <div style={{ fontSize: 28, fontWeight: 800, fontFamily: "'DM Mono',monospace", color: '#1C1917' }}>{analytics?.total || 0}</div>
+          <div style={{ fontSize: 11, color: '#78716C' }}>Total Applications</div>
+        </div>
+        {(analytics?.byTier || []).map(t => (
+          <div key={t.qualification_tier} style={{ padding: 16, background: '#fff', borderRadius: 12, border: '1px solid #E7E5E4', textAlign: 'center' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, fontFamily: "'DM Mono',monospace", color: tierColor(t.qualification_tier) }}>{t.count}</div>
+            <div style={{ fontSize: 11, color: '#78716C' }}>{t.qualification_tier}</div>
+          </div>
+        ))}
+      </div>
+      {applications && applications.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {applications.map(a => (
+            <div key={a.id} style={{ padding: 20, background: '#fff', borderRadius: 14, border: '1px solid #E7E5E4', boxShadow: '0 1px 4px rgba(0,0,0,.04)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 16, fontWeight: 800 }}>{a.company}</span>
+                  <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: tierColor(a.qualification_tier) + '15', color: tierColor(a.qualification_tier) }}>{a.qualification_tier} {a.qualification_score}/100</span>
+                  <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700, background: statusColor(a.status) + '15', color: statusColor(a.status) }}>{a.status}</span>
+                </div>
+                <span style={{ fontSize: 11, color: '#78716C' }}>{new Date(a.created_at).toLocaleDateString()}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, fontSize: 12, marginBottom: 10 }}>
+                <div><strong>Contact:</strong> {a.name} · <a href={'mailto:' + a.email} style={{ color: '#0E7490' }}>{a.email}</a></div>
+                <div><strong>Location:</strong> {a.city || '-'}, {a.country || '-'}</div>
+                <div><strong>Team:</strong> {a.delivery_team_size || '-'} · {a.company_size || '-'} total</div>
+                <div><strong>MS Level:</strong> {a.ms_partnership || 'None'}</div>
+                <div><strong>Revenue:</strong> {a.annual_revenue || '-'}</div>
+                <div><strong>Years:</strong> {a.years_in_business || '-'}</div>
+              </div>
+              {a.certifications && <div style={{ fontSize: 11, color: '#78716C', marginBottom: 6 }}><strong>Certs:</strong> {a.certifications}</div>}
+              {a.industries_served && <div style={{ fontSize: 11, color: '#78716C', marginBottom: 6 }}><strong>Industries:</strong> {a.industries_served}</div>}
+              {a.why_partner && <div style={{ padding: 10, background: '#FAFAF9', borderRadius: 8, fontSize: 12, lineHeight: 1.6, color: '#44403C', marginBottom: 10 }}><strong style={{ color: '#0E7490' }}>Why BHT:</strong> {a.why_partner}</div>}
+              <div style={{ display: 'flex', gap: 6 }}>
+                {['reviewing', 'interview', 'accepted', 'declined'].map(s => (
+                  <button key={s} onClick={() => updateStatus(a.id, s)} disabled={a.status === s}
+                    style={{ padding: '4px 10px', borderRadius: 4, border: a.status === s ? 'none' : '1px solid #E7E5E4', 
+                      background: a.status === s ? statusColor(s) : '#fff', color: a.status === s ? '#fff' : '#78716C', 
+                      fontSize: 11, fontWeight: 600, cursor: 'pointer', textTransform: 'capitalize' }}>{s}</button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : <p style={{ color: '#78716C', fontSize: 13 }}>No partner applications yet.</p>}
     </div>
   );
 }
