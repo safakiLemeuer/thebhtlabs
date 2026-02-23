@@ -2728,20 +2728,32 @@ function ChatWidget() {
       return;
     }
 
-    // Explicitly request microphone permission FIRST
+    setVoiceError("");
     setVoiceState("requesting");
+
+    // Check if permission is already permanently denied
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        const perm = await navigator.permissions.query({name: 'microphone'});
+        if (perm.state === 'denied') {
+          setVoiceError("Microphone is blocked. To fix: tap the lock icon \uD83D\uDD12 in your address bar, set Microphone to Allow, then reload the page.");
+          setVoiceState("idle");
+          return;
+        }
+      }
+    } catch(e) { /* permissions API not available, continue */ }
+
+    // Request mic — this triggers the browser popup automatically
     try {
       const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-      // Got permission — stop the stream immediately (SpeechRecognition manages its own)
       stream.getTracks().forEach(t => t.stop());
     } catch(permErr) {
-      console.error("Mic permission error:", permErr);
       if (permErr.name === "NotAllowedError" || permErr.name === "PermissionDeniedError") {
-        setVoiceError("Microphone access denied. Please allow microphone access:\n\n1. Click the lock/site icon in your address bar\n2. Set Microphone to 'Allow'\n3. Refresh and try again");
+        setVoiceError("Microphone blocked. Tap the lock icon \uD83D\uDD12 in your address bar \u2192 set Microphone to Allow \u2192 reload.");
       } else if (permErr.name === "NotFoundError") {
-        setVoiceError("No microphone found. Please connect a microphone and try again.");
+        setVoiceError("No microphone detected. Connect one and try again.");
       } else {
-        setVoiceError("Could not access microphone: " + permErr.message);
+        setVoiceError("Mic error: " + permErr.message);
       }
       setVoiceState("idle");
       return;
@@ -2765,19 +2777,18 @@ function ChatWidget() {
       }
     };
     rec.onerror = (e) => {
-      console.error("SpeechRecognition error:", e.error);
       if (e.error === "no-speech") setVoiceError("No speech detected. Tap and try again.");
-      else if (e.error === "not-allowed" || e.error === "service-not-allowed") setVoiceError("Microphone blocked by browser. Click the lock icon in your address bar, set Microphone to Allow, then refresh.");
-      else if (e.error === "network") setVoiceError("Network error. Check your connection and try again.");
+      else if (e.error === "not-allowed" || e.error === "service-not-allowed") setVoiceError("Microphone blocked. Tap lock icon \uD83D\uDD12 \u2192 Allow mic \u2192 reload.");
+      else if (e.error === "network") setVoiceError("Network error. Check connection.");
       else if (e.error === "aborted") { /* user cancelled */ }
-      else setVoiceError("Couldn't hear you (" + e.error + "). Try again.");
+      else setVoiceError("Couldn't hear you. Try again.");
       setVoiceState("idle");
     };
     rec.onend = () => { if (!gotResult) setVoiceState("idle"); };
     try {
       rec.start();
     } catch(e) {
-      setVoiceError("Could not start microphone. Try refreshing the page.");
+      setVoiceError("Could not start microphone. Try refreshing.");
       setVoiceState("idle");
     }
   };
@@ -2827,7 +2838,7 @@ function ChatWidget() {
           <Badge color={C.teal}>AI</Badge>
           <div>
             <span style={{fontWeight:700,fontFamily:F.h,fontSize:13,color:C.navy}}>TheBHTLabs Assistant</span>
-            <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>Powered by Anthropic Claude</div>
+            <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>AI-powered assistant</div>
           </div>
         </div>
         <div style={{display:"flex",gap:4}}>
@@ -2937,7 +2948,7 @@ function ChatWidget() {
               {voiceState==="idle"?"Tap to speak":voiceState==="requesting"?"Requesting mic access...":voiceState==="listening"?"Listening...":voiceState==="processing"?"Thinking...":"Speaking..."}
             </div>
             <div style={{fontSize:11,color:C.textFaint,fontFamily:F.m,marginTop:4}}>
-              {voiceState==="idle"?"Your browser will ask for microphone permission":voiceState==="requesting"?"Allow microphone when prompted":voiceState==="listening"?"Tap again to stop":""}
+              {voiceState==="idle"?"Ask anything about AI governance":voiceState==="requesting"?"Allow microphone when prompted":voiceState==="listening"?"Tap again to stop":""}
             </div>
 
             {transcript && (
@@ -2960,20 +2971,16 @@ function ChatWidget() {
               </div>
             )}
 
-            {/* Powered by badges */}
-            <div style={{marginTop:16,display:"flex",alignItems:"center",justifyContent:"center",gap:6,flexWrap:"wrap"}}>
-              <div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:6,background:"rgba(14,116,144,.04)",border:"1px solid rgba(14,116,144,.08)"}}>
-                <span style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>Powered by</span>
-                <span style={{fontSize:10,fontWeight:800,fontFamily:F.h,color:"#D97706"}}>Anthropic Claude</span>
+            {/* Powered by — BHT branding only */}
+            <div style={{marginTop:16,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <div style={{width:20,height:20,borderRadius:6,background:"linear-gradient(135deg,#0E7490,#155E75)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <span style={{color:"#fff",fontFamily:"monospace",fontWeight:800,fontSize:10}}>{"\u03bb"}</span>
               </div>
-              <div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:6,background:"rgba(0,120,215,.04)",border:"1px solid rgba(0,120,215,.08)"}}>
-                <span style={{fontSize:10,fontWeight:800,fontFamily:F.h,color:"#0078D7"}}>Microsoft</span>
-                <span style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>ecosystem</span>
-              </div>
+              <span style={{fontSize:11,fontFamily:F.m,color:C.textFaint}}>TheBHT<span style={{fontWeight:700,color:C.navy}}>Labs</span> Voice AI</span>
             </div>
 
             {/* Aggressive tagline */}
-            <p style={{marginTop:14,fontSize:12,fontWeight:700,fontFamily:F.h,color:C.navy,letterSpacing:"-0.01em"}}>
+            <p style={{marginTop:10,fontSize:12,fontWeight:700,fontFamily:F.h,color:C.navy,letterSpacing:"-0.01em"}}>
               We build AI governance in weeks, not quarters.
             </p>
 
