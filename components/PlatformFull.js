@@ -2604,51 +2604,139 @@ function Footer() {
 /* ═══════════════ CHATBOT ═══════════════ */
 function ChatWidget() {
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState("chat"); // chat | voice | call
   const [msgs, setMsgs] = useState([{r:"a",c:"Hey! I'm the TheBHTLabs AI advisor. I can help with:\n\n- Is AI right for your business?\n- Which package fits your needs?\n- Copilot Studio & automation questions\n- Compliance (CMMC, FedRAMP)\n- Career & upskilling guidance\n\nWhat's on your mind?"}]);
   const [inp, setInp] = useState("");
   const [loading, setLoading] = useState(false);
   const [showEscalation, setShowEscalation] = useState(false);
+  // Voice state
+  const [voiceState, setVoiceState] = useState("idle"); // idle | listening | processing | speaking
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [voiceError, setVoiceError] = useState("");
+  const recognitionRef = useRef(null);
   const endRef = useRef(null);
   const inputRef = useRef(null);
-  useEffect(() => { endRef.current?.scrollIntoView({behavior:"smooth"}); }, [msgs]);
-  useEffect(() => { if (open && inputRef.current) inputRef.current.focus(); }, [open]);
 
-  const send = async () => {
-    if(!inp.trim()||loading)return;
-    const msg = inp.trim(); setInp(""); setMsgs(p=>[...p,{r:"u",c:msg}]); setLoading(true);
+  useEffect(() => { endRef.current?.scrollIntoView({behavior:"smooth"}); }, [msgs]);
+  useEffect(() => { if (open && tab === "chat" && inputRef.current) inputRef.current.focus(); }, [open, tab]);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      setVoiceSupported(!!(SR && window.speechSynthesis));
+    }
+  }, []);
+
+  // --- Send message (works for both chat and voice) ---
+  const sendMsg = async (text) => {
+    const msg = text || inp.trim();
+    if (!msg || loading) return null;
+    if (!text) setInp("");
+    setMsgs(p => [...p, {r:"u", c:msg}]);
+    setLoading(true);
     try {
-      const history = msgs.filter(m=>m.r!=="a"||msgs.indexOf(m)>0).slice(-6).map(m=>({role:m.r==="u"?"user":"assistant",content:m.c}));
-      history.push({role:"user",content:msg});
-      const r = await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({messages:history})});
+      const history = msgs.filter(m => m.r !== "a" || msgs.indexOf(m) > 0).slice(-6).map(m => ({role: m.r === "u" ? "user" : "assistant", content: m.c}));
+      history.push({role:"user", content:msg});
+      const r = await fetch("/api/chat", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({messages:history})});
       const d = await r.json();
-      setMsgs(p=>[...p,{r:"a",c:d.content||"I'm having trouble connecting. You can reach a human directly at info@bhtsolutions.com or call (513) 638-1986."}]);
-    } catch(e) { setMsgs(p=>[...p,{r:"a",c:"Connection issue. Reach a human directly:\n\nEmail: info@bhtsolutions.com\nPhone: (513) 638-1986"}]); }
-    setLoading(false);
+      const reply = d.content || "I'm having trouble connecting. You can reach a human directly at info@bhtsolutions.com or call (513) 638-1986.";
+      setMsgs(p => [...p, {r:"a", c:reply}]);
+      setLoading(false);
+      return reply;
+    } catch(e) {
+      const fallback = "Connection issue. Reach a human directly:\n\nEmail: info@bhtsolutions.com\nPhone: (513) 638-1986";
+      setMsgs(p => [...p, {r:"a", c:fallback}]);
+      setLoading(false);
+      return fallback;
+    }
+  };
+
+  // --- Voice: speak text aloud ---
+  const speak = (text) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/[*#_`]/g, "").replace(/\n{2,}/g, ". ").replace(/\n/g, ", ").replace(/- /g, "");
+    const utt = new SpeechSynthesisUtterance(clean);
+    utt.rate = 1.05; utt.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const pref = voices.find(v => /samantha|karen|google.*us|microsoft.*zira|microsoft.*david/i.test(v.name))
+      || voices.find(v => v.lang.startsWith("en") && v.localService) || voices[0];
+    if (pref) utt.voice = pref;
+    utt.onstart = () => setVoiceState("speaking");
+    utt.onend = () => setVoiceState("idle");
+    utt.onerror = () => setVoiceState("idle");
+    window.speechSynthesis.speak(utt);
+  };
+
+  // --- Voice: start listening ---
+  const startListening = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { setVoiceError("Speech recognition not supported"); return; }
+    window.speechSynthesis.cancel();
+    const rec = new SR();
+    rec.continuous = false; rec.interimResults = true; rec.lang = "en-US";
+    recognitionRef.current = rec;
+    setTranscript(""); setVoiceError(""); setVoiceState("listening");
+    rec.onresult = (e) => {
+      const txt = Array.from(e.results).map(r => r[0].transcript).join("");
+      setTranscript(txt);
+      if (e.results[0].isFinal) {
+        setVoiceState("processing");
+        rec.stop();
+        sendMsg(txt).then(reply => { if (reply) speak(reply); });
+      }
+    };
+    rec.onerror = (e) => {
+      if (e.error === "no-speech") setVoiceError("No speech detected. Tap and try again.");
+      else if (e.error === "not-allowed") setVoiceError("Microphone access denied. Allow it in browser settings.");
+      else setVoiceError("Couldn't hear you. Try again.");
+      setVoiceState("idle");
+    };
+    rec.onend = () => { setVoiceState(s => s === "listening" ? "idle" : s); };
+    rec.start();
+  };
+
+  const stopAll = () => {
+    if (recognitionRef.current) try { recognitionRef.current.stop(); } catch(e){}
+    if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+    setVoiceState("idle");
   };
 
   const escalateToHuman = () => {
     setShowEscalation(false);
-    setMsgs(p=>[...p,{r:"a",c:"Connecting you with a human:\n\nEmail: info@bhtsolutions.com\nPhone: (513) 638-1986\nResponse time: Within 4 business hours\n\nOr use the Contact form on this page — scroll down to 'Work With Us'.\n\nYour chat history will be included if you reach out via email so the team has full context."}]);
+    setMsgs(p => [...p, {r:"a", c:"Connecting you with a human:\n\nEmail: info@bhtsolutions.com\nPhone: (513) 638-1986\nResponse time: Within 4 business hours\n\nOr use the Contact form — scroll down to 'Work With Us'."}]);
   };
 
+  // --- SVG icons ---
+  const ICN = {
+    chat: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>,
+    mic: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>,
+    phone: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>,
+    user: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+    mail: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 01-2.06 0L2 7"/></svg>,
+    send: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+    info: <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>,
+    stop: <svg width="36" height="36" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>,
+    speaker: <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>,
+    shield: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5EEAD4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+  };
+
+  // --- FAB (closed state) ---
   if (!open) return (
-    <button onClick={()=>setOpen(true)}
-      aria-label="Open AI chat assistant"
-      role="button"
-      tabIndex={0}
+    <button onClick={()=>setOpen(true)} aria-label="Open AI assistant" role="button" tabIndex={0}
       onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setOpen(true);}}}
-      style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:56,height:56,borderRadius:16,background:C.teal,border:"none",cursor:"pointer",boxShadow:`0 4px 20px ${C.teal}33`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:22,transition:"all .2s"}}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:56,height:56,borderRadius:16,background:C.teal,border:"none",cursor:"pointer",boxShadow:`0 4px 20px ${C.teal}33`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",transition:"all .2s"}}>
+      {ICN.chat}
     </button>
   );
 
+  // --- OPEN STATE ---
   return (
-    <div role="dialog" aria-label="AI Chat Assistant" aria-modal="false"
-      style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:380,maxWidth:"calc(100vw - 48px)",height:540,background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,boxShadow:C.shadowLg,display:"flex",flexDirection:"column"}}>
+    <div role="dialog" aria-label="AI Assistant" aria-modal="false"
+      style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:400,maxWidth:"calc(100vw - 48px)",height:580,background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,boxShadow:C.shadowLg,display:"flex",flexDirection:"column",overflow:"hidden"}}>
 
-      {/* Header with AI disclosure + human escalation */}
-      <div style={{padding:"10px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${C.border}`,background:C.bgSoft,borderRadius:"20px 20px 0 0"}}>
+      {/* ── Header ── */}
+      <div style={{padding:"10px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${C.border}`,background:C.bgSoft,borderRadius:"20px 20px 0 0",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <Badge color={C.teal}>AI</Badge>
           <div>
@@ -2657,32 +2745,35 @@ function ChatWidget() {
           </div>
         </div>
         <div style={{display:"flex",gap:4}}>
-          <button onClick={()=>setShowEscalation(!showEscalation)}
-            aria-label="Talk to a human"
-            title="Talk to a human"
-            style={{background:"none",border:`1px solid ${C.border}`,borderRadius:8,cursor:"pointer",padding:"4px 8px",fontSize:10,fontWeight:700,fontFamily:F.m,color:C.textMuted,display:"flex",alignItems:"center",gap:4,transition:"all .15s"}}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            Human
+          <button onClick={()=>setShowEscalation(!showEscalation)} aria-label="Talk to a human" title="Talk to a human"
+            style={{background:"none",border:`1px solid ${C.border}`,borderRadius:8,cursor:"pointer",padding:"4px 8px",fontSize:10,fontWeight:700,fontFamily:F.m,color:C.textMuted,display:"flex",alignItems:"center",gap:4}}>
+            {ICN.user} Human
           </button>
-          <button onClick={()=>setOpen(false)}
-            aria-label="Close chat"
+          <button onClick={()=>{setOpen(false);stopAll();}} aria-label="Close"
             style={{background:"none",border:"none",cursor:"pointer",color:C.textMuted,fontSize:18,padding:"2px 6px"}}>✕</button>
         </div>
       </div>
 
-      {/* Human escalation panel */}
+      {/* ── Tab bar: Chat / Voice AI / Call ── */}
+      <div style={{display:"flex",borderBottom:`1px solid ${C.border}`,background:C.bgSoft,flexShrink:0}}>
+        {[{id:"chat",label:"Chat",icon:ICN.chat},{id:"voice",label:"Voice AI",icon:ICN.mic},{id:"call",label:"Call Us",icon:ICN.phone}].map(t=>(
+          <button key={t.id} onClick={()=>{setTab(t.id);if(t.id!=="voice")stopAll();}}
+            aria-label={t.label} aria-selected={tab===t.id}
+            style={{flex:1,padding:"8px 0",cursor:"pointer",border:"none",borderBottom:`2px solid ${tab===t.id?C.teal:"transparent"}`,
+              background:"transparent",color:tab===t.id?C.teal:C.textMuted,fontSize:11,fontWeight:700,fontFamily:F.h,
+              display:"flex",alignItems:"center",justifyContent:"center",gap:5,transition:"all .15s"}}>
+            {t.icon}{t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Human escalation panel ── */}
       {showEscalation && (
-        <div style={{padding:"12px 16px",background:C.tealBg,borderBottom:`1px solid ${C.teal}20`}}>
+        <div style={{padding:"12px 16px",background:C.tealBg,borderBottom:`1px solid ${C.teal}20`,flexShrink:0}}>
           <div style={{fontSize:12,fontWeight:700,fontFamily:F.h,color:C.teal,marginBottom:8}}>Reach a human directly</div>
           <div style={{display:"flex",flexDirection:"column",gap:6}}>
-            <a href="mailto:info@bhtsolutions.com" style={{display:"flex",alignItems:"center",gap:8,fontSize:12,fontFamily:F.m,color:C.navy,textDecoration:"none"}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              info@bhtsolutions.com
-            </a>
-            <a href="tel:+15136381986" style={{display:"flex",alignItems:"center",gap:8,fontSize:12,fontFamily:F.m,color:C.navy,textDecoration:"none"}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              (513) 638-1986
-            </a>
+            <a href="mailto:info@bhtsolutions.com" style={{display:"flex",alignItems:"center",gap:8,fontSize:12,fontFamily:F.m,color:C.navy,textDecoration:"none"}}>{ICN.mail} info@bhtsolutions.com</a>
+            <a href="tel:+15136381986" style={{display:"flex",alignItems:"center",gap:8,fontSize:12,fontFamily:F.m,color:C.navy,textDecoration:"none"}}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg> (513) 638-1986</a>
             <button onClick={escalateToHuman}
               style={{marginTop:4,padding:"8px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff",textAlign:"center"}}>
               Request human follow-up
@@ -2691,50 +2782,142 @@ function ChatWidget() {
         </div>
       )}
 
-      {/* AI Disclosure banner */}
-      <div style={{padding:"6px 16px",background:"#FEF3C7",borderBottom:"1px solid #FDE68A",display:"flex",alignItems:"center",gap:6}} role="status" aria-live="polite">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-        <span style={{fontSize:10,fontFamily:F.m,color:"#92400E"}}>This is an AI assistant. Responses may be inaccurate. <button onClick={()=>setShowEscalation(true)} style={{background:"none",border:"none",cursor:"pointer",fontWeight:700,color:"#D97706",fontFamily:F.m,fontSize:10,textDecoration:"underline",padding:0}}>Talk to a human</button></span>
-      </div>
+      {/* ════════════ CHAT TAB ════════════ */}
+      {tab === "chat" && (<>
+        <div style={{padding:"6px 16px",background:"#FEF3C7",borderBottom:"1px solid #FDE68A",display:"flex",alignItems:"center",gap:6,flexShrink:0}} role="status">
+          {ICN.info}
+          <span style={{fontSize:10,fontFamily:F.m,color:"#92400E"}}>AI assistant — responses may be inaccurate. <button onClick={()=>setShowEscalation(true)} style={{background:"none",border:"none",cursor:"pointer",fontWeight:700,color:"#D97706",fontFamily:F.m,fontSize:10,textDecoration:"underline",padding:0}}>Talk to a human</button></span>
+        </div>
+        <div role="log" aria-live="polite" aria-label="Chat messages" style={{flex:1,overflowY:"auto",padding:12,display:"flex",flexDirection:"column",gap:8}}>
+          {msgs.map((m,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:m.r==="u"?"flex-end":"flex-start"}}>
+              <div style={{maxWidth:"80%",padding:"10px 14px",borderRadius:14,fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap",
+                background:m.r==="u"?C.teal:C.bgMuted,color:m.r==="u"?"#fff":C.text,
+                borderBottomRightRadius:m.r==="u"?4:14,borderBottomLeftRadius:m.r==="u"?14:4}}>{m.c}</div>
+            </div>
+          ))}
+          {loading && <div style={{padding:8}} role="status"><span style={{color:C.teal,fontSize:13,fontFamily:F.m}}>AI is thinking...</span></div>}
+          <div ref={endRef}/>
+        </div>
+        <div style={{padding:"6px 16px",borderTop:`1px solid ${C.borderLight}`,display:"flex",justifyContent:"center",flexShrink:0}}>
+          <button onClick={()=>setShowEscalation(true)} style={{background:"none",border:"none",cursor:"pointer",fontSize:10,fontFamily:F.m,color:C.textFaint,display:"flex",alignItems:"center",gap:4}}
+            onMouseEnter={e=>e.currentTarget.style.color=C.teal} onMouseLeave={e=>e.currentTarget.style.color=C.textFaint}>
+            {ICN.user} Prefer a human? Contact us directly
+          </button>
+        </div>
+        <div style={{padding:10,borderTop:`1px solid ${C.border}`,display:"flex",gap:8,flexShrink:0}}>
+          <input ref={inputRef} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} placeholder="Ask anything..."
+            aria-label="Type your message" autoComplete="off"
+            style={{flex:1,padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none"}}/>
+          <button onClick={()=>sendMsg()} disabled={!inp.trim()||loading} aria-label="Send message"
+            style={{width:38,height:38,borderRadius:10,border:"none",cursor:inp.trim()?"pointer":"default",
+              background:inp.trim()?C.teal:C.bgMuted,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",transition:"all .15s",opacity:inp.trim()?1:.5}}>
+            {ICN.send}
+          </button>
+        </div>
+      </>)}
 
-      {/* Messages area */}
-      <div role="log" aria-live="polite" aria-label="Chat messages" style={{flex:1,overflowY:"auto",padding:12,display:"flex",flexDirection:"column",gap:8}}>
-        {msgs.map((m,i) => (
-          <div key={i} style={{display:"flex",justifyContent:m.r==="u"?"flex-end":"flex-start"}}>
-            <div role={m.r==="a"?"status":undefined} style={{maxWidth:"80%",padding:"10px 14px",borderRadius:14,fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap",
-              background:m.r==="u"?C.teal:C.bgMuted,color:m.r==="u"?"#fff":C.text,
-              borderBottomRightRadius:m.r==="u"?4:14,borderBottomLeftRadius:m.r==="u"?14:4}}>{m.c}</div>
+      {/* ════════════ VOICE AI TAB ════════════ */}
+      {tab === "voice" && (
+        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:28,textAlign:"center"}}>
+          {!voiceSupported ? (
+            <div>
+              <div style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:8}}>Voice not supported</div>
+              <p style={{fontSize:12,color:C.textMuted,lineHeight:1.6,maxWidth:260}}>Your browser doesn't support speech recognition. Try Chrome, Edge, or Safari. Or use the Chat tab.</p>
+            </div>
+          ) : (<>
+            {/* Animated mic button */}
+            <button onClick={voiceState==="idle"?startListening:stopAll}
+              aria-label={voiceState==="idle"?"Start voice conversation":"Stop"}
+              style={{width:110,height:110,borderRadius:"50%",border:"none",cursor:"pointer",position:"relative",
+                background:voiceState==="listening"?"#DC2626":voiceState==="processing"?C.coral:voiceState==="speaking"?C.violet:C.teal,
+                boxShadow:voiceState==="listening"?"0 0 0 12px rgba(220,38,38,.12), 0 0 0 24px rgba(220,38,38,.04)"
+                  :voiceState==="speaking"?`0 0 0 12px ${C.violet}12, 0 0 0 24px ${C.violet}05`
+                  :`0 4px 20px ${C.teal}22`,
+                transition:"all .35s cubic-bezier(.4,0,.2,1)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              {voiceState==="listening" ? ICN.stop
+                : voiceState==="speaking" ? ICN.speaker
+                : voiceState==="processing" ? (
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="10" strokeDasharray="31.4" strokeDashoffset="10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg>
+                ) : (
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                )}
+            </button>
+
+            <div style={{marginTop:18,fontSize:15,fontWeight:700,fontFamily:F.h,color:C.navy}}>
+              {voiceState==="idle"?"Tap to speak":voiceState==="listening"?"Listening...":voiceState==="processing"?"Thinking...":"Speaking..."}
+            </div>
+            <div style={{fontSize:11,color:C.textFaint,fontFamily:F.m,marginTop:4}}>
+              {voiceState==="idle"?"Ask a question by voice":voiceState==="listening"?"Tap again to stop":""}
+            </div>
+
+            {transcript && (
+              <div style={{marginTop:14,padding:"10px 18px",borderRadius:12,background:C.bgMuted,fontSize:13,color:C.textSoft,maxWidth:280,lineHeight:1.5,fontStyle:"italic"}}>
+                "{transcript}"
+              </div>
+            )}
+
+            {voiceError && (
+              <div style={{marginTop:12,padding:"8px 14px",borderRadius:8,background:"#FEF2F2",border:"1px solid #FECACA",fontSize:12,color:"#DC2626",maxWidth:260}}>{voiceError}</div>
+            )}
+
+            {/* Recent AI responses shown below */}
+            {msgs.length > 1 && (
+              <div style={{marginTop:16,width:"100%",maxHeight:120,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>
+                {msgs.slice(-3).filter(m=>m.r==="a").map((m,i)=>(
+                  <div key={i} style={{padding:"8px 12px",borderRadius:10,background:C.bgMuted,fontSize:11,lineHeight:1.5,color:C.textSoft,textAlign:"left",
+                    maxHeight:50,overflow:"hidden",textOverflow:"ellipsis"}}>{m.c.substring(0,120)}{m.c.length>120?"...":""}</div>
+                ))}
+              </div>
+            )}
+
+            <div style={{marginTop:16,display:"flex",gap:8}}>
+              <button onClick={()=>{stopAll();setTab("call");}}
+                style={{padding:"8px 16px",borderRadius:8,border:`1px solid ${C.border}`,background:"transparent",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:F.h,color:C.textMuted,display:"flex",alignItems:"center",gap:5}}>
+                {ICN.phone} Call a human instead
+              </button>
+              <button onClick={()=>{stopAll();setTab("chat");}}
+                style={{padding:"8px 16px",borderRadius:8,border:`1px solid ${C.border}`,background:"transparent",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:F.h,color:C.textMuted,display:"flex",alignItems:"center",gap:5}}>
+                {ICN.chat} Switch to text
+              </button>
+            </div>
+          </>)}
+        </div>
+      )}
+
+      {/* ════════════ CALL TAB ════════════ */}
+      {tab === "call" && (
+        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:32,textAlign:"center"}}>
+          <div style={{width:80,height:80,borderRadius:"50%",background:C.tealBg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:20}}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
           </div>
-        ))}
-        {loading && <div style={{padding:8}} role="status" aria-live="polite"><span style={{color:C.teal,fontSize:13,fontFamily:F.m}}>AI is thinking...</span></div>}
-        <div ref={endRef} />
-      </div>
+          <div style={{fontSize:18,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:4}}>Talk to Nitin</div>
+          <div style={{fontSize:12,color:C.textMuted,marginBottom:20,lineHeight:1.5}}>Founder & Principal Consultant<br/>Mon-Fri, 9am-6pm CT</div>
 
-      {/* Persistent human escalation bar */}
-      <div style={{padding:"6px 16px",borderTop:`1px solid ${C.borderLight}`,display:"flex",justifyContent:"center"}}>
-        <button onClick={()=>setShowEscalation(true)}
-          aria-label="Switch to human support"
-          style={{background:"none",border:"none",cursor:"pointer",fontSize:10,fontFamily:F.m,color:C.textFaint,display:"flex",alignItems:"center",gap:4,padding:"2px 8px",borderRadius:6,transition:"all .15s"}}
-          onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color=C.textFaint}>
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Prefer a human? Contact us directly
-        </button>
-      </div>
+          <a href="tel:+15136381986"
+            style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"14px 36px",borderRadius:14,background:C.teal,color:"#fff",textDecoration:"none",fontSize:16,fontWeight:700,fontFamily:F.h,boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s",marginBottom:12}}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Call (513) 638-1986
+          </a>
 
-      {/* Input area */}
-      <div style={{padding:10,borderTop:`1px solid ${C.border}`,display:"flex",gap:8}}>
-        <label htmlFor="chat-input" className="sr-only" style={{position:"absolute",width:1,height:1,padding:0,margin:-1,overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Type your message</label>
-        <input id="chat-input" ref={inputRef} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Ask anything..."
-          aria-label="Type your message to the AI assistant"
-          autoComplete="off"
-          style={{flex:1,padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none"}} />
-        <button onClick={send} disabled={!inp.trim()||loading}
-          aria-label="Send message"
-          style={{width:38,height:38,borderRadius:10,border:"none",cursor:inp.trim()?"pointer":"default",
-            background:inp.trim()?C.teal:C.bgMuted,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:15,transition:"all .15s",opacity:inp.trim()?1:.5}}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-      </div>
+          <a href="mailto:info@bhtsolutions.com"
+            style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px 28px",borderRadius:10,border:`1.5px solid ${C.border}`,background:"transparent",color:C.navy,textDecoration:"none",fontSize:13,fontWeight:600,fontFamily:F.h,marginBottom:20}}>
+            {ICN.mail} Email instead
+          </a>
+
+          <div style={{padding:"14px 18px",borderRadius:12,background:C.bgMuted,maxWidth:280}}>
+            <div style={{fontSize:10,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>What to expect</div>
+            <p style={{fontSize:12,color:C.textSoft,lineHeight:1.6,margin:0}}>
+              No sales pitch. Nitin will ask about your current AI situation, identify quick wins, and tell you honestly if BHT Labs is the right fit. 15-30 min max.
+            </p>
+          </div>
+
+          <button onClick={()=>setTab("voice")}
+            style={{marginTop:16,padding:"8px 16px",borderRadius:8,border:`1px solid ${C.border}`,background:"transparent",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:F.h,color:C.textMuted,display:"flex",alignItems:"center",gap:5}}>
+            {ICN.mic} Try Voice AI first
+          </button>
+        </div>
+      )}
     </div>
   );
 }
