@@ -234,11 +234,25 @@ const AQ = [
   {d:"Governance & Compliance",icon:"shieldLock",q:["Do you handle sensitive data (PII, PHI, financial)?","Are there industry compliance requirements you must meet?","Do you have data retention and privacy policies?","Would AI decisions need to be explainable or auditable?","Are you aware of AI regulations in your state/industry?"]},
   {d:"Use Case Clarity",icon:"compass",q:["Can you name a specific pain point AI could address today?","Have you evaluated any AI tools in the past 12 months?","Do you have 1-2 high-impact, low-risk AI use cases identified?","Would automating customer-facing tasks benefit you?","Are there reporting/analytics tasks that take too long?"]},
 ];
-const PKGS = [
-  {name:"AI Discovery",price:"Free",per:"",color:C.teal,pop:false,desc:"30-min call. We review your assessment results and tell you what we'd do first.",feats:["Review your assessment results","2-3 priority recommendations","Honest fit assessment","Zero obligation"],cta:"Book Free Call"},
-  {name:"AI Quick Scan",price:"$2,500",per:"/10 hrs",color:C.blue,pop:false,desc:"Our scripts on YOUR tenant. Real findings, not surveys.",feats:["Automated M365/Azure diagnostic","PowerShell tenant analysis","Ungoverned file & DLP gap report","License optimization findings","1-hour executive briefing","3 priority action items"],cta:"Start Scan"},
-  {name:"AI Readiness Sprint",price:"$7,500",per:"/30 hrs",color:C.violet,pop:true,desc:"Full engagement. Stakeholder interviews to boardroom deliverable.",feats:["Everything in Quick Scan","Stakeholder interviews (3-5)","Process mapping (core workflows)","90-day prioritized roadmap","Executive presentation deck","Tool & vendor recommendations"],cta:"Start Sprint"},
-  {name:"AI Launchpad",price:"$15,000",per:"/month",color:C.coral,pop:false,desc:"Implementation. Agents, automations, training, results.",feats:["Everything in Sprint","Copilot Studio agents (production)","Custom Power Automate workflows","Staff training (up to 20)","Monthly optimization reviews","Priority support + Slack channel"],cta:"Launch Now"},
+/* ═══════════════ SCALE-AWARE PRICING — adapts to company size + industry ═══════════════ */
+const PKGS_BASE = [
+  {name:"AI Discovery",tier:"discovery",base:0,per:"",color:C.teal,pop:false,desc:"30-min call. We review your situation and tell you what we'd do first.",baseFeats:["Review your assessment results","2-3 priority recommendations","Honest fit assessment","Zero obligation"],cta:"Book Free Call",hours:0},
+  {name:"AI Quick Scan",tier:"scan",base:2500,per:"/engagement",color:C.blue,pop:false,desc:"Our scripts on YOUR tenant. Real findings, not surveys.",baseFeats:["Automated M365/Azure diagnostic","PowerShell tenant analysis","Ungoverned file & DLP gap report","License optimization findings","1-hour executive briefing","3 priority action items"],cta:"Start Scan",hours:10},
+  {name:"AI Readiness Sprint",tier:"sprint",base:7500,per:"/engagement",color:C.violet,pop:true,desc:"Full engagement. Stakeholder interviews to boardroom deliverable.",baseFeats:["Everything in Quick Scan","Stakeholder interviews (3-5)","Process mapping (core workflows)","90-day prioritized roadmap","Executive presentation deck","Tool & vendor recommendations"],cta:"Start Sprint",hours:30},
+  {name:"AI Launchpad",tier:"launchpad",base:15000,per:"/month",color:C.coral,pop:false,desc:"Implementation. Agents, automations, training, results.",baseFeats:["Everything in Sprint","Copilot Studio agents (production)","Custom Power Automate workflows","Staff training (up to 20)","Monthly optimization reviews","Priority support + Slack channel"],cta:"Launch Now",hours:40},
+];
+const SCALE_TIERS = [
+  {id:"startup",label:"Startup / SMB",rev:"Under $5M revenue",emp:"1-50 employees",mult:0.8,hoursK:0.8,icon:I.launch||null},
+  {id:"growth",label:"Growth",rev:"$5M-$50M revenue",emp:"50-500 employees",mult:1.0,hoursK:1.0,icon:I.growth||null},
+  {id:"midmarket",label:"Mid-Market",rev:"$50M-$500M revenue",emp:"500-5K employees",mult:1.8,hoursK:1.5,icon:I.enterprise||null},
+  {id:"enterprise",label:"Enterprise",rev:"$500M+ revenue",emp:"5,000+ employees",mult:2.8,hoursK:2.2,icon:I.building||null},
+];
+const IND_MULTS = [
+  {id:"standard",label:"Standard Commercial",ex:"Tech, Retail, Professional Services",mult:1.0,regs:[],color:C.teal},
+  {id:"financial",label:"Financial Services",ex:"Banking, Insurance, FinTech",mult:1.4,regs:["SOX","SEC","GLBA","DORA"],color:"#2563EB"},
+  {id:"healthcare",label:"Healthcare",ex:"Hospitals, Pharma, Biotech",mult:1.5,regs:["HIPAA","HITECH","FDA 21 CFR"],color:"#7C3AED"},
+  {id:"energy",label:"Energy / Utilities",ex:"Power, Oil & Gas, Nuclear",mult:1.3,regs:["NERC CIP","FERC","EPA"],color:"#D97706"},
+  {id:"govdef",label:"Federal / Defense",ex:"Federal agencies, Defense primes, IC",mult:2.5,regs:["CMMC","NIST 800-171","ITAR","FedRAMP","FISMA"],color:"#DC2626"},
 ];
 
 /* ═══════════════ MAIN EXPORT ═══════════════ */
@@ -1204,36 +1218,164 @@ function Assessment({id}) {
 
 /* ═══════════════ CASE STUDIES — YOUR WORK FIRST ═══════════════ */
 function Packages({id}) {
+  const [scale, setScale] = useState("growth");
+  const [industry, setIndustry] = useState("standard");
+
+  const sc = SCALE_TIERS.find(s=>s.id===scale);
+  const ind = IND_MULTS.find(i=>i.id===industry);
+  const combined = Math.round(sc.mult * ind.mult * 10) / 10;
+
+  const calcPrice = (base) => {
+    if (base === 0) return "Free";
+    const adj = Math.round(base * combined / 100) * 100;
+    return "$" + adj.toLocaleString();
+  };
+  const calcHours = (hrs) => {
+    if (hrs === 0) return "";
+    return Math.round(hrs * Math.max(1, sc.hoursK)) + " hrs";
+  };
+
+  // Dynamic feature additions based on scale + industry
+  const getExtraFeats = (tier) => {
+    const extras = [];
+    if (tier === "scan") {
+      if (sc.mult >= 1.8) extras.push("Multi-tenant / multi-BU scope");
+      if (ind.regs.length > 0) extras.push(ind.regs.slice(0,2).join(" + ") + " gap analysis");
+    }
+    if (tier === "sprint") {
+      if (sc.mult >= 1.8) extras.push("Stakeholder interviews (8-12)");
+      if (sc.mult >= 2.8) extras.push("Board-ready governance deck");
+      if (ind.regs.length > 0) extras.push("Regulatory mapping: " + ind.regs.slice(0,3).join(", "));
+      if (ind.id === "govdef") extras.push("CMMC Level 2 readiness overlay");
+    }
+    if (tier === "launchpad") {
+      if (sc.mult >= 1.8) extras.push("Staff training (up to 100)");
+      if (sc.mult >= 2.8) extras.push("Dedicated engagement manager");
+      if (ind.regs.length > 0) extras.push("Compliance documentation suite");
+      if (ind.id === "govdef") extras.push("SSP/POA&M development support");
+      if (ind.id === "healthcare") extras.push("PHI handling architecture review");
+    }
+    return extras;
+  };
+
   return (
     <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
       <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
-        <SH tag="Transparent Pricing" title="Choose your AI journey" desc="Start small, prove value, scale with confidence. No lock-ins." />
-        <div className="g4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16}}>
-          {PKGS.map((p, i) => (
-            <div key={i} style={{background:C.bg,border:`1px solid ${p.pop?p.color+"33":C.border}`,borderRadius:18,padding:28,position:"relative",display:"flex",flexDirection:"column",boxShadow:p.pop?C.shadowMd:C.shadow,transition:"all .2s"}}>
-              {p.pop && <div style={{position:"absolute",top:-1,left:"50%",transform:"translateX(-50%)",padding:"4px 16px",borderRadius:"0 0 10px 10px",background:p.color,color:"#fff",fontSize:11,fontWeight:700,fontFamily:F.m}}>MOST POPULAR</div>}
-              <Tag color={p.color}>{p.name}</Tag>
-              <div style={{marginTop:16,marginBottom:8}}>
-                <span style={{fontSize:32,fontWeight:800,fontFamily:F.m,color:C.navy}}>{p.price}</span>
-                <span style={{color:C.textFaint,fontSize:13,fontFamily:F.m}}>{p.per}</span>
-              </div>
-              <p style={{color:C.textMuted,fontSize:13,lineHeight:1.6,marginBottom:20}}>{p.desc}</p>
-              <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
-                {p.feats.map(f => (
-                  <div key={f} style={{display:"flex",alignItems:"flex-start",gap:8}}>
-                    <span style={{color:p.color,fontSize:12,marginTop:2,flexShrink:0}}>✓</span>
-                    <span style={{color:C.textSoft,fontSize:13,lineHeight:1.5}}>{f}</span>
-                  </div>
+        <SH tag="Scale-Aware Pricing" title="Priced for your reality" desc="A $1M startup and a $500M enterprise need different depth, different deliverables, and different budgets. Configure below." />
+
+        {/* Scale + Industry Configurator */}
+        <div style={{background:C.bg,borderRadius:20,border:`1px solid ${C.border}`,padding:28,marginBottom:32,boxShadow:C.shadow}}>
+          <div style={{display:"flex",gap:32,flexWrap:"wrap"}}>
+            {/* Company Scale */}
+            <div style={{flex:1,minWidth:280}}>
+              <div style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:12}}>Company Scale</div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6}}>
+                {SCALE_TIERS.map(s=>(
+                  <button key={s.id} onClick={()=>setScale(s.id)}
+                    style={{padding:"12px 8px",borderRadius:12,cursor:"pointer",transition:"all .2s",textAlign:"center",
+                      background:scale===s.id?C.navy:"transparent",
+                      border:`1.5px solid ${scale===s.id?C.navy:C.border}`,
+                    }}>
+                    <div style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:scale===s.id?"#fff":C.navy}}>{s.label}</div>
+                    <div style={{fontSize:10,fontFamily:F.m,color:scale===s.id?"#94A3B8":C.textFaint,marginTop:2}}>{s.rev}</div>
+                    <div style={{fontSize:9,fontFamily:F.m,color:scale===s.id?"#64748B":C.textFaint}}>{s.emp}</div>
+                  </button>
                 ))}
               </div>
-              <button onClick={()=>document.getElementById("partner")?.scrollIntoView({behavior:"smooth"})}
-                style={{marginTop:20,width:"100%",padding:"12px",borderRadius:12,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,transition:"all .2s",textAlign:"center",
-                  background:p.pop?p.color:"transparent",color:p.pop?"#fff":p.color,border:p.pop?"none":`1.5px solid ${p.color}33`,
-                  boxShadow:p.pop?`0 4px 12px ${p.color}22`:"none"}}>
-                {p.cta}
-              </button>
             </div>
-          ))}
+
+            {/* Industry / Regulatory */}
+            <div style={{flex:1,minWidth:280}}>
+              <div style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1.5,marginBottom:12}}>Industry Complexity</div>
+              <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                {IND_MULTS.map(i=>(
+                  <button key={i.id} onClick={()=>setIndustry(i.id)}
+                    style={{padding:"10px 14px",borderRadius:10,cursor:"pointer",transition:"all .2s",textAlign:"left",display:"flex",alignItems:"center",gap:10,
+                      background:industry===i.id?i.color+"0A":"transparent",
+                      border:`1.5px solid ${industry===i.id?i.color+"33":C.border}`,
+                    }}>
+                    <div style={{width:8,height:8,borderRadius:"50%",background:industry===i.id?i.color:C.borderLight,flexShrink:0,transition:"all .2s"}} />
+                    <div style={{flex:1}}>
+                      <span style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:industry===i.id?i.color:C.navy}}>{i.label}</span>
+                      {i.mult > 1 && <span style={{fontSize:10,fontFamily:F.m,color:industry===i.id?i.color:C.textFaint,marginLeft:6}}>{i.mult}x</span>}
+                    </div>
+                    {i.regs.length > 0 && industry===i.id && (
+                      <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                        {i.regs.slice(0,3).map(r=>(
+                          <span key={r} style={{padding:"2px 6px",borderRadius:4,fontSize:9,fontWeight:600,fontFamily:F.m,background:i.color+"10",color:i.color}}>{r}</span>
+                        ))}
+                        {i.regs.length > 3 && <span style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>+{i.regs.length-3}</span>}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Multiplier indicator */}
+          <div style={{marginTop:20,padding:"12px 18px",borderRadius:12,background:combined>2?C.coralBg:combined>1.2?C.blueBg:C.tealBg,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textMuted}}>YOUR PROFILE</div>
+              <div style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy}}>{sc.label} + {ind.label}</div>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:12}}>
+              <div style={{fontSize:11,fontFamily:F.m,color:C.textFaint}}>Scale {sc.mult}x + Regulatory {ind.mult}x =</div>
+              <div style={{padding:"4px 12px",borderRadius:8,background:combined>2?C.coral:combined>1.2?C.blue:C.teal,color:"#fff",fontSize:14,fontWeight:800,fontFamily:F.m}}>
+                {combined}x
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing Cards */}
+        <div className="g4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16}}>
+          {PKGS_BASE.map((p, i) => {
+            const price = calcPrice(p.base);
+            const hours = calcHours(p.hours);
+            const extras = getExtraFeats(p.tier);
+            const allFeats = [...p.baseFeats, ...extras];
+
+            return (
+              <div key={i} style={{background:C.bg,border:`1px solid ${p.pop?p.color+"33":C.border}`,borderRadius:18,padding:28,position:"relative",display:"flex",flexDirection:"column",boxShadow:p.pop?C.shadowMd:C.shadow,transition:"all .2s"}}>
+                {p.pop && <div style={{position:"absolute",top:-1,left:"50%",transform:"translateX(-50%)",padding:"4px 16px",borderRadius:"0 0 10px 10px",background:p.color,color:"#fff",fontSize:11,fontWeight:700,fontFamily:F.m}}>MOST POPULAR</div>}
+                <Tag color={p.color}>{p.name}</Tag>
+                <div style={{marginTop:16,marginBottom:4}}>
+                  <span style={{fontSize:p.base===0?32:28,fontWeight:800,fontFamily:F.m,color:C.navy,transition:"all .3s"}}>{price}</span>
+                  {p.per && <span style={{color:C.textFaint,fontSize:13,fontFamily:F.m}}>{p.per}</span>}
+                </div>
+                {hours && <div style={{fontSize:11,fontFamily:F.m,color:C.textFaint,marginBottom:8}}>{hours} included</div>}
+                <p style={{color:C.textMuted,fontSize:13,lineHeight:1.6,marginBottom:20}}>{p.desc}</p>
+                <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
+                  {allFeats.map((f,fi) => (
+                    <div key={fi} style={{display:"flex",alignItems:"flex-start",gap:8}}>
+                      <span style={{color:fi < p.baseFeats.length ? p.color : ind.color,fontSize:12,marginTop:2,flexShrink:0}}>{fi < p.baseFeats.length ? "✓" : "+"}</span>
+                      <span style={{color:fi < p.baseFeats.length ? C.textSoft : ind.color,fontSize:13,lineHeight:1.5,fontWeight:fi < p.baseFeats.length ? 400 : 600}}>{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={()=>document.getElementById("partner")?.scrollIntoView({behavior:"smooth"})}
+                  style={{marginTop:20,width:"100%",padding:"12px",borderRadius:12,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,transition:"all .2s",textAlign:"center",
+                    background:p.pop?p.color:"transparent",color:p.pop?"#fff":p.color,border:p.pop?"none":`1.5px solid ${p.color}33`,
+                    boxShadow:p.pop?`0 4px 12px ${p.color}22`:"none"}}>
+                  {p.cta}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Why pricing scales — transparency */}
+        <div style={{marginTop:28,padding:"20px 24px",borderRadius:14,background:C.bg,border:`1px solid ${C.border}`,display:"flex",alignItems:"flex-start",gap:14}}>
+          <div style={{width:32,height:32,borderRadius:10,background:C.tealBg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          </div>
+          <div>
+            <div style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:4}}>Why pricing scales with your organization</div>
+            <p style={{fontSize:13,color:C.textMuted,lineHeight:1.7,margin:0}}>
+              A 50-person startup needs a 10-hour diagnostic. A 5,000-person enterprise across 3 business units with CMMC, HIPAA, and SOX obligations needs 40+ hours, clearance-eligible staff, and board-ready deliverables. Our pricing reflects the actual scope, regulatory depth, and stakeholder complexity of your engagement — not arbitrary tier labels. Your ARIA Score from the assessment calculates this precisely.
+            </p>
+          </div>
         </div>
       </div>
     </section>
