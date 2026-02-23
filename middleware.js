@@ -82,7 +82,7 @@ export function middleware(request) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://api.anthropic.com https://ipapi.co",
+    "connect-src 'self' https://api.anthropic.com https://ipapi.co https://api.resend.com https: http:",
     "frame-ancestors 'self'",
     "base-uri 'self'",
     "form-action 'self'",
