@@ -1,0 +1,24 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630">
+      <stop offset="0%" stop-color="#FAFAF9"/>
+      <stop offset="100%" stop-color="#F5F5F4"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="200" y2="200">
+      <stop offset="0%" stop-color="#0E7490"/>
+      <stop offset="100%" stop-color="#155E75"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1200" height="4" fill="url(#accent)"/>
+  <path d="M80 80L100 88V104L80 112L60 104V88L80 80Z" fill="url(#accent)"/>
+  <text x="80" y="101" text-anchor="middle" fill="#fff" font-family="monospace" font-weight="800" font-size="16">λ</text>
+  <text x="115" y="100" fill="#1C1917" font-family="sans-serif" font-weight="800" font-size="22">TheBHT<tspan fill="#0E7490">Labs</tspan></text>
+  <text x="80" y="250" fill="#1C1917" font-family="sans-serif" font-weight="800" font-size="54">Your AI Is Live.</text>
+  <text x="80" y="315" fill="#0E7490" font-family="sans-serif" font-weight="800" font-size="54">Is It Governed?</text>
+  <text x="80" y="380" fill="#78716C" font-family="sans-serif" font-weight="400" font-size="22">AI Governance · Readiness Assessment · Federal Compliance</text>
+  <text x="80" y="420" fill="#78716C" font-family="sans-serif" font-weight="400" font-size="18">SBA 8(a) · EDWOSB · Azure Architect · Secret Clearance Eligible</text>
+  <rect x="80" y="480" width="240" height="50" rx="12" fill="#0E7490"/>
+  <text x="200" y="512" text-anchor="middle" fill="#fff" font-family="sans-serif" font-weight="700" font-size="18">Free Assessment →</text>
+  <text x="80" y="580" fill="#A8A29E" font-family="monospace" font-size="14">thebhtlabs.com</text>
+</svg>
