@@ -38,7 +38,8 @@ const jsonLd = {
       "mainEntity": [
         {"@type":"Question","name":"What is an AI Readiness Assessment?","acceptedAnswer":{"@type":"Answer","text":"Our 35-point assessment evaluates your organization across 7 domains: Data Foundation, Process Maturity, Technology Readiness, People & Culture, Strategy & ROI, Governance & Compliance, and Use Case Clarity. You receive a detailed PDF report with actionable recommendations."}},
         {"@type":"Question","name":"What certifications does BHT Solutions hold?","acceptedAnswer":{"@type":"Answer","text":"SBA 8(a), EDWOSB, WOSB. Microsoft Certified Azure Solutions Architect. CyberAB Registered Practitioner. SAFe 5 Agile. Wiz-certified cloud security. CAGE: 7DBB9, UEI: ZW6GMVL368J6. Active T4 Public Trust clearance, Secret eligible."}},
-        {"@type":"Question","name":"What Azure and Microsoft services does BHT specialize in?","acceptedAnswer":{"@type":"Answer","text":"Azure Government Cloud, M365 GCC/GCC-High, CMMC Level 2 compliance, FedRAMP advisory, Copilot Studio agents, Power Platform automation, Entra ID, and DevSecOps."}}
+        {"@type":"Question","name":"What Azure and Microsoft services does BHT specialize in?","acceptedAnswer":{"@type":"Answer","text":"Azure Government Cloud, M365 GCC/GCC-High, CMMC Level 2 compliance, FedRAMP advisory, Copilot Studio agents, Power Platform automation, Entra ID, and DevSecOps."}},
+        {"@type":"Question","name":"Does this site use AI?","acceptedAnswer":{"@type":"Answer","text":"Yes. TheBHTLabs uses an AI-powered chatbot assistant. All AI interactions are clearly disclosed. Users can reach a human at any time via email (info@bhtsolutions.com) or phone ((513) 638-1986). Our AI governance framework follows NIST AI RMF and EU AI Act guidelines."}}
       ]
     }
   ]
@@ -121,6 +122,17 @@ export default function Home() {
 
         <h2>Contact</h2>
         <p>Bluebery Hawaii Technology Solutions LLC | 20223 Granite Birch Ln, Cypress, TX 77433 | info@bhtsolutions.com</p>
+
+        <h2>AI Governance &amp; Responsible AI</h2>
+        <p>TheBHTLabs is committed to responsible AI and AI governance. Our AI chatbot is powered by AI and provides automated responses. This is an AI assistant — responses may be inaccurate. Users can talk to a human at any time by contacting info@bhtsolutions.com or calling (513) 638-1986.</p>
+        <p>Our AI governance framework is aligned with NIST AI Risk Management Framework, EU AI Act, ISO 42001, and trustworthy AI principles. We practice AI ethics and provide AI transparency in all AI-powered interactions on this site.</p>
+        <p>This website uses cookies. By continuing to use this site, you consent to our use of cookies in accordance with our <a href="#privacy">Privacy Policy</a> and GDPR requirements.</p>
+        <p>AI-generated content on this website is clearly disclosed. Our virtual assistant and chatbot interactions are governed by our AI acceptable use policy. Users always have the option to speak to a live agent or contact us directly for customer service.</p>
+        <nav aria-label="AI Governance" role="navigation">
+          <a href="#privacy">Privacy Policy</a> |
+          <a href="#partner">Contact Us</a> |
+          <a href="mailto:info@bhtsolutions.com">Talk to a Human</a>
+        </nav>
       </div>
 
       <TheBHTLabsPlatform />
