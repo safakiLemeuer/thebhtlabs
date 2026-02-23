@@ -221,6 +221,8 @@ const SH = ({tag, title, desc, align="center"}) => (
 );
 
 /* ═══════════════ DATA ═══════════════ */
+const JOB_TITLES = ["CIO","CTO","CISO","VP of IT","VP of Engineering","IT Director","IT Manager","Director of Technology","Director of Operations","Chief Digital Officer","Chief Data Officer","Chief AI Officer","Head of Infrastructure","Security Director","Compliance Officer","Program Manager","Project Manager","Systems Administrator","DevOps Lead","Solutions Architect","Enterprise Architect","Data Engineer","Software Engineer","Business Analyst","Consultant","Other"];
+
 const AQ = [
   {d:"Data Foundation",icon:"database",q:["Is your business data centralized in a single system (CRM, ERP, cloud)?","Do you have clean, structured data that's less than 6 months old?","Are there defined data governance policies (who owns, accesses, updates)?","Can your data be exported in standard formats (CSV, API, database)?","Do you track customer interactions digitally (emails, calls, transactions)?"]},
   {d:"Process Maturity",icon:"workflow",q:["Are your core workflows documented and repeatable?","Do you have processes that involve repetitive manual data entry?","Are there bottlenecks where tasks wait on a single person?","Do you measure process cycle times and error rates?","Have you automated any workflows (email sequences, approvals, reports)?"]},
