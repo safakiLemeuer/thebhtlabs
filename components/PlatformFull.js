@@ -2623,7 +2623,13 @@ function ChatWidget() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      setVoiceSupported(!!(SR && window.speechSynthesis));
+      const ss = window.speechSynthesis;
+      if (SR && ss) {
+        setVoiceSupported(true);
+        // Chrome loads voices async — preload them
+        ss.getVoices();
+        ss.onvoiceschanged = () => ss.getVoices();
+      }
     }
   }, []);
 
@@ -2653,47 +2659,87 @@ function ChatWidget() {
 
   // --- Voice: speak text aloud ---
   const speak = (text) => {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const clean = text.replace(/[*#_`]/g, "").replace(/\n{2,}/g, ". ").replace(/\n/g, ", ").replace(/- /g, "");
-    const utt = new SpeechSynthesisUtterance(clean);
-    utt.rate = 1.05; utt.pitch = 1.0;
-    const voices = window.speechSynthesis.getVoices();
+    const ss = window.speechSynthesis;
+    if (!ss) return;
+    ss.cancel();
+    const clean = text.replace(/[*#_`]/g, "").replace(/\n{2,}/g, ". ").replace(/\n/g, ", ").replace(/- /g, "").trim();
+    if (!clean) { setVoiceState("idle"); return; }
+
+    // Chrome bug: speechSynthesis stops after ~15s. Split into chunks.
+    const chunks = [];
+    const sentences = clean.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [clean];
+    let buf = "";
+    sentences.forEach(s => {
+      if ((buf + s).length > 180) { if (buf) chunks.push(buf.trim()); buf = s; }
+      else { buf += s; }
+    });
+    if (buf) chunks.push(buf.trim());
+
+    const voices = ss.getVoices();
     const pref = voices.find(v => /samantha|karen|google.*us|microsoft.*zira|microsoft.*david/i.test(v.name))
-      || voices.find(v => v.lang.startsWith("en") && v.localService) || voices[0];
-    if (pref) utt.voice = pref;
-    utt.onstart = () => setVoiceState("speaking");
-    utt.onend = () => setVoiceState("idle");
-    utt.onerror = () => setVoiceState("idle");
-    window.speechSynthesis.speak(utt);
+      || voices.find(v => v.lang.startsWith("en") && v.localService)
+      || voices.find(v => v.lang.startsWith("en"))
+      || voices[0];
+
+    let i = 0;
+    const speakNext = () => {
+      if (i >= chunks.length) { setVoiceState("idle"); return; }
+      const utt = new SpeechSynthesisUtterance(chunks[i]);
+      utt.rate = 1.05; utt.pitch = 1.0;
+      if (pref) utt.voice = pref;
+      utt.onstart = () => setVoiceState("speaking");
+      utt.onend = () => { i++; speakNext(); };
+      utt.onerror = () => { setVoiceState("idle"); };
+      ss.speak(utt);
+    };
+    speakNext();
   };
 
   // --- Voice: start listening ---
   const startListening = () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { setVoiceError("Speech recognition not supported"); return; }
+    // Require HTTPS (except localhost)
+    if (typeof window !== "undefined" && location.protocol !== "https:" && location.hostname !== "localhost") {
+      setVoiceError("Voice requires HTTPS. Please access the site via https://");
+      return;
+    }
     window.speechSynthesis.cancel();
     const rec = new SR();
-    rec.continuous = false; rec.interimResults = true; rec.lang = "en-US";
+    rec.continuous = false; rec.interimResults = true; rec.lang = "en-US"; rec.maxAlternatives = 1;
     recognitionRef.current = rec;
     setTranscript(""); setVoiceError(""); setVoiceState("listening");
+    let gotResult = false;
+
     rec.onresult = (e) => {
       const txt = Array.from(e.results).map(r => r[0].transcript).join("");
       setTranscript(txt);
-      if (e.results[0].isFinal) {
+      if (e.results[e.results.length - 1].isFinal) {
+        gotResult = true;
         setVoiceState("processing");
-        rec.stop();
+        try { rec.stop(); } catch(ex){}
         sendMsg(txt).then(reply => { if (reply) speak(reply); });
       }
     };
     rec.onerror = (e) => {
+      console.error("SpeechRecognition error:", e.error);
       if (e.error === "no-speech") setVoiceError("No speech detected. Tap and try again.");
-      else if (e.error === "not-allowed") setVoiceError("Microphone access denied. Allow it in browser settings.");
-      else setVoiceError("Couldn't hear you. Try again.");
+      else if (e.error === "not-allowed" || e.error === "service-not-allowed") setVoiceError("Microphone access denied. Allow it in browser settings.");
+      else if (e.error === "network") setVoiceError("Network error. Check your connection.");
+      else if (e.error === "aborted") { /* user cancelled, no error needed */ }
+      else setVoiceError("Couldn't hear you (" + e.error + "). Try again.");
       setVoiceState("idle");
     };
-    rec.onend = () => { setVoiceState(s => s === "listening" ? "idle" : s); };
-    rec.start();
+    rec.onend = () => {
+      // Only reset to idle if we didn't get a result (prevents premature idle during processing)
+      if (!gotResult) setVoiceState("idle");
+    };
+    try {
+      rec.start();
+    } catch(e) {
+      setVoiceError("Could not start microphone. Try refreshing the page.");
+      setVoiceState("idle");
+    }
   };
 
   const stopAll = () => {
