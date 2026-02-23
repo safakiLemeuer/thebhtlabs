@@ -40,6 +40,30 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#FFFFFF" />
+        <meta name="author" content="TheBHTLabs — Bluebery Hawaii Technology Solutions LLC" />
+        <meta name="copyright" content="© 2024-2026 BHT Solutions LLC. All rights reserved. ARIA Score™ is a trademark." />
+        <style dangerouslySetInnerHTML={{__html: `
+          body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+          input,textarea,select,button,[contenteditable]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
+          img{-webkit-user-drag:none;-khtml-user-drag:none;-moz-user-drag:none;user-drag:none;pointer-events:none}
+          @media print{body::before{content:"CONFIDENTIAL — TheBHTLabs.com — Unauthorized reproduction prohibited";display:block;text-align:center;font-size:14px;color:#DC2626;padding:20px;font-weight:700}body{opacity:.3!important}}
+        `}} />
+        <script dangerouslySetInnerHTML={{__html: `
+          (function(){
+            document.addEventListener('contextmenu',function(e){if(!e.target.closest('input,textarea,[contenteditable]'))e.preventDefault()});
+            document.addEventListener('copy',function(e){
+              e.preventDefault();
+              var t='\\n© TheBHTLabs.com — Proprietary content. Unauthorized copying prohibited.\\nhttps://thebhtlabs.com\\n';
+              if(e.clipboardData)e.clipboardData.setData('text/plain',t);
+            });
+            document.addEventListener('keydown',function(e){
+              if((e.ctrlKey||e.metaKey)&&(e.key==='u'||e.key==='s'||e.key==='p')&&!e.target.closest('input,textarea,[contenteditable]')){e.preventDefault()}
+              if(e.key==='F12'){e.preventDefault()}
+              if((e.ctrlKey||e.metaKey)&&e.shiftKey&&(e.key==='I'||e.key==='J'||e.key==='C')){e.preventDefault()}
+            });
+            document.addEventListener('dragstart',function(e){e.preventDefault()});
+          })();
+        `}} />
       </head>
       <body style={{ margin: 0 }}>{children}</body>
     </html>

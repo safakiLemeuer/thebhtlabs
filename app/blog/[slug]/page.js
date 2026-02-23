@@ -117,6 +117,15 @@ export default function BlogPost() {
 
       <footer style={{ padding:'40px 0', textAlign:'center', color:C.textFaint, fontSize:12 }}>
         <Link href="/blog" style={{ color:C.teal, textDecoration:'none', fontWeight:600 }}>← Back to Insights</Link>
+        <div style={{display:'flex',justifyContent:'center',marginTop:20}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 18px',borderRadius:10,background:'rgba(14,116,144,.04)',border:'1px solid rgba(14,116,144,.08)'}}>
+            <div style={{width:22,height:22,borderRadius:6,background:'linear-gradient(135deg,#0E7490,#155E75)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+              <span style={{color:'#fff',fontFamily:'monospace',fontWeight:800,fontSize:11}}>λ</span>
+            </div>
+            <span style={{fontSize:9,fontWeight:600,fontFamily:"'DM Mono',monospace",color:'#A8A29E',textTransform:'uppercase',letterSpacing:1.5}}>Engineered by</span>
+            <span style={{fontSize:12,fontWeight:800,color:'#0E7490'}}>TheBHT<span style={{color:'#1C1917'}}>Labs</span></span>
+          </div>
+        </div>
       </footer>
     </div>
   );

@@ -2554,13 +2554,29 @@ function Footer() {
 
         {/* Divider */}
         <div style={{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:20}}>
+
+          {/* ── Signature Watermark ── */}
+          <div style={{display:"flex",justifyContent:"center",marginBottom:24}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 24px",borderRadius:12,background:"rgba(14,116,144,.06)",border:"1px solid rgba(14,116,144,.12)"}}>
+              <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,#0E7490,#155E75)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 8px rgba(14,116,144,.25)"}}>
+                <span style={{color:"#fff",fontFamily:"monospace",fontWeight:800,fontSize:14}}>λ</span>
+              </div>
+              <div style={{display:"flex",flexDirection:"column"}}>
+                <span style={{fontSize:9,fontWeight:600,fontFamily:F.m,color:"rgba(255,255,255,.35)",textTransform:"uppercase",letterSpacing:2}}>Engineered by</span>
+                <span style={{fontSize:14,fontWeight:800,fontFamily:F.h,color:C.teal,letterSpacing:"-0.02em"}}>TheBHT<span style={{color:"rgba(255,255,255,.8)"}}>Labs</span></span>
+              </div>
+              <div style={{width:1,height:24,background:"rgba(255,255,255,.1)",margin:"0 4px"}} />
+              <span style={{fontSize:8,fontFamily:F.m,color:"rgba(255,255,255,.25)",maxWidth:120,lineHeight:1.4}}>AI governance infrastructure for the regulated enterprise</span>
+            </div>
+          </div>
+
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
             <span style={{color:"rgba(255,255,255,.35)",fontSize:10,fontFamily:F.m}}>CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · DUNS: 801352894 · FEIN: 26-0374906 · Primary NAICS: 541512</span>
             <span style={{color:"rgba(255,255,255,.35)",fontSize:10,fontFamily:F.m}}>© {new Date().getFullYear()} Bluebery Hawaii Technology Solutions LLC · SBA 8(a) · EDWOSB · WOSB · Houston, TX</span>
             <p style={{color:"rgba(255,255,255,.2)",fontSize:8,fontFamily:F.m,marginTop:6,lineHeight:1.6,maxWidth:700}}>
               ARIA Score™ is a trademark of BHT Solutions LLC. The AI Readiness Assessment framework, scoring methodology, ARIA Score™ algorithm, and all associated 
               intellectual property are proprietary to BHT Solutions LLC, protected under U.S. copyright law and the Defend Trade Secrets Act (18 U.S.C. § 1836). 
-              Unauthorized reproduction, reverse engineering, or derivative works are prohibited.
+              Unauthorized reproduction, reverse engineering, or derivative works are prohibited. All page content, UI design, and interactive tools are protected works.
             </p>
           </div>
         </div>
