@@ -522,6 +522,18 @@ function Hero({scrollTo, nav, mode, setMode}) {
                 Contact Contracting Office
               </button>
             </div>
+
+            {/* Built by badge — federal variant */}
+            <div style={{display:"flex",justifyContent:"center",marginTop:22}}>
+              <div style={{display:"inline-flex",alignItems:"center",gap:10,padding:"8px 20px",borderRadius:40,background:"rgba(94,234,212,.04)",border:"1px solid rgba(94,234,212,.08)",backdropFilter:"blur(8px)"}}>
+                <div style={{width:24,height:24,borderRadius:7,background:"linear-gradient(135deg,#0E7490,#155E75)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(14,116,144,.3)"}}>
+                  <span style={{color:"#fff",fontFamily:"monospace",fontWeight:800,fontSize:12}}>λ</span>
+                </div>
+                <span style={{fontSize:11,fontFamily:F.m,color:"#64748B"}}>Built by our in-house engineering lab</span>
+                <div style={{width:1,height:14,background:"#334155"}} />
+                <span style={{fontSize:11,fontWeight:700,fontFamily:F.h,color:"#5EEAD4",letterSpacing:"-0.01em"}}>TheBHT<span style={{color:"#E2E8F0"}}>Labs</span></span>
+              </div>
+            </div>
             <div style={{marginTop:36,display:"flex",justifyContent:"center",gap:40,flexWrap:"wrap"}}>
               {[
                 {v:"110/110",l:"NIST 800-171 Practices",sub:"90-day CMMC engagement"},
@@ -561,6 +573,18 @@ function Hero({scrollTo, nav, mode, setMode}) {
             <button onClick={()=>scrollTo("assess")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:`1.5px solid ${C.border}`,background:"transparent",color:C.navy,transition:"all .2s"}}>
               35-Point AI Assessment
             </button>
+          </div>
+
+          {/* Built by badge */}
+          <div style={{display:"flex",justifyContent:"center",marginTop:22}}>
+            <div style={{display:"inline-flex",alignItems:"center",gap:10,padding:"8px 20px",borderRadius:40,background:"rgba(14,116,144,.04)",border:"1px solid rgba(14,116,144,.08)",backdropFilter:"blur(8px)"}}>
+              <div style={{width:24,height:24,borderRadius:7,background:"linear-gradient(135deg,#0E7490,#155E75)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 6px rgba(14,116,144,.2)"}}>
+                <span style={{color:"#fff",fontFamily:"monospace",fontWeight:800,fontSize:12}}>λ</span>
+              </div>
+              <span style={{fontSize:11,fontFamily:F.m,color:C.textFaint}}>Built by our in-house engineering lab</span>
+              <div style={{width:1,height:14,background:C.borderLight}} />
+              <span style={{fontSize:11,fontWeight:700,fontFamily:F.h,color:C.teal,letterSpacing:"-0.01em"}}>TheBHT<span style={{color:C.navy}}>Labs</span></span>
+            </div>
           </div>
           <div style={{marginTop:40,paddingTop:28,borderTop:`1px solid ${C.borderLight}`}}>
             <p style={{color:C.textFaint,fontSize:11,fontFamily:F.m,textTransform:"uppercase",letterSpacing:1.5,marginBottom:14}}>Trusted by teams across industries</p>
@@ -2554,22 +2578,6 @@ function Footer() {
 
         {/* Divider */}
         <div style={{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:20}}>
-
-          {/* ── Signature Watermark ── */}
-          <div style={{display:"flex",justifyContent:"center",marginBottom:24}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 24px",borderRadius:12,background:"rgba(14,116,144,.06)",border:"1px solid rgba(14,116,144,.12)"}}>
-              <div style={{width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,#0E7490,#155E75)",display:"flex",alignItems:"center",justifyContent:"center",boxShadow:"0 2px 8px rgba(14,116,144,.25)"}}>
-                <span style={{color:"#fff",fontFamily:"monospace",fontWeight:800,fontSize:14}}>λ</span>
-              </div>
-              <div style={{display:"flex",flexDirection:"column"}}>
-                <span style={{fontSize:9,fontWeight:600,fontFamily:F.m,color:"rgba(255,255,255,.35)",textTransform:"uppercase",letterSpacing:2}}>Engineered by</span>
-                <span style={{fontSize:14,fontWeight:800,fontFamily:F.h,color:C.teal,letterSpacing:"-0.02em"}}>TheBHT<span style={{color:"rgba(255,255,255,.8)"}}>Labs</span></span>
-              </div>
-              <div style={{width:1,height:24,background:"rgba(255,255,255,.1)",margin:"0 4px"}} />
-              <span style={{fontSize:8,fontFamily:F.m,color:"rgba(255,255,255,.25)",maxWidth:120,lineHeight:1.4}}>AI governance infrastructure for the regulated enterprise</span>
-            </div>
-          </div>
-
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
             <span style={{color:"rgba(255,255,255,.35)",fontSize:10,fontFamily:F.m}}>CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · DUNS: 801352894 · FEIN: 26-0374906 · Primary NAICS: 541512</span>
             <span style={{color:"rgba(255,255,255,.35)",fontSize:10,fontFamily:F.m}}>© {new Date().getFullYear()} Bluebery Hawaii Technology Solutions LLC · SBA 8(a) · EDWOSB · WOSB · Houston, TX</span>
