@@ -136,7 +136,7 @@ const calcARIA = (intake, dScores, locale) => {
 
   // Sector multiplier
   const ind = intake.industry||"";
-  const sector = /govdef|defense/.test(ind)?{label:"Federal/Defense",mult:2.5,desc:"FISMA, NIST 800-53, clearance-required"}
+  const sector = /govdef|defense/.test(ind)?{label:"Federal/Defense",mult:2.5,desc:"FISMA, NIST 800-53, clearance-ready environments"}
     :/healthcare/.test(ind)?{label:"Healthcare",mult:1.5,desc:"HIPAA, PHI handling, audit requirements"}
     :/financial|insurance/.test(ind)?{label:"Financial Services",mult:1.4,desc:"SOX, SEC, fiduciary obligations"}
     :{label:"Commercial",mult:1.0,desc:"Standard commercial engagement"};
@@ -504,13 +504,13 @@ function Hero({scrollTo, nav, mode, setMode}) {
               <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:"#F59E0B"}}>OMB M-25-21 Compliance Due April 3, 2026{daysLeft !== null ? ` — ${daysLeft} days` : ''}</span>
             </div>
             <h1 className="hero-t" style={{fontSize:"clamp(34px,5vw,54px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:"#F8FAFC",letterSpacing:"-0.03em",maxWidth:850,margin:"0 auto"}}>
-              Your agency needs AI governance.<br/><span style={{color:"#5EEAD4"}}>We hold the clearance to build it.</span>
+              We don't just govern AI.<br/><span style={{color:"#5EEAD4"}}>We engineer it.</span>
             </h1>
             <p style={{color:"#94A3B8",fontSize:17,lineHeight:1.7,maxWidth:660,margin:"20px auto 14px",fontFamily:F.b}}>
-              SBA 8(a) sole-source eligible. Secret cleared. Microsoft ecosystem certified. We help federal agencies and defense primes meet M-25-21/M-25-22 AI mandates — from use case inventory to production governance.
+              SBA 8(a) sole-source eligible to $4.5M. Microsoft ecosystem certified. Clearance-eligible. From AI use case inventory and compliance frameworks to production Copilot agents — we help agencies and defense primes meet M-25-21/M-25-22 mandates end-to-end.
             </p>
             <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginTop:6,marginBottom:28}}>
-              {["SBA 8(a)","EDWOSB","CAGE 7DBB9","Secret Eligible","Azure Architect","CyberAB RP","DIR-CPO-5626"].map(b=>(
+              {["SBA 8(a)","EDWOSB","CAGE 7DBB9","Clearance-Eligible","Azure Architect","CyberAB RP","DIR-CPO-5626"].map(b=>(
                 <span key={b} style={{padding:"4px 10px",borderRadius:6,fontSize:10,fontWeight:700,fontFamily:F.m,background:"rgba(94,234,212,.08)",color:"#5EEAD4",border:"1px solid rgba(94,234,212,.15)"}}>{b}</span>
               ))}
             </div>
@@ -558,13 +558,13 @@ function Hero({scrollTo, nav, mode, setMode}) {
             <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>67% of AI chatbots fail basic governance checks — BHTLabs 2025</span>
           </div>
           <h1 className="hero-t" style={{fontSize:"clamp(36px,5vw,58px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:C.navy,letterSpacing:"-0.03em",maxWidth:800,margin:"0 auto"}}>
-            Your AI is live.<br/><span style={{color:C.teal}}>Is it governed?</span>
+            We govern AI.<br/><span style={{color:C.teal}}>Then we build it right.</span>
           </h1>
-          <p style={{color:C.textMuted,fontSize:18,lineHeight:1.7,maxWidth:620,margin:"20px auto 14px",fontFamily:F.b}}>
-            We audit AI chatbots, assess organizational readiness, and build governance frameworks that satisfy EU AI Act, NIST, CMMC, and your board — in weeks, not quarters.
+          <p style={{color:C.textMuted,fontSize:18,lineHeight:1.7,maxWidth:640,margin:"20px auto 14px",fontFamily:F.b}}>
+            From readiness assessments and compliance frameworks to production Copilot agents and automated workflows — we take you from AI audit to AI deployment, governed from day one.
           </p>
           <p style={{color:C.textFaint,fontSize:13,fontFamily:F.m,maxWidth:500,margin:"0 auto 32px"}}>
-            SBA 8(a) · EDWOSB · Azure Solutions Architect · CyberAB RP · Secret Clearance Eligible
+            SBA 8(a) · EDWOSB · Azure Solutions Architect · CyberAB RP · Clearance-Eligible
           </p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <button onClick={()=>scrollTo("healthcheck")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s"}}>
@@ -842,7 +842,7 @@ function Assessment({id}) {
     </div>
     <div style="margin-top:20px;padding:16px;background:#F8FAFC;border-radius:12px;border:1px solid #E2E8F0">
       <div style="font-size:11px;font-weight:700;margin-bottom:6px">About BHT Solutions</div>
-      <p style="font-size:10px;color:#64748B;line-height:1.5">SBA 8(a) · EDWOSB · WOSB · MS Azure Solutions Architect · CyberAB RP · Wiz Certified · CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · Active clearance, Secret eligible</p>
+      <p style="font-size:10px;color:#64748B;line-height:1.5">SBA 8(a) · EDWOSB · WOSB · MS Azure Solutions Architect · CyberAB RP · Wiz Certified · CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · Clearance-Ready</p>
       <p style="font-size:10px;color:#64748B;line-height:1.5;margin-top:4px">Azure Gov · M365 GCC/GCC-High · CMMC L2 · FedRAMP Advisory · Copilot Studio · Power Platform · AI Governance (NIST RMF)</p>
       <p style="font-size:8px;color:#94A3B8;font-style:italic;margin-top:6px">Results vary. Industry stats from McKinsey (2025), Gartner (2024), S&P Global (2025), EY (2025), BCG (2024). Pricing illustrative.</p>
       <div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)">
@@ -1737,7 +1737,7 @@ function FederalHub({scrollTo}) {
       <tr><td>UEI / SAM</td><td>ZW6GMVL368J6 · Active on SAM.gov</td></tr>
       <tr><td>DUNS</td><td>117520226</td></tr>
       <tr><td>Headquarters</td><td>Houston, TX (Harris County)</td></tr>
-      <tr><td>Clearance</td><td>T4 Public Trust (Active) · Secret (Eligible)</td></tr>
+      <tr><td>Clearance</td><td>T4 Public Trust (Active) · Clearance-Ready</td></tr>
     </table>
     <h2>Socioeconomic Status</h2>
     <div class="row">
@@ -1795,7 +1795,7 @@ function FederalHub({scrollTo}) {
   const fedFaqs = [
     {q:"How do we sole-source to BHT?",a:"As an SBA 8(a) certified firm, federal agencies can award sole-source contracts to BHT Solutions up to $4.5M for services without full and open competition. Your Contracting Officer initiates with a Justification & Approval (J&A) citing FAR 19.805-1. We provide a Capability Statement, relevant past performance, and a fair and reasonable price proposal. Timeline: as fast as 2 weeks from CO decision to award. CAGE: 7DBB9 · UEI: ZW6GMVL368J6 · SAM: Active."},
     {q:"What NAICS codes apply?",a:"Primary: 541512 (Computer Systems Design), 541511 (Custom Programming), 541519 (Other Computer Services), 518210 (Computing Infrastructure), 541611 (Management Consulting), 541690 (Other S&T Consulting), 611420 (Computer Training). All within SBA size standards."},
-    {q:"What clearance level does your team hold?",a:"T4 Public Trust (Active). Secret clearance eligible. We have operated in GCC-High environments handling CUI and can support up to Secret-level engagements. Clearance upgrades initiated upon contract award as needed."},
+    {q:"What clearance level does your team hold?",a:"T4 Public Trust (Active). We operate in GCC-High environments handling CUI. Clearance upgrades initiated upon contract award as needed."},
     {q:"Can primes sub to BHT for 8(a) credit?",a:"Yes. As a certified 8(a) and EDWOSB, work subcontracted to BHT Solutions counts toward your small business subcontracting plan goals. We have experience as both prime and sub on federal contracts. We provide monthly subcontracting reports per FAR 52.219-9."},
     {q:"What past performance is available?",a:"DOJ, DHS, U.S. Army (as sub), defense prime CMMC Level 2 preparation (110/110 NIST 800-171 practices, 90 days, first-attempt C3PAO pass), and multiple commercial engagements in AI governance and Microsoft ecosystem. CPARS and past performance questionnaires available upon CO request."},
     {q:"How fast can you start?",a:"Upon award: staffing within 5 business days for AI governance and compliance work. For CMMC engagements: 2-week ramp. For GCC-High migrations: 1-week planning phase. We maintain bench capacity specifically for federal rapid-start requirements."},
@@ -1933,7 +1933,7 @@ function FederalHub({scrollTo}) {
                 ["EDWOSB","Certified · SBA"],
                 ["WOSB","Certified · SBA"],
                 ["TX DIR","DIR-CPO-5626"],
-                ["Clearance","T4 Public Trust · Secret Eligible"],
+                ["Clearance","T4 Public Trust · Clearance-Ready"],
               ].map(([k,v])=>(
                 <tr key={k}><td style={{padding:"6px 0",fontSize:12,fontWeight:700,color:"#94A3B8",borderBottom:"1px solid #334155"}}>{k}</td>
                   <td style={{padding:"6px 0",fontSize:12,color:"#F8FAFC",fontFamily:F.m,borderBottom:"1px solid #334155"}}>{v}</td></tr>
@@ -1960,7 +1960,7 @@ function FederalHub({scrollTo}) {
           <div className="g3" style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
             {[
               {t:"8(a) / EDWOSB Credit",d:"Work subcontracted to BHT counts toward your FAR 52.219-9 small business subcontracting plan goals."},
-              {t:"Cleared & Certified",d:"Secret-eligible team. Azure Solutions Architect. CyberAB RP. Ready for GCC-High and CUI environments."},
+              {t:"Cleared & Certified",d:"Clearance-ready team. Azure Solutions Architect. CyberAB RP. GCC-High and CUI environment experienced."},
               {t:"Rapid Teaming",d:"NDA + Teaming Agreement in 48 hours. We maintain bench capacity for prime partner rapid-start engagements."},
             ].map(p=>(
               <div key={p.t} style={{padding:14,borderRadius:10,background:"#1E293B",border:"1px solid #334155"}}>
@@ -2054,7 +2054,7 @@ function FedAcquisition() {
       <tr><td>EIN</td><td>On file with SBA</td></tr>
       <tr><td>Headquarters</td><td>Houston, TX (Harris County)</td></tr>
       <tr><td>Size Standard</td><td>Small Business</td></tr>
-      <tr><td>Clearance</td><td>T4 Public Trust (Active) · Secret (Eligible)</td></tr>
+      <tr><td>Clearance</td><td>T4 Public Trust (Active) · Clearance-Ready</td></tr>
     </table>
 
     <h2>Socioeconomic Status</h2>
@@ -2355,7 +2355,7 @@ function ProofBar() {
     {v:"EDWOSB",l:"Women-Owned SB"},
     {v:"Azure",l:"Solutions Architect"},
     {v:"CyberAB",l:"Registered Practitioner"},
-    {v:"Secret",l:"Clearance Eligible"},
+    {v:"T4",l:"Clearance-Ready"},
     {v:"CAGE 7DBB9",l:"Active Contractor"},
   ];
   const logos = ["DOJ","DHS","U.S. Army","McKesson","EY","PwC","IBM","Microsoft","Stryker","Gates Foundation"];
@@ -2386,7 +2386,7 @@ function FAQ({id}) {
     {q:"What does the 35-Point Assessment cover?",a:"7 domains: AI Strategy & Leadership, Data Readiness, Technology Infrastructure, Governance & Compliance, Process & Automation, Talent & Skills, Risk Management. Each scored 1-5 across 5 questions. You get an ARIA Score\u2122 that maps your complexity, a percentile ranking against your industry, a gap analysis, and a PDF report with a 90-day action plan."},
     {q:"What does it cost?",a:"The Bot Auditor and AI Assessment are free. Zero. No trial, no credit card. If you want us to implement solutions, our Quick Scan starts at $2,500 and scales based on organizational complexity. We publish pricing transparently on this site."},
     {q:"Is my data safe?",a:"Assessment tools run in your browser. The Bot Auditor fetches your public homepage server-side — the same content any visitor sees. Nothing is stored unless you explicitly submit the contact form or request a PDF report. No tracking cookies, no Google Analytics, no ad pixels."},
-    {q:"Who is behind this?",a:"Nitin Nagar — 20+ years enterprise IT. MS in CS. Azure Solutions Architect. CyberAB RP. SAFe 5. Founded BHT Solutions in 2016. SBA 8(a), EDWOSB, WOSB. Secret clearance eligible. CAGE: 7DBB9. Portfolio: DOJ, DHS, U.S. Army, McKesson, EY, PwC, IBM, Microsoft, Stryker, Gates Foundation."},
+    {q:"Who is behind this?",a:"Nitin Nagar — 20+ years enterprise IT. MS in CS. Azure Solutions Architect. CyberAB RP. SAFe 5. Founded BHT Solutions in 2016. SBA 8(a), EDWOSB, WOSB. Clearance-ready. CAGE: 7DBB9. Portfolio: DOJ, DHS, U.S. Army, McKesson, EY, PwC, IBM, Microsoft, Stryker, Gates Foundation."},
     {q:"What industries do you serve?",a:"Defense contractors, federal agencies, and regulated industries — insurance, legal, healthcare, financial services. Also expanding into India (DPDPA, RBI compliance), Europe (EU AI Act, GDPR, NIS2), and the UAE (UAE PDPL, ADGM, NESA). If compliance keeps your CISO up at night, we're built for you."},
     {q:"How fast can you deliver?",a:"Discovery call: 30 minutes. AI Quick Scan: 1 week. Sprint (assessment + roadmap): 2-3 weeks. Full implementation: 1-3 months. CMMC Level 2: 90 days — 110/110 NIST 800-171 practices, first-attempt C3PAO pass."},
     {q:"How do I get started?",a:"Two paths: (1) Run the free Bot Auditor on your website right now — takes 10 seconds, zero commitment. (2) Take the 35-Point Assessment — takes 5 minutes, gives you a full diagnostic. Both generate downloadable PDF reports. Or skip straight to the contact form."},

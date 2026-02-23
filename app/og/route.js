@@ -11,10 +11,10 @@ export async function GET() {
           <span style={{fontSize:'24px',fontWeight:800,color:'#1C1917'}}>TheBHTLabs</span>
         </div>
         <div style={{display:'flex',flexDirection:'column',flex:1,justifyContent:'center'}}>
-          <div style={{fontSize:'58px',fontWeight:800,color:'#1C1917',lineHeight:1.1}}>Your AI Is Live.</div>
-          <div style={{fontSize:'58px',fontWeight:800,color:'#0E7490',lineHeight:1.1,marginTop:'8px'}}>Is It Governed?</div>
-          <div style={{fontSize:'22px',color:'#78716C',marginTop:'24px'}}>AI Governance + Readiness Assessment + Federal Compliance</div>
-          <div style={{fontSize:'16px',color:'#A8A29E',marginTop:'12px'}}>SBA 8(a) | EDWOSB | Azure Architect | Secret Clearance Eligible</div>
+          <div style={{fontSize:'58px',fontWeight:800,color:'#1C1917',lineHeight:1.1}}>We Govern AI.</div>
+          <div style={{fontSize:'58px',fontWeight:800,color:'#0E7490',lineHeight:1.1,marginTop:'8px'}}>Then We Build It Right.</div>
+          <div style={{fontSize:'22px',color:'#78716C',marginTop:'24px'}}>AI Governance + Engineering + Federal Compliance</div>
+          <div style={{fontSize:'16px',color:'#A8A29E',marginTop:'12px'}}>SBA 8(a) | EDWOSB | Azure Architect | Clearance-Eligible</div>
         </div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
           <div style={{background:'#0E7490',color:'#fff',padding:'14px 32px',borderRadius:'12px',fontSize:'18px',fontWeight:700}}>Free Assessment</div>
