@@ -206,7 +206,7 @@ function LeadsManager({ headers, token }) {
                 {l.phone && <div><a href={`tel:${l.phone}`} style={{ fontSize: 13, color: C.navy, fontWeight: 600 }}>{l.phone}</a></div>}
               </div>
               <div style={{ textAlign: 'right' }}>
-                {l.suspicious ? <div style={{ fontSize: 10, fontWeight: 700, color: '#E11D48', marginBottom: 4 }}>⚠️ RUSHED ({l.time_spent}s)</div> : null}
+                {l.suspicious ? <div style={{ fontSize: 10, fontWeight: 700, color: '#E11D48', marginBottom: 4 }}>[!] RUSHED ({l.time_spent}s)</div> : null}
                 <div style={{ fontSize: 32, fontWeight: 800, color: stageColor(l.stage), fontFamily: "'DM Mono',monospace" }}>{l.overall_score}%</div>
                 <span style={{ padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 700, background: stageColor(l.stage) + '15', color: stageColor(l.stage) }}>{l.stage}</span>
               </div>
@@ -244,12 +244,12 @@ function LeadsManager({ headers, token }) {
           </div>
           {/* Right: AI Intelligence */}
           <div style={{ ...card, background: '#FAFBFF', borderColor: '#7C3AED20' }}>
-            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#7C3AED', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>🧠 AI Sales Intelligence</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 800, color: '#7C3AED', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>[AI] AI Sales Intelligence</h3>
             <pre style={{ fontSize: 12, color: C.navy, lineHeight: 1.7, whiteSpace: 'pre-wrap', fontFamily: "'Poppins',sans-serif", margin: 0 }}>{aiIntel(l)}</pre>
             <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
               <a href={`mailto:${l.email}?subject=Your AI Readiness Results — ${l.company}&body=Hi ${l.name.split(' ')[0]},%0A%0AThank you for completing the AI Readiness Assessment. I reviewed your results and wanted to share a few observations...`}
                 style={{ padding: '8px 16px', borderRadius: 8, background: C.teal, color: '#fff', fontSize: 12, fontWeight: 700, textDecoration: 'none', cursor: 'pointer' }}>
-                📧 Email {l.name.split(' ')[0]}
+                [Email] Email {l.name.split(' ')[0]}
               </a>
               <button onClick={() => navigator.clipboard.writeText(aiIntel(l))}
                 style={{ padding: '8px 16px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, fontSize: 12, fontWeight: 600, cursor: 'pointer', color: C.textMuted }}>
@@ -271,13 +271,13 @@ function LeadsManager({ headers, token }) {
           {['dashboard', 'leads'].map(v => (
             <button key={v} onClick={() => setView(v)}
               style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${view === v ? C.teal : C.border}`, background: view === v ? C.teal + '0D' : C.bg, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: view === v ? C.teal : C.textMuted }}>
-              {v === 'dashboard' ? '📊 Analytics' : '👤 All Leads'}
+              {v === 'dashboard' ? '[Stats] Analytics' : '[User] All Leads'}
             </button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={load} style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: C.textMuted }}>🔄 Refresh</button>
-          <button onClick={exportCSV} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.teal, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#fff' }}>📥 Export CSV</button>
+          <button onClick={load} style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: C.bg, cursor: 'pointer', fontSize: 12, fontWeight: 600, color: C.textMuted }}>[Refresh] Refresh</button>
+          <button onClick={exportCSV} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.teal, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#fff' }}>[Export] Export CSV</button>
         </div>
       </div>
 
@@ -517,7 +517,7 @@ function ContactsManager({ headers }) {
             </button>
           ))}
         </div>
-        <button onClick={exportCSV} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.teal, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#fff' }}>📥 CSV</button>
+        <button onClick={exportCSV} style={{ padding: '6px 14px', borderRadius: 8, border: 'none', background: C.teal, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#fff' }}>[Export] CSV</button>
       </div>
       {/* Cards */}
       <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, overflow: 'hidden' }}>
@@ -826,7 +826,7 @@ function HealthCheckManager({ headers }) {
           <div style={{ fontSize: 12, color: '#78716C' }}>Average Score</div>
         </div>
       </div>
-      <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>📄 PDF Downloads (Lead Captures)</h3>
+      <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>[Doc] PDF Downloads (Lead Captures)</h3>
       {pdfDownloads && pdfDownloads.length > 0 ? (
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E7E5E4', overflow: 'hidden', marginBottom: 24 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -868,10 +868,10 @@ function HealthCheckManager({ headers }) {
                 <td style={{ padding: '10px 14px', fontWeight: 600, fontFamily: "'DM Mono',monospace" }}>{s.domain}</td>
                 <td style={{ padding: '10px 14px', fontWeight: 700, color: s.score >= 75 ? '#0E7490' : s.score >= 50 ? '#F97316' : '#DC2626' }}>{s.score}%</td>
                 <td style={{ padding: '10px 14px' }}>{s.provider || '-'}</td>
-                <td style={{ padding: '10px 14px' }}>{s.spf_status === 'pass' ? '✅' : s.spf_status === 'warn' ? '⚠️' : '❌'}</td>
-                <td style={{ padding: '10px 14px' }}>{s.dmarc_status === 'pass' ? '✅' : s.dmarc_status === 'warn' ? '⚠️' : '❌'}</td>
-                <td style={{ padding: '10px 14px' }}>{s.dkim_status === 'pass' ? '✅' : s.dkim_status === 'warn' ? '⚠️' : '❌'}</td>
-                <td style={{ padding: '10px 14px' }}>{s.has_m365 ? '✅' : '-'}</td>
+                <td style={{ padding: '10px 14px' }}>{s.spf_status === 'pass' ? '[ok]' : s.spf_status === 'warn' ? '[!]' : '[x]'}</td>
+                <td style={{ padding: '10px 14px' }}>{s.dmarc_status === 'pass' ? '[ok]' : s.dmarc_status === 'warn' ? '[!]' : '[x]'}</td>
+                <td style={{ padding: '10px 14px' }}>{s.dkim_status === 'pass' ? '[ok]' : s.dkim_status === 'warn' ? '[!]' : '[x]'}</td>
+                <td style={{ padding: '10px 14px' }}>{s.has_m365 ? '[ok]' : '-'}</td>
                 <td style={{ padding: '10px 14px', color: '#78716C' }}>{new Date(s.created_at).toLocaleDateString()}</td>
               </tr>
             ))}</tbody>
