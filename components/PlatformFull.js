@@ -2406,17 +2406,70 @@ const SocialIcons = {
 /* ═══════════════ COOKIE NOTICE ═══════════════ */
 function CookieNotice() {
   const [show, setShow] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [prefs, setPrefs] = useState({essential:true, analytics:false, functional:false});
   useEffect(()=>{
-    try { if(!localStorage.getItem("bht_cookie_ack")) setShow(true); } catch(e){ setShow(true); }
+    try { if(!localStorage.getItem("bht_cookie_consent")) setShow(true); } catch(e){ setShow(true); }
   },[]);
-  const accept = () => { try { localStorage.setItem("bht_cookie_ack","1"); } catch(e){} setShow(false); };
+  const accept = (all) => {
+    const consent = all ? {essential:true,analytics:true,functional:true} : prefs;
+    try { localStorage.setItem("bht_cookie_consent", JSON.stringify({...consent, timestamp:new Date().toISOString(), version:"1.0"})); } catch(e){}
+    setShow(false);
+  };
+  const reject = () => {
+    try { localStorage.setItem("bht_cookie_consent", JSON.stringify({essential:true,analytics:false,functional:false,timestamp:new Date().toISOString(),version:"1.0"})); } catch(e){}
+    setShow(false);
+  };
   if(!show) return null;
   return (
-    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:998,background:C.navy,color:"#fff",padding:"14px 24px",display:"flex",justifyContent:"center",alignItems:"center",gap:16,flexWrap:"wrap",fontSize:13,fontFamily:F.b}}>
-      <p style={{maxWidth:600,lineHeight:1.5,margin:0}}>
-        We use only essential cookies for basic site functionality. No tracking, no ads, no third-party cookies. <span style={{opacity:.6}}>See our Privacy Policy for details.</span>
-      </p>
-      <button onClick={accept} style={{padding:"8px 20px",borderRadius:8,border:"none",cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff",flexShrink:0}}>Got it</button>
+    <div role="dialog" aria-label="Cookie consent" aria-modal="false"
+      style={{position:"fixed",bottom:0,left:0,right:0,zIndex:998,background:C.navy,color:"#fff",padding:"16px 24px",boxShadow:"0 -4px 20px rgba(0,0,0,.15)"}}>
+      <div style={{maxWidth:900,margin:"0 auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:16,flexWrap:"wrap"}}>
+          <div style={{flex:1,minWidth:280}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5EEAD4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span style={{fontWeight:700,fontFamily:F.h,fontSize:14}}>Cookie & Privacy Consent</span>
+            </div>
+            <p style={{fontSize:12,lineHeight:1.6,margin:0,color:"#CBD5E1"}}>
+              We use essential cookies for site functionality. Optional cookies help us understand usage patterns. You can accept all, reject optional cookies, or customize your preferences. No data is sold to third parties.
+            </p>
+            {expanded && (
+              <div style={{marginTop:12,display:"flex",flexDirection:"column",gap:8}}>
+                <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,cursor:"default",color:"#94A3B8"}}>
+                  <input type="checkbox" checked disabled aria-label="Essential cookies (required)" style={{accentColor:C.teal}} />
+                  <span><strong style={{color:"#fff"}}>Essential</strong> — Required for basic site functionality (always on)</span>
+                </label>
+                <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,cursor:"pointer",color:"#94A3B8"}}>
+                  <input type="checkbox" checked={prefs.analytics} onChange={e=>setPrefs(p=>({...p,analytics:e.target.checked}))} aria-label="Analytics cookies" style={{accentColor:C.teal}} />
+                  <span><strong style={{color:"#fff"}}>Analytics</strong> — Anonymous usage patterns to improve the site</span>
+                </label>
+                <label style={{display:"flex",alignItems:"center",gap:8,fontSize:12,cursor:"pointer",color:"#94A3B8"}}>
+                  <input type="checkbox" checked={prefs.functional} onChange={e=>setPrefs(p=>({...p,functional:e.target.checked}))} aria-label="Functional cookies" style={{accentColor:C.teal}} />
+                  <span><strong style={{color:"#fff"}}>Functional</strong> — Remember your preferences (locale, chat history)</span>
+                </label>
+              </div>
+            )}
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap",flexShrink:0}}>
+            <button onClick={()=>setExpanded(!expanded)}
+              aria-expanded={expanded}
+              style={{padding:"8px 16px",borderRadius:8,border:`1px solid #475569`,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:F.h,background:"transparent",color:"#CBD5E1"}}>
+              {expanded ? "Less options" : "Customize"}
+            </button>
+            <button onClick={reject}
+              aria-label="Reject optional cookies"
+              style={{padding:"8px 16px",borderRadius:8,border:`1px solid #475569`,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:F.h,background:"transparent",color:"#CBD5E1"}}>
+              Reject optional
+            </button>
+            <button onClick={()=>accept(expanded ? false : true)}
+              aria-label={expanded ? "Save cookie preferences" : "Accept all cookies"}
+              style={{padding:"8px 20px",borderRadius:8,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff"}}>
+              {expanded ? "Save preferences" : "Accept all"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -2551,11 +2604,14 @@ function Footer() {
 /* ═══════════════ CHATBOT ═══════════════ */
 function ChatWidget() {
   const [open, setOpen] = useState(false);
-  const [msgs, setMsgs] = useState([{r:"a",c:"Hey! I'm the TheBHTLabs AI advisor. I can help with:\n\n• Is AI right for your business?\n• Which package fits your needs?\n• Copilot Studio & automation questions\n• Compliance (CMMC, FedRAMP)\n• Career & upskilling guidance\n\nWhat's on your mind?"}]);
+  const [msgs, setMsgs] = useState([{r:"a",c:"Hey! I'm the TheBHTLabs AI advisor. I can help with:\n\n- Is AI right for your business?\n- Which package fits your needs?\n- Copilot Studio & automation questions\n- Compliance (CMMC, FedRAMP)\n- Career & upskilling guidance\n\nWhat's on your mind?"}]);
   const [inp, setInp] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showEscalation, setShowEscalation] = useState(false);
   const endRef = useRef(null);
+  const inputRef = useRef(null);
   useEffect(() => { endRef.current?.scrollIntoView({behavior:"smooth"}); }, [msgs]);
+  useEffect(() => { if (open && inputRef.current) inputRef.current.focus(); }, [open]);
 
   const send = async () => {
     if(!inp.trim()||loading)return;
@@ -2566,42 +2622,118 @@ function ChatWidget() {
       const r = await fetch("/api/chat",{method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({messages:history})});
       const d = await r.json();
-      setMsgs(p=>[...p,{r:"a",c:d.content||"Connection issue. Email info@bhtsolutions.com"}]);
-    } catch(e) { setMsgs(p=>[...p,{r:"a",c:"Connection issue. Reach us at info@bhtsolutions.com"}]); }
+      setMsgs(p=>[...p,{r:"a",c:d.content||"I'm having trouble connecting. You can reach a human directly at info@bhtsolutions.com or call (513) 638-1986."}]);
+    } catch(e) { setMsgs(p=>[...p,{r:"a",c:"Connection issue. Reach a human directly:\n\nEmail: info@bhtsolutions.com\nPhone: (513) 638-1986"}]); }
     setLoading(false);
   };
 
+  const escalateToHuman = () => {
+    setShowEscalation(false);
+    setMsgs(p=>[...p,{r:"a",c:"Connecting you with a human:\n\nEmail: info@bhtsolutions.com\nPhone: (513) 638-1986\nResponse time: Within 4 business hours\n\nOr use the Contact form on this page — scroll down to 'Work With Us'.\n\nYour chat history will be included if you reach out via email so the team has full context."}]);
+  };
+
   if (!open) return (
-    <button onClick={()=>setOpen(true)} style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:56,height:56,borderRadius:16,background:C.teal,border:"none",cursor:"pointer",boxShadow:`0 4px 20px ${C.teal}33`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:22,transition:"all .2s"}}>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <button onClick={()=>setOpen(true)}
+      aria-label="Open AI chat assistant"
+      role="button"
+      tabIndex={0}
+      onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setOpen(true);}}}
+      style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:56,height:56,borderRadius:16,background:C.teal,border:"none",cursor:"pointer",boxShadow:`0 4px 20px ${C.teal}33`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:22,transition:"all .2s"}}>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
     </button>
   );
 
   return (
-    <div style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:380,maxWidth:"calc(100vw - 48px)",height:520,background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,boxShadow:C.shadowLg,display:"flex",flexDirection:"column"}}>
-      <div style={{padding:"12px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${C.border}`}}>
+    <div role="dialog" aria-label="AI Chat Assistant" aria-modal="false"
+      style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:380,maxWidth:"calc(100vw - 48px)",height:540,background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,boxShadow:C.shadowLg,display:"flex",flexDirection:"column"}}>
+
+      {/* Header with AI disclosure + human escalation */}
+      <div style={{padding:"10px 16px",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${C.border}`,background:C.bgSoft,borderRadius:"20px 20px 0 0"}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <Badge color={C.teal}>Online</Badge>
-          <span style={{fontWeight:700,fontFamily:F.h,fontSize:14,color:C.navy}}>TheBHTLabs AI</span>
+          <Badge color={C.teal}>AI</Badge>
+          <div>
+            <span style={{fontWeight:700,fontFamily:F.h,fontSize:13,color:C.navy}}>TheBHTLabs Assistant</span>
+            <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>AI-powered — not a human</div>
+          </div>
         </div>
-        <button onClick={()=>setOpen(false)} style={{background:"none",border:"none",cursor:"pointer",color:C.textMuted,fontSize:18}}>✕</button>
+        <div style={{display:"flex",gap:4}}>
+          <button onClick={()=>setShowEscalation(!showEscalation)}
+            aria-label="Talk to a human"
+            title="Talk to a human"
+            style={{background:"none",border:`1px solid ${C.border}`,borderRadius:8,cursor:"pointer",padding:"4px 8px",fontSize:10,fontWeight:700,fontFamily:F.m,color:C.textMuted,display:"flex",alignItems:"center",gap:4,transition:"all .15s"}}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Human
+          </button>
+          <button onClick={()=>setOpen(false)}
+            aria-label="Close chat"
+            style={{background:"none",border:"none",cursor:"pointer",color:C.textMuted,fontSize:18,padding:"2px 6px"}}>✕</button>
+        </div>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:12,display:"flex",flexDirection:"column",gap:8}}>
+
+      {/* Human escalation panel */}
+      {showEscalation && (
+        <div style={{padding:"12px 16px",background:C.tealBg,borderBottom:`1px solid ${C.teal}20`}}>
+          <div style={{fontSize:12,fontWeight:700,fontFamily:F.h,color:C.teal,marginBottom:8}}>Reach a human directly</div>
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            <a href="mailto:info@bhtsolutions.com" style={{display:"flex",alignItems:"center",gap:8,fontSize:12,fontFamily:F.m,color:C.navy,textDecoration:"none"}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+              info@bhtsolutions.com
+            </a>
+            <a href="tel:+15136381986" style={{display:"flex",alignItems:"center",gap:8,fontSize:12,fontFamily:F.m,color:C.navy,textDecoration:"none"}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              (513) 638-1986
+            </a>
+            <button onClick={escalateToHuman}
+              style={{marginTop:4,padding:"8px 14px",borderRadius:8,border:"none",cursor:"pointer",fontSize:12,fontWeight:700,fontFamily:F.h,background:C.teal,color:"#fff",textAlign:"center"}}>
+              Request human follow-up
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AI Disclosure banner */}
+      <div style={{padding:"6px 16px",background:"#FEF3C7",borderBottom:"1px solid #FDE68A",display:"flex",alignItems:"center",gap:6}} role="status" aria-live="polite">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span style={{fontSize:10,fontFamily:F.m,color:"#92400E"}}>This is an AI assistant. Responses may be inaccurate. <button onClick={()=>setShowEscalation(true)} style={{background:"none",border:"none",cursor:"pointer",fontWeight:700,color:"#D97706",fontFamily:F.m,fontSize:10,textDecoration:"underline",padding:0}}>Talk to a human</button></span>
+      </div>
+
+      {/* Messages area */}
+      <div role="log" aria-live="polite" aria-label="Chat messages" style={{flex:1,overflowY:"auto",padding:12,display:"flex",flexDirection:"column",gap:8}}>
         {msgs.map((m,i) => (
           <div key={i} style={{display:"flex",justifyContent:m.r==="u"?"flex-end":"flex-start"}}>
-            <div style={{maxWidth:"80%",padding:"10px 14px",borderRadius:14,fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap",
+            <div role={m.r==="a"?"status":undefined} style={{maxWidth:"80%",padding:"10px 14px",borderRadius:14,fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap",
               background:m.r==="u"?C.teal:C.bgMuted,color:m.r==="u"?"#fff":C.text,
               borderBottomRightRadius:m.r==="u"?4:14,borderBottomLeftRadius:m.r==="u"?14:4}}>{m.c}</div>
           </div>
         ))}
-        {loading && <div style={{padding:8}}><span style={{color:C.teal,fontSize:13,fontFamily:F.m}}>Thinking...</span></div>}
+        {loading && <div style={{padding:8}} role="status" aria-live="polite"><span style={{color:C.teal,fontSize:13,fontFamily:F.m}}>AI is thinking...</span></div>}
         <div ref={endRef} />
       </div>
+
+      {/* Persistent human escalation bar */}
+      <div style={{padding:"6px 16px",borderTop:`1px solid ${C.borderLight}`,display:"flex",justifyContent:"center"}}>
+        <button onClick={()=>setShowEscalation(true)}
+          aria-label="Switch to human support"
+          style={{background:"none",border:"none",cursor:"pointer",fontSize:10,fontFamily:F.m,color:C.textFaint,display:"flex",alignItems:"center",gap:4,padding:"2px 8px",borderRadius:6,transition:"all .15s"}}
+          onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color=C.textFaint}>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Prefer a human? Contact us directly
+        </button>
+      </div>
+
+      {/* Input area */}
       <div style={{padding:10,borderTop:`1px solid ${C.border}`,display:"flex",gap:8}}>
-        <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Ask anything..."
+        <label htmlFor="chat-input" className="sr-only" style={{position:"absolute",width:1,height:1,padding:0,margin:-1,overflow:"hidden",clip:"rect(0,0,0,0)",whiteSpace:"nowrap",border:0}}>Type your message</label>
+        <input id="chat-input" ref={inputRef} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder="Ask anything..."
+          aria-label="Type your message to the AI assistant"
+          autoComplete="off"
           style={{flex:1,padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none"}} />
-        <button onClick={send} style={{width:38,height:38,borderRadius:10,border:"none",cursor:"pointer",
-          background:inp.trim()?C.teal:C.bgMuted,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:15,transition:"all .15s"}}>→</button>
+        <button onClick={send} disabled={!inp.trim()||loading}
+          aria-label="Send message"
+          style={{width:38,height:38,borderRadius:10,border:"none",cursor:inp.trim()?"pointer":"default",
+            background:inp.trim()?C.teal:C.bgMuted,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:15,transition:"all .15s",opacity:inp.trim()?1:.5}}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
       </div>
     </div>
   );
