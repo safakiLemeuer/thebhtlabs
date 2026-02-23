@@ -223,6 +223,8 @@ const SH = ({tag, title, desc, align="center"}) => (
 /* ═══════════════ DATA ═══════════════ */
 const JOB_TITLES = ["CIO","CTO","CISO","VP of IT","VP of Engineering","IT Director","IT Manager","Director of Technology","Director of Operations","Chief Digital Officer","Chief Data Officer","Chief AI Officer","Head of Infrastructure","Security Director","Compliance Officer","Program Manager","Project Manager","Systems Administrator","DevOps Lead","Solutions Architect","Enterprise Architect","Data Engineer","Software Engineer","Business Analyst","Consultant","Other"];
 
+const EMP_RANGES = ["1-10","11-50","51-200","201-500","501-1,000","1,001-5,000","5,000+"];
+
 const AQ = [
   {d:"Data Foundation",icon:"database",q:["Is your business data centralized in a single system (CRM, ERP, cloud)?","Do you have clean, structured data that's less than 6 months old?","Are there defined data governance policies (who owns, accesses, updates)?","Can your data be exported in standard formats (CSV, API, database)?","Do you track customer interactions digitally (emails, calls, transactions)?"]},
   {d:"Process Maturity",icon:"workflow",q:["Are your core workflows documented and repeatable?","Do you have processes that involve repetitive manual data entry?","Are there bottlenecks where tasks wait on a single person?","Do you measure process cycle times and error rates?","Have you automated any workflows (email sequences, approvals, reports)?"]},
@@ -361,9 +363,11 @@ function ClientTicker() {
 
 function Hero({scrollTo, nav, mode, setMode}) {
   const [scrolled, setScrolled] = useState(false);
+  const [daysLeft, setDaysLeft] = useState(null);
   useEffect(()=>{
     const h=()=>setScrolled(window.scrollY>50);
     window.addEventListener("scroll",h,{passive:true});
+    setDaysLeft(Math.ceil((new Date('2026-04-03')-new Date())/(1000*60*60*24)));
     return ()=>window.removeEventListener("scroll",h);
   },[]);
   const commercialNav = [{id:"healthcheck",l:"Bot Auditor"},{id:"assess",l:"Assessment"},{id:"packages",l:"Packages"},{id:"partner",l:"Work With Us"},{id:"faq",l:"FAQ"}];
@@ -483,7 +487,7 @@ function Hero({scrollTo, nav, mode, setMode}) {
           <div style={{maxWidth:1200,margin:"0 auto",padding:"60px 24px 48px",textAlign:"center"}}>
             <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:"rgba(245,158,11,.1)",border:"1px solid rgba(245,158,11,.25)",marginBottom:20}}>
               <div style={{width:6,height:6,borderRadius:"50%",background:"#F59E0B",animation:"pulse 2s infinite"}} />
-              <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:"#F59E0B"}}>OMB M-25-21 Compliance Due April 3, 2026 — {Math.ceil((new Date('2026-04-03')-new Date())/(1000*60*60*24))} days</span>
+              <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:"#F59E0B"}}>OMB M-25-21 Compliance Due April 3, 2026{daysLeft !== null ? ` — ${daysLeft} days` : ''}</span>
             </div>
             <h1 className="hero-t" style={{fontSize:"clamp(34px,5vw,54px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:"#F8FAFC",letterSpacing:"-0.03em",maxWidth:850,margin:"0 auto"}}>
               Your agency needs AI governance.<br/><span style={{color:"#5EEAD4"}}>We hold the clearance to build it.</span>
@@ -591,7 +595,8 @@ function Assessment({id}) {
     }
   }, []);
   const loc = LOCALES[locale] || LOCALES.us;
-  const cc = typeof window !== 'undefined' ? localStorage.getItem('bht_cc') : null;
+  const [cc, setCc] = useState(null);
+  useEffect(() => { if (typeof window !== 'undefined') setCc(localStorage.getItem('bht_cc')); }, []);
 
   const activeIndustries = loc.industries;
   const activeRevRanges = loc.revRanges;
