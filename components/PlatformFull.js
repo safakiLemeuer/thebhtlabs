@@ -389,10 +389,10 @@ function Hero({scrollTo, nav, mode, setMode}) {
       {/* Sticky Navigation */}
       <nav style={{
         position:"fixed",top:0,left:0,right:0,zIndex:999,
-        background:scrolled?"rgba(255,255,255,.92)":C.bg,
+        background:scrolled?(mode==='federal'?"rgba(15,23,42,.95)":"rgba(255,255,255,.92)"):(mode==='federal'?"rgba(15,23,42,.8)":C.bg),
         backdropFilter:scrolled?"blur(20px) saturate(180%)":"none",
         WebkitBackdropFilter:scrolled?"blur(20px) saturate(180%)":"none",
-        borderBottom:`1px solid ${scrolled?C.border:"transparent"}`,
+        borderBottom:`1px solid ${scrolled?(mode==='federal'?'#1E293B':C.border):"transparent"}`,
         boxShadow:scrolled?"0 1px 8px rgba(15,23,42,.06)":"none",
         transition:"all .3s ease",
       }}>
@@ -400,48 +400,86 @@ function Hero({scrollTo, nav, mode, setMode}) {
           <div style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer"}} onClick={()=>window.scrollTo({top:0,behavior:"smooth"})}>
             <Logo />
             <div>
-              <span style={{fontWeight:800,fontSize:17,fontFamily:F.h,color:C.navy}}>TheBHT<span style={{color:C.teal}}>Labs</span></span>
+              <span style={{fontWeight:800,fontSize:17,fontFamily:F.h,color:mode==='federal'?"#F8FAFC":C.navy}}>TheBHT<span style={{color:mode==='federal'?"#5EEAD4":C.teal}}>Labs</span></span>
               <a href="https://www.bhtsolutions.com" target="_blank" rel="noopener noreferrer"
-                style={{display:"block",fontSize:10,color:C.textFaint,fontFamily:F.m,letterSpacing:1,textDecoration:"none",transition:"color .15s"}}
-                onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color=C.textFaint}>
-                SKUNKWORKS · BHT SOLUTIONS ↗
+                style={{display:"block",fontSize:10,color:mode==='federal'?"#64748B":C.textFaint,fontFamily:F.m,letterSpacing:1,textDecoration:"none",transition:"color .15s"}}
+                onMouseEnter={e=>e.target.style.color=C.teal} onMouseLeave={e=>e.target.style.color=mode==='federal'?"#64748B":C.textFaint}>
+                SKUNKWORKS · BHT SOLUTIONS
               </a>
             </div>
           </div>
+
+          {/* --- MODE PILL SWITCHER --- */}
+          <div style={{
+            display:"flex",alignItems:"center",
+            background:mode==='federal'?"rgba(30,41,59,.8)":C.bgMuted,
+            borderRadius:14,padding:3,
+            border:`1px solid ${mode==='federal'?'#334155':C.border}`,
+            boxShadow:"0 1px 4px rgba(0,0,0,.06)",
+            position:"relative",
+          }}>
+            {/* Sliding pill background */}
+            <div style={{
+              position:"absolute",top:3,bottom:3,
+              left:mode==='commercial'?3:'50%',
+              width:"calc(50% - 3px)",
+              background:mode==='commercial'?C.teal:"#F59E0B",
+              borderRadius:11,
+              transition:"all .35s cubic-bezier(.4,0,.2,1)",
+              boxShadow:mode==='commercial'?`0 2px 12px ${C.teal}44`:"0 2px 12px rgba(245,158,11,.4)",
+            }} />
+            <button onClick={()=>{setMode('commercial');window.scrollTo({top:0,behavior:'smooth'});}}
+              style={{
+                position:"relative",zIndex:1,
+                padding:"8px 20px",fontSize:12,fontWeight:700,fontFamily:F.h,
+                border:"none",cursor:"pointer",borderRadius:11,
+                background:"transparent",
+                color:mode==='commercial'?"#fff":(mode==='federal'?"#94A3B8":C.textMuted),
+                transition:"color .25s",
+                display:"flex",alignItems:"center",gap:6,
+                whiteSpace:"nowrap",
+              }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 20h20M5 20V10l7-6 7 6v10M9 20v-4a3 3 0 0 1 6 0v4"/></svg>
+              Commercial
+            </button>
+            <button onClick={()=>{setMode('federal');window.scrollTo({top:0,behavior:'smooth'});}}
+              style={{
+                position:"relative",zIndex:1,
+                padding:"8px 20px",fontSize:12,fontWeight:700,fontFamily:F.h,
+                border:"none",cursor:"pointer",borderRadius:11,
+                background:"transparent",
+                color:mode==='federal'?"#0F172A":(mode==='federal'?"#64748B":C.textMuted),
+                transition:"color .25s",
+                display:"flex",alignItems:"center",gap:6,
+                whiteSpace:"nowrap",
+              }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Federal
+            </button>
+          </div>
+
           <div className="snav" style={{display:"flex",gap:2}}>
             {navItems.map(n=>(
               <button key={n.id} onClick={()=>scrollTo(n.id)} style={{padding:"7px 14px",borderRadius:8,cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:F.h,border:"none",transition:"all .15s",
-                background:nav===n.id?C.tealBg:"transparent",color:nav===n.id?C.tealDark:C.textMuted}}>{n.l}</button>
+                background:nav===n.id?(mode==='federal'?"rgba(94,234,212,.1)":C.tealBg):"transparent",
+                color:nav===n.id?(mode==='federal'?"#5EEAD4":C.tealDark):(mode==='federal'?"#94A3B8":C.textMuted)}}>{n.l}</button>
             ))}
           </div>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
-            <button onClick={()=>scrollTo(mode==='federal'?"fed-tools":"healthcheck")} style={{padding:"9px 20px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 2px 8px ${C.teal}33`,transition:"all .2s"}}>
-              {mode==='federal'?'Federal AI Tools':'Free Assessment →'}
+            <button onClick={()=>scrollTo(mode==='federal'?"fed-tools":"healthcheck")} style={{padding:"9px 20px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,border:"none",
+              background:mode==='federal'?"#F59E0B":C.teal,color:mode==='federal'?"#0F172A":"#fff",
+              boxShadow:mode==='federal'?"0 2px 8px rgba(245,158,11,.3)":`0 2px 8px ${C.teal}33`,transition:"all .2s"}}>
+              {mode==='federal'?'Federal AI Tools':'Free Assessment'}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mode Toggle Bar — persistent, always visible */}
-      <div style={{position:"fixed",top:scrolled?52:60,left:0,right:0,zIndex:998,background:mode==='federal'?"#0F172A":"#F8FAFC",borderBottom:`1px solid ${mode==='federal'?'#1E293B':C.border}`,transition:"all .3s"}}>
-        <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
-          <button onClick={()=>{setMode('commercial');window.scrollTo({top:0,behavior:'smooth'});}}
-            style={{padding:"8px 24px",fontSize:12,fontWeight:700,fontFamily:F.h,border:"none",cursor:"pointer",transition:"all .2s",borderBottom:`2px solid ${mode==='commercial'?C.teal:'transparent'}`,
-              background:"transparent",color:mode==='commercial'?(mode==='federal'?'#5EEAD4':C.teal):(mode==='federal'?'#64748B':C.textMuted)}}>
-            Commercial
-          </button>
-          <button onClick={()=>{setMode('federal');window.scrollTo({top:0,behavior:'smooth'});}}
-            style={{padding:"8px 24px",fontSize:12,fontWeight:700,fontFamily:F.h,border:"none",cursor:"pointer",transition:"all .2s",borderBottom:`2px solid ${mode==='federal'?'#F59E0B':'transparent'}`,
-              background:"transparent",color:mode==='federal'?'#F59E0B':(mode==='federal'?'#64748B':C.textMuted),display:"flex",alignItems:"center",gap:6}}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
-            Federal &amp; Defense
-          </button>
-        </div>
-      </div>
+      {/* Mode Switcher — pill toggle integrated into layout */}
 
       {/* Hero content — conditional on mode */}
       {mode === 'federal' ? (
-        <header style={{borderBottom:"1px solid #1E293B",background:"linear-gradient(180deg, #0F172A 0%, #1E293B 100%)",paddingTop:110}}>
+        <header style={{borderBottom:"1px solid #1E293B",background:"linear-gradient(180deg, #0F172A 0%, #1E293B 100%)",paddingTop:80}}>
           <div style={{maxWidth:1200,margin:"0 auto",padding:"60px 24px 48px",textAlign:"center"}}>
             <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:"rgba(245,158,11,.1)",border:"1px solid rgba(245,158,11,.25)",marginBottom:20}}>
               <div style={{width:6,height:6,borderRadius:"50%",background:"#F59E0B",animation:"pulse 2s infinite"}} />
@@ -483,7 +521,7 @@ function Hero({scrollTo, nav, mode, setMode}) {
           </div>
         </header>
       ) : (
-      <header style={{borderBottom:`1px solid ${C.border}`,background:`linear-gradient(180deg, ${C.bg} 0%, ${C.bgSoft} 100%)`,paddingTop:110}}>
+      <header style={{borderBottom:`1px solid ${C.border}`,background:`linear-gradient(180deg, ${C.bg} 0%, ${C.bgSoft} 100%)`,paddingTop:80}}>
         <div style={{maxWidth:1200,margin:"0 auto",padding:"60px 24px 48px",textAlign:"center"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.12)",marginBottom:20}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:C.rose,animation:"pulse 2s infinite"}} />
