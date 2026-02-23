@@ -2720,14 +2720,33 @@ function ChatWidget() {
   };
 
   // --- Voice: start listening ---
-  const startListening = () => {
+  const startListening = async () => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { setVoiceError("Speech recognition not supported"); return; }
-    // Require HTTPS (except localhost)
     if (typeof window !== "undefined" && location.protocol !== "https:" && location.hostname !== "localhost") {
       setVoiceError("Voice requires HTTPS. Please access the site via https://");
       return;
     }
+
+    // Explicitly request microphone permission FIRST
+    setVoiceState("requesting");
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      // Got permission — stop the stream immediately (SpeechRecognition manages its own)
+      stream.getTracks().forEach(t => t.stop());
+    } catch(permErr) {
+      console.error("Mic permission error:", permErr);
+      if (permErr.name === "NotAllowedError" || permErr.name === "PermissionDeniedError") {
+        setVoiceError("Microphone access denied. Please allow microphone access:\n\n1. Click the lock/site icon in your address bar\n2. Set Microphone to 'Allow'\n3. Refresh and try again");
+      } else if (permErr.name === "NotFoundError") {
+        setVoiceError("No microphone found. Please connect a microphone and try again.");
+      } else {
+        setVoiceError("Could not access microphone: " + permErr.message);
+      }
+      setVoiceState("idle");
+      return;
+    }
+
     window.speechSynthesis.cancel();
     const rec = new SR();
     rec.continuous = false; rec.interimResults = true; rec.lang = "en-US"; rec.maxAlternatives = 1;
@@ -2748,16 +2767,13 @@ function ChatWidget() {
     rec.onerror = (e) => {
       console.error("SpeechRecognition error:", e.error);
       if (e.error === "no-speech") setVoiceError("No speech detected. Tap and try again.");
-      else if (e.error === "not-allowed" || e.error === "service-not-allowed") setVoiceError("Microphone access denied. Allow it in browser settings.");
-      else if (e.error === "network") setVoiceError("Network error. Check your connection.");
-      else if (e.error === "aborted") { /* user cancelled, no error needed */ }
+      else if (e.error === "not-allowed" || e.error === "service-not-allowed") setVoiceError("Microphone blocked by browser. Click the lock icon in your address bar, set Microphone to Allow, then refresh.");
+      else if (e.error === "network") setVoiceError("Network error. Check your connection and try again.");
+      else if (e.error === "aborted") { /* user cancelled */ }
       else setVoiceError("Couldn't hear you (" + e.error + "). Try again.");
       setVoiceState("idle");
     };
-    rec.onend = () => {
-      // Only reset to idle if we didn't get a result (prevents premature idle during processing)
-      if (!gotResult) setVoiceState("idle");
-    };
+    rec.onend = () => { if (!gotResult) setVoiceState("idle"); };
     try {
       rec.start();
     } catch(e) {
@@ -2811,7 +2827,7 @@ function ChatWidget() {
           <Badge color={C.teal}>AI</Badge>
           <div>
             <span style={{fontWeight:700,fontFamily:F.h,fontSize:13,color:C.navy}}>TheBHTLabs Assistant</span>
-            <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>AI-powered — not a human</div>
+            <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>Powered by Anthropic Claude</div>
           </div>
         </div>
         <div style={{display:"flex",gap:4}}>
@@ -2889,7 +2905,7 @@ function ChatWidget() {
 
       {/* ════════════ VOICE AI TAB ════════════ */}
       {tab === "voice" && (
-        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:28,textAlign:"center"}}>
+        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,textAlign:"center"}}>
           {!voiceSupported ? (
             <div>
               <div style={{fontSize:14,fontWeight:700,fontFamily:F.h,color:C.navy,marginBottom:8}}>Voice not supported</div>
@@ -2897,15 +2913,18 @@ function ChatWidget() {
             </div>
           ) : (<>
             {/* Animated mic button */}
-            <button onClick={voiceState==="idle"?startListening:stopAll}
+            <button onClick={voiceState==="idle"||voiceState==="requesting"?startListening:stopAll}
               aria-label={voiceState==="idle"?"Start voice conversation":"Stop"}
-              style={{width:110,height:110,borderRadius:"50%",border:"none",cursor:"pointer",position:"relative",
-                background:voiceState==="listening"?"#DC2626":voiceState==="processing"?C.coral:voiceState==="speaking"?C.violet:C.teal,
+              disabled={voiceState==="requesting"}
+              style={{width:110,height:110,borderRadius:"50%",border:"none",cursor:voiceState==="requesting"?"wait":"pointer",position:"relative",
+                background:voiceState==="listening"?"#DC2626":voiceState==="processing"?C.coral:voiceState==="speaking"?C.violet:voiceState==="requesting"?"#94A3B8":C.teal,
                 boxShadow:voiceState==="listening"?"0 0 0 12px rgba(220,38,38,.12), 0 0 0 24px rgba(220,38,38,.04)"
                   :voiceState==="speaking"?`0 0 0 12px ${C.violet}12, 0 0 0 24px ${C.violet}05`
                   :`0 4px 20px ${C.teal}22`,
                 transition:"all .35s cubic-bezier(.4,0,.2,1)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-              {voiceState==="listening" ? ICN.stop
+              {voiceState==="requesting" ? (
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="10" strokeDasharray="31.4" strokeDashoffset="10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg>
+              ) : voiceState==="listening" ? ICN.stop
                 : voiceState==="speaking" ? ICN.speaker
                 : voiceState==="processing" ? (
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="10" strokeDasharray="31.4" strokeDashoffset="10"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg>
@@ -2915,10 +2934,10 @@ function ChatWidget() {
             </button>
 
             <div style={{marginTop:18,fontSize:15,fontWeight:700,fontFamily:F.h,color:C.navy}}>
-              {voiceState==="idle"?"Tap to speak":voiceState==="listening"?"Listening...":voiceState==="processing"?"Thinking...":"Speaking..."}
+              {voiceState==="idle"?"Tap to speak":voiceState==="requesting"?"Requesting mic access...":voiceState==="listening"?"Listening...":voiceState==="processing"?"Thinking...":"Speaking..."}
             </div>
             <div style={{fontSize:11,color:C.textFaint,fontFamily:F.m,marginTop:4}}>
-              {voiceState==="idle"?"Ask a question by voice":voiceState==="listening"?"Tap again to stop":""}
+              {voiceState==="idle"?"Your browser will ask for microphone permission":voiceState==="requesting"?"Allow microphone when prompted":voiceState==="listening"?"Tap again to stop":""}
             </div>
 
             {transcript && (
@@ -2928,12 +2947,12 @@ function ChatWidget() {
             )}
 
             {voiceError && (
-              <div style={{marginTop:12,padding:"8px 14px",borderRadius:8,background:"#FEF2F2",border:"1px solid #FECACA",fontSize:12,color:"#DC2626",maxWidth:260}}>{voiceError}</div>
+              <div style={{marginTop:12,padding:"10px 14px",borderRadius:10,background:"#FEF2F2",border:"1px solid #FECACA",fontSize:12,color:"#DC2626",maxWidth:280,lineHeight:1.5,whiteSpace:"pre-line"}}>{voiceError}</div>
             )}
 
-            {/* Recent AI responses shown below */}
+            {/* Recent AI responses */}
             {msgs.length > 1 && (
-              <div style={{marginTop:16,width:"100%",maxHeight:120,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>
+              <div style={{marginTop:14,width:"100%",maxHeight:100,overflowY:"auto",display:"flex",flexDirection:"column",gap:6}}>
                 {msgs.slice(-3).filter(m=>m.r==="a").map((m,i)=>(
                   <div key={i} style={{padding:"8px 12px",borderRadius:10,background:C.bgMuted,fontSize:11,lineHeight:1.5,color:C.textSoft,textAlign:"left",
                     maxHeight:50,overflow:"hidden",textOverflow:"ellipsis"}}>{m.c.substring(0,120)}{m.c.length>120?"...":""}</div>
@@ -2941,7 +2960,24 @@ function ChatWidget() {
               </div>
             )}
 
-            <div style={{marginTop:16,display:"flex",gap:8}}>
+            {/* Powered by badges */}
+            <div style={{marginTop:16,display:"flex",alignItems:"center",justifyContent:"center",gap:6,flexWrap:"wrap"}}>
+              <div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:6,background:"rgba(14,116,144,.04)",border:"1px solid rgba(14,116,144,.08)"}}>
+                <span style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>Powered by</span>
+                <span style={{fontSize:10,fontWeight:800,fontFamily:F.h,color:"#D97706"}}>Anthropic Claude</span>
+              </div>
+              <div style={{display:"inline-flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:6,background:"rgba(0,120,215,.04)",border:"1px solid rgba(0,120,215,.08)"}}>
+                <span style={{fontSize:10,fontWeight:800,fontFamily:F.h,color:"#0078D7"}}>Microsoft</span>
+                <span style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>ecosystem</span>
+              </div>
+            </div>
+
+            {/* Aggressive tagline */}
+            <p style={{marginTop:14,fontSize:12,fontWeight:700,fontFamily:F.h,color:C.navy,letterSpacing:"-0.01em"}}>
+              We build AI governance in weeks, not quarters.
+            </p>
+
+            <div style={{marginTop:12,display:"flex",gap:8}}>
               <button onClick={()=>{stopAll();setTab("call");}}
                 style={{padding:"8px 16px",borderRadius:8,border:`1px solid ${C.border}`,background:"transparent",cursor:"pointer",fontSize:11,fontWeight:600,fontFamily:F.h,color:C.textMuted,display:"flex",alignItems:"center",gap:5}}>
                 {ICN.phone} Call a human instead
