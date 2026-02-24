@@ -2629,12 +2629,12 @@ function Footer() {
 function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState("chat"); // chat | voice | call
-  const [msgs, setMsgs] = useState([{r:"a",c:"Hey! I'm the TheBHTLabs AI advisor. I can help with:\n\n- Is AI right for your business?\n- Which package fits your needs?\n- Copilot Studio & automation questions\n- Compliance (CMMC, FedRAMP)\n- Career & upskilling guidance\n\nWhat's on your mind?"}]);
+  const [msgs, setMsgs] = useState([{r:"a",c:"_greeting_"}]);
   const [inp, setInp] = useState("");
   const [loading, setLoading] = useState(false);
   const [showEscalation, setShowEscalation] = useState(false);
   // Voice state
-  const [voiceState, setVoiceState] = useState("idle"); // idle | listening | processing | speaking
+  const [voiceState, setVoiceState] = useState("idle"); // idle | requesting | listening | processing | speaking
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [voiceError, setVoiceError] = useState("");
@@ -2650,12 +2650,18 @@ function ChatWidget() {
       const ss = window.speechSynthesis;
       if (SR && ss) {
         setVoiceSupported(true);
-        // Chrome loads voices async — preload them
         ss.getVoices();
         ss.onvoiceschanged = () => ss.getVoices();
       }
     }
   }, []);
+
+  // Detect if text looks like a domain/URL
+  const isDomain = (t) => {
+    const clean = t.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
+    return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?\.[a-z]{2,}$/.test(clean) && clean.length < 60;
+  };
+  const extractDomain = (t) => t.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
 
   // --- Send message (works for both chat and voice) ---
   const sendMsg = async (text) => {
@@ -2663,13 +2669,59 @@ function ChatWidget() {
     if (!msg || loading) return null;
     if (!text) setInp("");
     setMsgs(p => [...p, {r:"u", c:msg}]);
+
+    // URL/domain detected → run inline audit
+    if (isDomain(msg)) {
+      const domain = extractDomain(msg);
+      setLoading(true);
+      const scanKey = `_scanning_${domain}_${Date.now()}`;
+      setMsgs(p => [...p, {r:"a", c:scanKey}]);
+      try {
+        const r = await fetch("/api/health-check", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({domain})});
+        const d = await r.json();
+        if (r.ok && d.governance) {
+          setMsgs(p => {
+            const updated = [...p];
+            const idx = updated.findLastIndex(m => m.c === scanKey);
+            if (idx >= 0) updated[idx] = {r:"a", c:`_audit_`, audit: d, domain};
+            return updated;
+          });
+          setTimeout(() => {
+            const pct = d.governance.percentage;
+            const fails = d.governance.checks.filter(c=>c.status==='fail').length;
+            const followup = pct >= 70
+              ? `Strong — ${pct}/100 puts you in the top tier. But this only scanned your homepage HTML. Our full AI Agent Audit tests how your chatbot actually responds under adversarial prompts, PII probing, and 30+ behavioral controls. Want to go deeper?`
+              : pct >= 40
+              ? `${pct}/100 — you're ahead of most (average is 31%), but ${fails} checks failed. Regulators would flag these. The fastest fix? AI disclosure + privacy notice — takes about 2 hours. Want to see what else is exposed?`
+              : `${pct}/100 — ${fails} of 8 governance checks failed. ${d.hasChatbot ? "Your chatbot is live without adequate governance safeguards. " : ""}The good news: the top 3 fixes take under a day. Want the playbook?`;
+            setMsgs(p => [...p, {r:"a", c:followup}]);
+          }, 1500);
+          setLoading(false);
+          return null;
+        } else {
+          setMsgs(p => p.filter(m => m.c !== scanKey));
+          setMsgs(p => [...p, {r:"a", c:`Couldn't reach ${domain}. Check the URL and try again, or ask me anything about AI governance.`}]);
+          setLoading(false);
+          return null;
+        }
+      } catch(e) {
+        setMsgs(p => p.filter(m => m.c !== scanKey));
+        setMsgs(p => [...p, {r:"a", c:`Network error scanning ${domain}. Try again or ask me a question instead.`}]);
+        setLoading(false);
+        return null;
+      }
+    }
+
+    // Normal AI chat flow
     setLoading(true);
     try {
-      const history = msgs.filter(m => m.r !== "a" || msgs.indexOf(m) > 0).slice(-6).map(m => ({role: m.r === "u" ? "user" : "assistant", content: m.c}));
+      const history = msgs.slice(-6)
+        .filter(m => !m.c?.startsWith?.("_") && !m.audit)
+        .map(m => ({role: m.r === "u" ? "user" : "assistant", content: m.c}));
       history.push({role:"user", content:msg});
       const r = await fetch("/api/chat", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({messages:history})});
       const d = await r.json();
-      const reply = d.content || "I'm having trouble connecting. You can reach a human directly at info@bhtsolutions.com or call (513) 638-1986.";
+      const reply = d.content || "I'm having trouble connecting. Reach a human at info@bhtsolutions.com or (513) 638-1986.";
       setMsgs(p => [...p, {r:"a", c:reply}]);
       setLoading(false);
       return reply;
@@ -2889,13 +2941,99 @@ function ChatWidget() {
           <span style={{fontSize:10,fontFamily:F.m,color:"#92400E"}}>AI assistant — responses may be inaccurate. <button onClick={()=>setShowEscalation(true)} style={{background:"none",border:"none",cursor:"pointer",fontWeight:700,color:"#D97706",fontFamily:F.m,fontSize:10,textDecoration:"underline",padding:0}}>Talk to a human</button></span>
         </div>
         <div role="log" aria-live="polite" aria-label="Chat messages" style={{flex:1,overflowY:"auto",padding:12,display:"flex",flexDirection:"column",gap:8}}>
-          {msgs.map((m,i)=>(
-            <div key={i} style={{display:"flex",justifyContent:m.r==="u"?"flex-end":"flex-start"}}>
-              <div style={{maxWidth:"80%",padding:"10px 14px",borderRadius:14,fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap",
-                background:m.r==="u"?C.teal:C.bgMuted,color:m.r==="u"?"#fff":C.text,
-                borderBottomRightRadius:m.r==="u"?4:14,borderBottomLeftRadius:m.r==="u"?14:4}}>{m.c}</div>
-            </div>
-          ))}
+          {msgs.map((m,i)=>{
+            // ── Greeting card ──
+            if (m.c === "_greeting_") return (
+              <div key={i} style={{padding:16,borderRadius:16,background:"linear-gradient(135deg,#F0FDFA,#ECFDF5)",border:"1px solid #CCFBF1"}}>
+                <div style={{fontSize:14,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:6}}>
+                  Drop your website URL{"\u00A0"}<span style={{color:C.teal}}>and I'll score your AI governance in 10 seconds.</span>
+                </div>
+                <div style={{fontSize:12,color:C.textMuted,lineHeight:1.6,marginBottom:12}}>No signup. No email. Just truth.</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {["acme.com","microsoft.com","your-site.com"].map(ex=>(
+                    <button key={ex} onClick={()=>{setInp(ex);}} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${C.border}`,background:"#fff",cursor:"pointer",fontSize:11,fontFamily:F.m,color:C.textMuted}}>
+                      {ex}
+                    </button>
+                  ))}
+                </div>
+                <div style={{marginTop:10,fontSize:11,color:C.textFaint}}>Or ask me anything about AI governance, compliance, or Copilot Studio.</div>
+              </div>
+            );
+
+            // ── Scanning animation ──
+            if (m.c?.startsWith("_scanning_")) {
+              const scanDomain = m.c.split("_scanning_")[1]?.split("_")[0];
+              return (
+                <div key={i} style={{padding:14,borderRadius:14,background:C.bgMuted,display:"flex",alignItems:"center",gap:10}}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="2" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" strokeDasharray="31.4" strokeDashoffset="10">
+                      <animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                  </svg>
+                  <div>
+                    <div style={{fontSize:13,fontWeight:700,fontFamily:F.h,color:C.navy}}>Scanning {scanDomain}...</div>
+                    <div style={{fontSize:10,color:C.textFaint,fontFamily:F.m}}>Checking 8 governance controls</div>
+                  </div>
+                </div>
+              );
+            }
+
+            // ── Audit result card ──
+            if (m.c === "_audit_" && m.audit) {
+              const g = m.audit.governance;
+              const pct = g.percentage;
+              const scoreColor = pct >= 70 ? C.teal : pct >= 40 ? C.coral : C.rose;
+              return (
+                <div key={i} style={{borderRadius:16,overflow:"hidden",border:`1px solid ${C.border}`,background:"#fff"}}>
+                  {/* Score header */}
+                  <div style={{padding:"16px 16px 12px",background:`linear-gradient(135deg,${scoreColor}08,${scoreColor}04)`,textAlign:"center",borderBottom:`1px solid ${C.borderLight}`}}>
+                    <div style={{fontSize:42,fontWeight:900,fontFamily:F.m,color:scoreColor,lineHeight:1}}>{pct}<span style={{fontSize:18,color:C.textFaint}}>/100</span></div>
+                    <div style={{fontSize:12,fontWeight:700,fontFamily:F.h,color:C.navy,marginTop:4}}>AI Governance Score</div>
+                    <div style={{fontSize:10,fontFamily:F.m,color:C.textFaint,marginTop:2}}>{m.domain}</div>
+                  </div>
+                  {/* Checks */}
+                  <div style={{padding:"8px 12px"}}>
+                    {g.checks.map(c => {
+                      const st = c.status==='pass'?{color:C.teal,label:"\u2713"}:c.status==='warn'?{color:"#EA580C",label:"\u26A0"}:{color:C.rose,label:"\u2717"};
+                      return (
+                        <div key={c.id} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:`1px solid ${C.borderLight}`}}>
+                          <span style={{fontSize:12,color:st.color,fontWeight:800,width:16,textAlign:"center"}}>{st.label}</span>
+                          <span style={{fontSize:11,fontFamily:F.h,color:C.navy,flex:1,fontWeight:600}}>{c.name}</span>
+                          <span style={{fontSize:10,fontFamily:F.m,color:st.color,fontWeight:700}}>{c.score}/{c.weight}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* Benchmark bar */}
+                  <div style={{padding:"8px 12px 12px"}}>
+                    <div style={{height:6,background:C.bgMuted,borderRadius:3,position:"relative",overflow:"hidden"}}>
+                      <div style={{height:"100%",width:`${pct}%`,background:scoreColor,borderRadius:3,transition:"width 1s ease"}} />
+                      <div style={{position:"absolute",top:0,left:"31%",height:"100%",width:1.5,background:C.navy+"60"}} />
+                    </div>
+                    <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:3}}>
+                      <span>Most: 15-35%</span><span style={{color:C.navy,fontWeight:700}}>Avg 31%</span><span>Top 10%: 72%+</span>
+                    </div>
+                  </div>
+                  {/* CTA */}
+                  <div style={{padding:"0 12px 12px",display:"flex",gap:6}}>
+                    <button onClick={()=>document.getElementById("healthcheck")?.scrollIntoView({behavior:"smooth"})}
+                      style={{flex:1,padding:"8px",borderRadius:8,border:"none",background:C.teal,color:"#fff",fontSize:11,fontWeight:700,fontFamily:F.h,cursor:"pointer"}}>Full Report</button>
+                    <button onClick={()=>document.getElementById("partner")?.scrollIntoView({behavior:"smooth"})}
+                      style={{flex:1,padding:"8px",borderRadius:8,border:`1px solid ${C.border}`,background:"#fff",color:C.navy,fontSize:11,fontWeight:700,fontFamily:F.h,cursor:"pointer"}}>Book a Call</button>
+                  </div>
+                </div>
+              );
+            }
+
+            // ── Normal messages ──
+            return (
+              <div key={i} style={{display:"flex",justifyContent:m.r==="u"?"flex-end":"flex-start"}}>
+                <div style={{maxWidth:"80%",padding:"10px 14px",borderRadius:14,fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap",
+                  background:m.r==="u"?C.teal:C.bgMuted,color:m.r==="u"?"#fff":C.text,
+                  borderBottomRightRadius:m.r==="u"?4:14,borderBottomLeftRadius:m.r==="u"?14:4}}>{m.c}</div>
+              </div>
+            );
+          })}
           {loading && <div style={{padding:8}} role="status"><span style={{color:C.teal,fontSize:13,fontFamily:F.m}}>AI is thinking...</span></div>}
           <div ref={endRef}/>
         </div>
@@ -2906,7 +3044,7 @@ function ChatWidget() {
           </button>
         </div>
         <div style={{padding:10,borderTop:`1px solid ${C.border}`,display:"flex",gap:8,flexShrink:0}}>
-          <input ref={inputRef} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} placeholder="Ask anything..."
+          <input ref={inputRef} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} placeholder="Type a URL to audit or ask a question..."
             aria-label="Type your message" autoComplete="off"
             style={{flex:1,padding:"10px 14px",borderRadius:10,border:`1px solid ${C.border}`,fontSize:13,fontFamily:F.b,outline:"none"}}/>
           <button onClick={()=>sendMsg()} disabled={!inp.trim()||loading} aria-label="Send message"
