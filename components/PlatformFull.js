@@ -2828,7 +2828,10 @@ function ChatWidget() {
   );
 
   // --- OPEN STATE ---
-  return (
+  return (<>
+    {/* Click-outside backdrop */}
+    <div onClick={()=>{setOpen(false);stopAll();}} style={{position:"fixed",inset:0,zIndex:999,background:"rgba(0,0,0,.08)"}} />
+
     <div role="dialog" aria-label="AI Assistant" aria-modal="false"
       style={{position:"fixed",bottom:24,right:24,zIndex:1000,width:400,maxWidth:"calc(100vw - 48px)",height:580,background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,boxShadow:C.shadowLg,display:"flex",flexDirection:"column",overflow:"hidden"}}>
 
@@ -3004,8 +3007,8 @@ function ChatWidget() {
           <div style={{width:80,height:80,borderRadius:"50%",background:C.tealBg,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:20}}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke={C.teal} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
           </div>
-          <div style={{fontSize:18,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:4}}>Talk to Nitin</div>
-          <div style={{fontSize:12,color:C.textMuted,marginBottom:20,lineHeight:1.5}}>Founder & Principal Consultant<br/>Mon-Fri, 9am-6pm CT</div>
+          <div style={{fontSize:18,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:4}}>Skip the AI. Talk to us.</div>
+          <div style={{fontSize:12,color:C.textMuted,marginBottom:20,lineHeight:1.5}}>Real engineers. Real answers.<br/>Mon-Fri, 9am-6pm CT</div>
 
           <a href="tel:+15136381986"
             style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"14px 36px",borderRadius:14,background:C.teal,color:"#fff",textDecoration:"none",fontSize:16,fontWeight:700,fontFamily:F.h,boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s",marginBottom:12}}>
@@ -3021,7 +3024,7 @@ function ChatWidget() {
           <div style={{padding:"14px 18px",borderRadius:12,background:C.bgMuted,maxWidth:280}}>
             <div style={{fontSize:10,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:1,marginBottom:6}}>What to expect</div>
             <p style={{fontSize:12,color:C.textSoft,lineHeight:1.6,margin:0}}>
-              No sales pitch. Nitin will ask about your current AI situation, identify quick wins, and tell you honestly if BHT Labs is the right fit. 15-30 min max.
+              No pitch. We listen to your AI challenge, identify quick wins, and tell you honestly if we're the right fit. 15 min. That's it.
             </p>
           </div>
 
@@ -3032,5 +3035,5 @@ function ChatWidget() {
         </div>
       )}
     </div>
-  );
+  </>);
 }
