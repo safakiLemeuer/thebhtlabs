@@ -555,7 +555,7 @@ function Hero({scrollTo, nav, mode, setMode}) {
         <div style={{maxWidth:1200,margin:"0 auto",padding:"60px 24px 48px",textAlign:"center"}}>
           <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"6px 16px",borderRadius:20,background:"rgba(220,38,38,.06)",border:"1px solid rgba(220,38,38,.12)",marginBottom:20}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:C.rose,animation:"pulse 2s infinite"}} />
-            <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>67% of AI chatbots fail basic governance checks — BHTLabs 2025</span>
+            <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>67% of AI chatbots fail basic governance checks — BHTLabs Index 2025</span>
           </div>
           <h1 className="hero-t" style={{fontSize:"clamp(36px,5vw,58px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:C.navy,letterSpacing:"-0.03em",maxWidth:800,margin:"0 auto"}}>
             We govern AI.<br/><span style={{color:C.teal}}>Then we build it right.</span>
@@ -2633,6 +2633,9 @@ function ChatWidget() {
   const [inp, setInp] = useState("");
   const [loading, setLoading] = useState(false);
   const [showEscalation, setShowEscalation] = useState(false);
+  // Data Flywheel — live benchmarks
+  const [bench, setBench] = useState({totalAudits:0,avgScore:31,failRate:67,top10Threshold:72,chatbotDetectionRate:58,dataPoints:0});
+  useEffect(()=>{fetch("/api/benchmarks").then(r=>r.json()).then(d=>{if(d&&d.totalAudits!==undefined)setBench(d);}).catch(()=>{});},[]);
   // Voice state
   const [voiceState, setVoiceState] = useState("idle"); // idle | requesting | listening | processing | speaking
   const [voiceSupported, setVoiceSupported] = useState(false);
@@ -2690,11 +2693,13 @@ function ChatWidget() {
             const pct = d.governance.percentage;
             const fails = d.governance.checks.filter(c=>c.status==='fail').length;
             const followup = pct >= 70
-              ? `Strong — ${pct}/100 puts you in the top tier. But this only scanned your homepage HTML. Our full AI Agent Audit tests how your chatbot actually responds under adversarial prompts, PII probing, and 30+ behavioral controls. Want to go deeper?`
+              ? `Strong — ${pct}/100 puts you in the top ${bench.passRate||8}% of ${bench.totalAudits>0?bench.totalAudits.toLocaleString()+"+ ":""}sites in our index. But this only scanned your homepage HTML. Our full AI Agent Audit tests how your chatbot actually responds under adversarial prompts, PII probing, and 30+ behavioral controls. Want to go deeper?`
               : pct >= 40
-              ? `${pct}/100 — you're ahead of most (average is 31%), but ${fails} checks failed. Regulators would flag these. The fastest fix? AI disclosure + privacy notice — takes about 2 hours. Want to see what else is exposed?`
-              : `${pct}/100 — ${fails} of 8 governance checks failed. ${d.hasChatbot ? "Your chatbot is live without adequate governance safeguards. " : ""}The good news: the top 3 fixes take under a day. Want the playbook?`;
+              ? `${pct}/100 — you're ahead of most (avg is ${bench.avgScore||31}%), but ${fails} checks failed. ${bench.failRate||67}% of sites we audit have similar gaps. Regulators flag these first. Fastest fix? AI disclosure + privacy notice — takes 2 hours. Want the full playbook?`
+              : `${pct}/100 — ${fails} of 8 governance checks failed. ${d.hasChatbot ? "Your chatbot is live without governance safeguards. " : ""}You're in the bottom ${bench.criticalFailRate||42}% of our index. The top 3 fixes take under a day. DPDPA enforcement is May 2027. Want the playbook?`;
             setMsgs(p => [...p, {r:"a", c:followup}]);
+            // Refresh flywheel data after new audit
+            fetch("/api/benchmarks").then(r=>r.json()).then(d=>{if(d&&d.totalAudits!==undefined)setBench(d);}).catch(()=>{});
           }, 1500);
           setLoading(false);
           return null;
@@ -2892,8 +2897,8 @@ function ChatWidget() {
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <Badge color={C.teal}>AI</Badge>
           <div>
-            <span style={{fontWeight:700,fontFamily:F.h,fontSize:13,color:C.navy}}>TheBHTLabs Assistant</span>
-            <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>AI-powered assistant</div>
+            <span style={{fontWeight:700,fontFamily:F.h,fontSize:13,color:C.navy}}>TheBHTLabs Bot <span style={{fontSize:8,fontWeight:800,padding:"1px 5px",borderRadius:4,background:"#FEF3C7",color:"#D97706",fontFamily:F.m,verticalAlign:"super",letterSpacing:0.5}}>BETA</span></span>
+            <div style={{fontSize:9,fontFamily:F.m,color:C.textFaint}}>{bench.totalAudits>0?`${bench.totalAudits.toLocaleString()} sites audited`:"AI governance assistant"}</div>
           </div>
         </div>
         <div style={{display:"flex",gap:4}}>
@@ -2948,7 +2953,12 @@ function ChatWidget() {
                 <div style={{fontSize:14,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:6}}>
                   Drop your website URL{"\u00A0"}<span style={{color:C.teal}}>and I'll score your AI governance in 10 seconds.</span>
                 </div>
-                <div style={{fontSize:12,color:C.textMuted,lineHeight:1.6,marginBottom:12}}>No signup. No email. Just truth.</div>
+                <div style={{fontSize:12,color:C.textMuted,lineHeight:1.6,marginBottom:10}}>No signup. No email. Just truth.</div>
+                {bench.totalAudits>0 && <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+                  <span style={{fontSize:10,fontWeight:700,fontFamily:F.m,padding:"3px 8px",borderRadius:6,background:"#FEF2F2",color:C.rose}}>{bench.failRate||67}% of sites fail</span>
+                  <span style={{fontSize:10,fontWeight:700,fontFamily:F.m,padding:"3px 8px",borderRadius:6,background:"#F0FDFA",color:C.teal}}>Avg score: {bench.avgScore||31}/100</span>
+                  <span style={{fontSize:10,fontWeight:700,fontFamily:F.m,padding:"3px 8px",borderRadius:6,background:"#EFF6FF",color:"#1D4ED8"}}>{bench.totalAudits.toLocaleString()} audited</span>
+                </div>}
                 <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                   {["acme.com","microsoft.com","your-site.com"].map(ex=>(
                     <button key={ex} onClick={()=>{setInp(ex);}} style={{padding:"4px 10px",borderRadius:6,border:`1px solid ${C.border}`,background:"#fff",cursor:"pointer",fontSize:11,fontFamily:F.m,color:C.textMuted}}>
@@ -3004,15 +3014,16 @@ function ChatWidget() {
                       );
                     })}
                   </div>
-                  {/* Benchmark bar */}
+                  {/* Benchmark bar — powered by Data Flywheel */}
                   <div style={{padding:"8px 12px 12px"}}>
                     <div style={{height:6,background:C.bgMuted,borderRadius:3,position:"relative",overflow:"hidden"}}>
                       <div style={{height:"100%",width:`${pct}%`,background:scoreColor,borderRadius:3,transition:"width 1s ease"}} />
-                      <div style={{position:"absolute",top:0,left:"31%",height:"100%",width:1.5,background:C.navy+"60"}} />
+                      <div style={{position:"absolute",top:0,left:`${bench.avgScore||31}%`,height:"100%",width:1.5,background:C.navy+"60"}} />
                     </div>
                     <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:C.textFaint,fontFamily:F.m,marginTop:3}}>
-                      <span>Most: 15-35%</span><span style={{color:C.navy,fontWeight:700}}>Avg 31%</span><span>Top 10%: 72%+</span>
+                      <span>Most: 15-35%</span><span style={{color:C.navy,fontWeight:700}}>Avg {bench.avgScore||31}%</span><span>Top 10%: {bench.top10Threshold||72}%+</span>
                     </div>
+                    {bench.totalAudits>0 && <div style={{fontSize:8,color:C.textFaint,fontFamily:F.m,marginTop:2,textAlign:"center"}}>Based on {bench.totalAudits.toLocaleString()} sites audited \u00b7 Live data</div>}
                   </div>
                   {/* CTA */}
                   <div style={{padding:"0 12px 12px",display:"flex",gap:6}}>
