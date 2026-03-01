@@ -105,8 +105,8 @@ export async function POST(request) {
       else if (key.includes('use')) domainMap.usecase = d.score;
     });
 
-    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '';
-    const ua = request.headers.get('user-agent') || '';
+    const ip2 = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '';
+    const ua2 = ua; // already declared above
 
     const stmt = db.prepare(`INSERT INTO assessments 
       (name, email, title, company, industry, industry_label, employees, revenue, pains,
