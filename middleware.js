@@ -78,11 +78,11 @@ export function middleware(request) {
   // Content Security Policy
   response.headers.set('Content-Security-Policy', [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.googletagmanager.com https://www.google.com https://www.gstatic.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://api.anthropic.com https://ipapi.co https://api.resend.com https: http: wss:",
+    "connect-src 'self' https://api.anthropic.com https://ipapi.co https://api.resend.com https://www.google-analytics.com https://www.googletagmanager.com https://www.google.com https: http: wss:",
     "media-src 'self' blob: mediastream:",
     "worker-src 'self' blob:",
     "frame-ancestors 'self'",

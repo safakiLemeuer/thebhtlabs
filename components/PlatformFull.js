@@ -745,9 +745,19 @@ function Assessment({id}) {
       h1{font-size:26px;font-weight:800;letter-spacing:-0.03em}h2{font-size:17px;font-weight:700;margin:24px 0 12px}
       .card{padding:16px;border-radius:12px;border:1px solid #E2E8F0}
       .insight{font-size:13px;color:#475569;line-height:1.7;margin-bottom:8px}
-      .watermark{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-size:80px;font-weight:900;color:rgba(14,116,144,0.03);letter-spacing:8px;pointer-events:none;z-index:0;font-family:'Poppins',sans-serif;white-space:nowrap}
+      .watermark-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+      .wm{position:absolute;transform:rotate(-35deg);text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+      .wm:nth-child(1){top:5%;left:5%}.wm:nth-child(2){top:5%;left:55%}.wm:nth-child(3){top:50%;left:5%}.wm:nth-child(4){top:50%;left:55%}
+      .wm .lam{font-size:52px;font-weight:900;color:rgba(14,116,144,0.06);font-family:'Poppins',sans-serif;line-height:1}
+      .wm .brand{font-size:28px;font-weight:800;color:rgba(14,116,144,0.04);font-family:'Poppins',sans-serif;letter-spacing:2px}
+      .wm .tag{font-size:8px;color:rgba(14,116,144,0.03);font-family:'DM Mono',monospace;letter-spacing:2px;text-transform:uppercase}
     </style></head><body>
-    <div class="watermark">CONFIDENTIAL</div>
+    <div class="watermark-wrap">
+      <div class="wm"><span class="lam">\u03BB</span><span class="brand">TheBHTLabs</span><span class="tag">AI Governance Infrastructure</span></div>
+      <div class="wm"><span class="lam">\u03BB</span><span class="brand">TheBHTLabs</span><span class="tag">AI Governance Infrastructure</span></div>
+      <div class="wm"><span class="lam">\u03BB</span><span class="brand">TheBHTLabs</span><span class="tag">AI Governance Infrastructure</span></div>
+      <div class="wm"><span class="lam">\u03BB</span><span class="brand">TheBHTLabs</span><span class="tag">AI Governance Infrastructure</span></div>
+    </div>
     <div style="background:#1C1917;color:#fff;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:9px;line-height:1.6">
       <strong>CONFIDENTIAL &amp; PROPRIETARY</strong> — This report is prepared exclusively for ${intake.name} at ${co}. 
       ARIA Score™ methodology, assessment framework, and scoring algorithms are proprietary intellectual property of BHT Solutions LLC, 
@@ -2174,11 +2184,39 @@ function TenantHealthCheck({id}) {
   const [gateSaving, setGateSaving] = useState(false);
   const [gateDone, setGateDone] = useState(false);
 
+  // Bot detection state
+  const scanStartRef = useRef(Date.now());
+  const mouseMovesRef = useRef(0);
+  const keyPressesRef = useRef(0);
+  useEffect(()=>{
+    const mm=()=>{mouseMovesRef.current++};
+    const kp=()=>{keyPressesRef.current++};
+    document.addEventListener('mousemove',mm);
+    document.addEventListener('keydown',kp);
+    return()=>{document.removeEventListener('mousemove',mm);document.removeEventListener('keydown',kp)};
+  },[]);
+
   const runScan = async () => {
     if (!domain || !consent) return;
+    // Bot detection: require minimum time + interaction
+    const elapsed = Date.now() - scanStartRef.current;
+    if (elapsed < 2000 || (mouseMovesRef.current < 3 && keyPressesRef.current < 2)) {
+      setError("Verification failed. Please try again.");
+      return;
+    }
+    // Check headless browser
+    if (typeof navigator !== 'undefined' && navigator.webdriver) {
+      setError("Automated access detected.");
+      return;
+    }
+    // reCAPTCHA v3 token (if available)
+    let recaptchaToken = null;
+    if (typeof window !== 'undefined' && window.grecaptcha && window.grecaptcha.execute) {
+      try { recaptchaToken = await window.grecaptcha.execute('YOUR_RECAPTCHA_V3_SITE_KEY', {action:'bot_audit'}); } catch(e){}
+    }
     setScanning(true); setError(""); setResults(null);
     try {
-      const r = await fetch("/api/health-check", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:domain.trim()})});
+      const r = await fetch("/api/health-check", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({domain:domain.trim(),_rt:recaptchaToken,_t:elapsed,_m:mouseMovesRef.current})});
       const d = await r.json();
       if (r.ok) setResults(d); else setError(d.error || "Analysis failed");
     } catch (e) { setError("Network error. Please try again."); }
@@ -2198,7 +2236,21 @@ function TenantHealthCheck({id}) {
       w.document.write('<!DOCTYPE html><html><head><title>AI Bot Governance Audit \u2014 '+domain+' \u2014 TheBHTLabs</title>'+
       '<style>@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=DM+Mono:wght@400&display=swap");'+
       '*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Poppins",sans-serif;color:#1C1917;padding:40px;max-width:800px;margin:0 auto}'+
-      '@media print{body{padding:20px}button,.no-print{display:none!important}}.card{padding:14px;border-radius:10px;border:1px solid #E7E5E4;margin-bottom:10px}</style></head><body>'+
+      '@media print{body{padding:20px}button,.no-print{display:none!important}}'+
+      '.card{padding:14px;border-radius:10px;border:1px solid #E7E5E4;margin-bottom:10px}'+
+      '.wm-wrap{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}'+
+      '.wm{position:absolute;transform:rotate(-35deg);text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}'+
+      '.wm:nth-child(1){top:5%;left:5%}.wm:nth-child(2){top:5%;left:55%}.wm:nth-child(3){top:50%;left:5%}.wm:nth-child(4){top:50%;left:55%}'+
+      '.wm .lam{font-size:52px;font-weight:900;color:rgba(14,116,144,0.06);font-family:Poppins,sans-serif;line-height:1}'+
+      '.wm .brand{font-size:28px;font-weight:800;color:rgba(14,116,144,0.04);font-family:Poppins,sans-serif;letter-spacing:2px}'+
+      '.wm .tag{font-size:8px;color:rgba(14,116,144,0.03);font-family:DM Mono,monospace;letter-spacing:2px;text-transform:uppercase}'+
+      '</style></head><body>'+
+      '<div class="wm-wrap">'+
+      '<div class="wm"><span class="lam">\u03BB</span><span class="brand">TheBHTLabs</span><span class="tag">AI Governance Infrastructure</span></div>'+
+      '<div class="wm"><span class="lam">\u03BB</span><span class="brand">TheBHTLabs</span><span class="tag">AI Governance Infrastructure</span></div>'+
+      '<div class="wm"><span class="lam">\u03BB</span><span class="brand">TheBHTLabs</span><span class="tag">AI Governance Infrastructure</span></div>'+
+      '<div class="wm"><span class="lam">\u03BB</span><span class="brand">TheBHTLabs</span><span class="tag">AI Governance Infrastructure</span></div>'+
+      '</div>'+
       '<div style="background:#1C1917;color:#fff;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:9px;line-height:1.6">'+
       '<strong>CONFIDENTIAL</strong> \u2014 Prepared for '+gateForm.name+' at '+(gateForm.company||domain)+'. This analysis examines publicly visible website content only. '+
       'No systems were accessed, tested, or penetrated. ARIA Score\u2122 methodology is proprietary to BHT Solutions LLC. Report ID: BHT-BA-'+Date.now().toString(36).toUpperCase()+'</div>'+

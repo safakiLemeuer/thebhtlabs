@@ -21,9 +21,72 @@ function verifyAdmin(request) {
   return false;
 }
 
+// Rate limiting store (resets on server restart — sufficient for this scale)
+const rateLimits = new Map();
+const RATE_LIMIT_MAX = 10; // max submissions per IP per hour
+const RATE_LIMIT_WINDOW = 3600000; // 1 hour in ms
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entries = rateLimits.get(ip) || [];
+  const recent = entries.filter(t => t > now - RATE_LIMIT_WINDOW);
+  rateLimits.set(ip, recent);
+  if (recent.length >= RATE_LIMIT_MAX) return false;
+  recent.push(now);
+  rateLimits.set(ip, recent);
+  return true;
+}
+
+async function verifyRecaptcha(token) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret || !token) return true; // Skip if not configured
+  try {
+    const resp = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `secret=${secret}&response=${token}`,
+    });
+    const data = await resp.json();
+    return data.success && data.score >= 0.3;
+  } catch (e) { return true; } // Fail open if Google is down
+}
+
 export async function POST(request) {
   try {
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+      || request.headers.get('x-real-ip') || 'unknown';
+    const ua = request.headers.get('user-agent') || '';
+
+    // Bot detection: missing or suspicious user-agent
+    if (!ua || /bot|crawler|spider|scraper|curl|wget|python-requests|httpx|postman/i.test(ua)) {
+      return NextResponse.json({ error: 'Verification failed' }, { status: 403 });
+    }
+
+    // Rate limiting
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json({ error: 'Too many submissions. Please try again later.' }, { status: 429 });
+    }
+
     const data = await request.json();
+
+    // Honeypot check — if hidden fields are filled, it's a bot
+    if (data.website_url || data.company_fax) {
+      return NextResponse.json({ success: true, leadId: 0 }); // Silent fail — don't tip off the bot
+    }
+
+    // reCAPTCHA v3 verification (if configured)
+    if (data.recaptchaToken) {
+      const valid = await verifyRecaptcha(data.recaptchaToken);
+      if (!valid) {
+        return NextResponse.json({ error: 'Verification failed. Please try again.' }, { status: 403 });
+      }
+    }
+
+    // Minimum time check — humans take at least 3 seconds to fill intake
+    if (data.timeSpent !== undefined && data.timeSpent < 3) {
+      return NextResponse.json({ success: true, leadId: 0 }); // Silent fail
+    }
+
     const { name, email, title, company, industry, industryLabel, employees, revenue, pains, phone,
             overallScore, stage, domains, rawAnswers, ariaScore, ariaTier, ariaMult, ariaPricing,
             timeSpent, suspicious } = data;
