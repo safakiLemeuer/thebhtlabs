@@ -135,7 +135,33 @@ function evaluateGovernance(html) {
 export async function POST(request) {
   try {
     const data = await request.json();
-    const { domain, action, name, email, company, industry, employees, locale, botsFound, score } = data;
+    const { domain, action, name, email, company, industry, employees, locale, botsFound, score, _rt, _t, _m } = data;
+
+    // Server-side bot detection for scan requests (not pdf-save)
+    if (action !== 'save-pdf') {
+      // Check timing — bots submit in < 2 seconds
+      if (_t && _t < 1500) {
+        return NextResponse.json({ error: 'Please wait a moment before scanning.' }, { status: 429 });
+      }
+      // Check mouse movement — bots have zero interaction
+      if (typeof _m === 'number' && _m < 2) {
+        return NextResponse.json({ error: 'Verification failed. Please try again.' }, { status: 403 });
+      }
+      // Verify reCAPTCHA v3 token server-side
+      if (_rt) {
+        try {
+          const rcResp = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `secret=6Leb-3ssAAAAAGXVTVs2zlAUdG6zlmOWnkvCpFJw&response=${_rt}`,
+          });
+          const rcData = await rcResp.json();
+          if (rcData.success && rcData.score < 0.3) {
+            return NextResponse.json({ error: 'Verification failed.' }, { status: 403 });
+          }
+        } catch (e) { /* reCAPTCHA check failed gracefully — allow through */ }
+      }
+    }
 
     if (action === 'save-pdf') {
       if (!email || !name) return NextResponse.json({ error: 'Required' }, { status: 400 });

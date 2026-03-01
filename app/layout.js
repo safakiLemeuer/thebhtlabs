@@ -40,24 +40,16 @@ export default function RootLayout({ children }) {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="theme-color" content="#FFFFFF" />
-        {/* Google Analytics 4 — replace G-XXXXXXXXXX with your Measurement ID */}
-        <script async src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX'}`} />
+        {/* Google Analytics 4 */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-RZPJQJJB9N" />
         <script dangerouslySetInnerHTML={{__html: `
           window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());
-          gtag('config','${process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX'}',{page_path:window.location.pathname});
+          gtag('config','G-RZPJQJJB9N',{page_path:window.location.pathname});
         `}} />
-        {/* Google reCAPTCHA v3 — replace with your site key */}
-        <script async src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '6LcXXXXXXXXXXXX'}`} />
+        {/* Google reCAPTCHA v3 */}
+        <script async src="https://www.google.com/recaptcha/api.js?render=6Leb-3ssAAAAAHlhOVJOmPDsuF_p-q0g2fkcjG7G" />
         <meta name="author" content="TheBHTLabs — Bluebery Hawaii Technology Solutions LLC" />
         <meta name="copyright" content="© 2024-2026 BHT Solutions LLC. All rights reserved. ARIA Score™ is a trademark." />
-        {/* Google Analytics 4 — replace G-XXXXXXXXXX with your Measurement ID */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX" />
-        <script dangerouslySetInnerHTML={{__html: `
-          window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}
-          gtag('js',new Date());gtag('config','G-XXXXXXXXXX');
-        `}} />
-        {/* Google reCAPTCHA v3 — replace with your site key */}
-        <script async src="https://www.google.com/recaptcha/api.js?render=YOUR_RECAPTCHA_V3_SITE_KEY" />
         <style dangerouslySetInnerHTML={{__html: `
           body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
           input,textarea,select,button,[contenteditable]{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}

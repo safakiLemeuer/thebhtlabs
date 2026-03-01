@@ -690,12 +690,18 @@ function Assessment({id}) {
     const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
     const aria = calcARIA(intake, dScores, locale);
     const elapsed = startTime ? Math.round((Date.now() - startTime) / 1000) : 999;
+    // Bot detection: honeypot fields + reCAPTCHA token
+    const hpUrl = document.getElementById('website_url')?.value || '';
+    const hpFax = document.getElementById('company_fax')?.value || '';
+    let recaptchaToken = '';
+    try { if(window.grecaptcha) recaptchaToken = await window.grecaptcha.execute('6Leb-3ssAAAAAHlhOVJOmPDsuF_p-q0g2fkcjG7G', {action:'assessment'}); } catch(e){}
     try {
       await fetch("/api/assessment", {method:"POST",headers:{"Content-Type":"application/json"},
         body:JSON.stringify({...intake, industryLabel:indObj.l, overallScore:overall(), stage:lvl(overall()).l, domains, rawAnswers:ans,
           ariaScore:aria.total, ariaTier:aria.tierLabel, ariaMult:aria.mult, ariaPricing:aria.pricing,
           sectorLabel:aria.sectorLabel, sectorMult:aria.sectorMult, combinedMult:aria.combinedMult, locale,
-          timeSpent:elapsed, suspicious:elapsed<60})});
+          timeSpent:elapsed, suspicious:elapsed<60,
+          website_url:hpUrl, company_fax:hpFax, recaptchaToken})});
       setSaved(true);
     } catch(e) { console.error(e); setSaved(true); }
     setSaving(false);
@@ -943,6 +949,13 @@ function Assessment({id}) {
         <div style={{maxWidth:640,margin:"0 auto",padding:"0 24px"}}>
           <SH tag="Step 1 of 2 — About You" title="Tell us about your organization" desc="So we can benchmark your results against industry peers and personalize your report." />
           <div style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:20,padding:"32px",boxShadow:C.shadowMd}}>
+            {/* Honeypot — invisible to humans, bots auto-fill these */}
+            <div style={{position:'absolute',left:'-9999px',top:'-9999px',width:0,height:0,overflow:'hidden',opacity:0,pointerEvents:'none'}} aria-hidden="true">
+              <label htmlFor="website_url">Website</label>
+              <input type="text" id="website_url" name="website_url" autoComplete="off" tabIndex={-1} />
+              <label htmlFor="company_fax">Fax</label>
+              <input type="text" id="company_fax" name="company_fax" autoComplete="off" tabIndex={-1} />
+            </div>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
               <div><label style={lbl}>Full Name *</label>
                 <input value={intake.name} onChange={e=>upI("name",e.target.value)} placeholder="Jane Smith" style={inp}/></div>
@@ -2212,7 +2225,7 @@ function TenantHealthCheck({id}) {
     // reCAPTCHA v3 token (if available)
     let recaptchaToken = null;
     if (typeof window !== 'undefined' && window.grecaptcha && window.grecaptcha.execute) {
-      try { recaptchaToken = await window.grecaptcha.execute('YOUR_RECAPTCHA_V3_SITE_KEY', {action:'bot_audit'}); } catch(e){}
+      try { recaptchaToken = await window.grecaptcha.execute('6Leb-3ssAAAAAHlhOVJOmPDsuF_p-q0g2fkcjG7G', {action:'bot_audit'}); } catch(e){}
     }
     setScanning(true); setError(""); setResults(null);
     try {
