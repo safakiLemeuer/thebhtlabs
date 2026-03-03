@@ -50,7 +50,6 @@ export function middleware(request) {
     return new NextResponse('Forbidden', { status: 403 });
   }
 
-  // Subdomain routing: india.thebhtlabs.com handled by next.config.js rewrites
   // Rate limit API routes
   if (pathname.startsWith('/api/')) {
     const limit = (pathname === '/api/contact' || pathname === '/api/assessment')

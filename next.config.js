@@ -14,17 +14,6 @@ const nextConfig = {
     }
     return config;
   },
-  async rewrites() {
-    return [
-      // india.thebhtlabs.com -> /india
-      {
-        source: '/:path*',
-        has: [{ type: 'host', value: 'india.thebhtlabs.com' }],
-        destination: '/india/:path*',
-      },
-    ];
-  },
-
   async headers() {
     return [
       {

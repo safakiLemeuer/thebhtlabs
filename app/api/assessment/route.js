@@ -89,7 +89,7 @@ export async function POST(request) {
 
     const { name, email, title, company, industry, industryLabel, employees, revenue, pains, phone,
             overallScore, stage, domains, rawAnswers, ariaScore, ariaTier, ariaMult, ariaPricing,
-            timeSpent, suspicious, locale } = data;
+            timeSpent, suspicious } = data;
     if (!email || !name || !company) return NextResponse.json({ error: 'Name, email, company required' }, { status: 400 });
 
     const db = getDb();
@@ -137,7 +137,7 @@ export async function POST(request) {
         body: JSON.stringify({
           from: process.env.RESEND_FROM || 'TheBHTLabs <onboarding@resend.dev>',
           to: process.env.CONTACT_EMAIL || 'info@bhtsolutions.com',
-          subject: `New Lead${locale==='in'?' [INDIA]':''}: ${name} at ${company} - ${stage} (${overallScore}%) ARIA: ${ariaTier || 'N/A'}`,
+          subject: `New Lead: ${name} at ${company} - ${stage} (${overallScore}%) ARIA: ${ariaTier || 'N/A'}`,
           html: `<div style="font-family:sans-serif;max-width:600px"><h2 style="color:#0D9488">New Assessment Lead</h2>
             <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
               <tr><td style="padding:6px 8px;font-weight:bold;width:100px">Name</td><td style="padding:6px 8px">${name}</td></tr>
