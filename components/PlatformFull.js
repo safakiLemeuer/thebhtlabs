@@ -85,6 +85,63 @@ const LOCALES = {
       "NIS2 cybersecurity obligations","Cross-border data transfer concerns",
       "Lack of AI transparency documentation","Competitor pressure to adopt AI faster",
     ],
+  },
+
+  in: {
+    currency: "\u20b9", currencyCode: "INR",
+    currencyFmt: (v) => "\u20b9" + v.toLocaleString("en-IN"),
+    pricing: { scan: 210000, sprint: 550000, launchpad: 900000 },
+    pricePer: { scan: "/10 hrs", sprint: "/30 hrs", launchpad: "/mo" },
+    regulatory: [
+      "CERT-In Directions 2022","DPDP Act 2023","DPDP Rules 2025",
+      "MeitY AI Guidelines 2025","IT Act 2000","RBI FREE-AI Framework",
+      "NCIIPC Guidelines","ISO/IEC 27001",
+    ],
+    regIndustryMap: {
+      financial:    ["CERT-In","DPDP Act","RBI FREE-AI","SEBI Cybersecurity","IT Act \u00a743A"],
+      healthcare:   ["CERT-In","DPDP Act","ICMR AI Guidelines","IT Act","ISO 27001"],
+      govdef:       ["CERT-In","IT Act \u00a770A","NCIIPC","MeitY AI Guidelines","DPDP Act"],
+      insurance:    ["CERT-In","DPDP Act","IRDAI Information Security Guidelines","IT Act"],
+      legal:        ["DPDP Act","CERT-In","IT Act","Bar Council Rules"],
+      technology:   ["CERT-In","DPDP Act","MeitY AI Guidelines","IT (SGI) Rules 2026","ISO 27001"],
+      telecom:      ["CERT-In","TRAI Guidelines","DPDP Act","IT Act"],
+      energy:       ["CERT-In","NCIIPC","IT Act \u00a770A","DPDP Act"],
+      manufacturing:["CERT-In","DPDP Act","IT Act","ISO 27001"],
+      retail:       ["CERT-In","DPDP Act","IT Act","Consumer Protection Act"],
+    },
+    certBadges: "Microsoft Partner \u00b7 ISO 27001 Aligned \u00b7 CERT-In Advisory \u00b7 DPDP Compliant",
+    phone: "(513) 638-1986", email: "india@bhtsolutions.com",
+    industries: [
+      {v:"financial",    l:"Banking & Financial Services (BFSI)",   avg:48},
+      {v:"technology",   l:"IT / Technology Services",               avg:55},
+      {v:"healthcare",   l:"Healthcare & Pharma",                    avg:35},
+      {v:"govdef",       l:"Government / PSU / Defence",             avg:32},
+      {v:"insurance",    l:"Insurance (IRDAI Regulated)",            avg:42},
+      {v:"telecom",      l:"Telecom",                                avg:46},
+      {v:"energy",       l:"Energy & Utilities",                     avg:40},
+      {v:"legal",        l:"Legal Services",                         avg:29},
+      {v:"education",    l:"Education / EdTech",                     avg:31},
+      {v:"retail",       l:"Retail / E-Commerce",                    avg:38},
+      {v:"manufacturing",l:"Manufacturing",                          avg:28},
+      {v:"other",        l:"Other",                                  avg:36},
+    ],
+    empRanges: ["1-10","11-50","51-200","201-500","501-1,000","1,001-5,000","5,001-10,000","10,000+"],
+    revRanges: [
+      "< \u20b91 Cr","\u20b91 Cr - \u20b910 Cr","\u20b910 Cr - \u20b950 Cr",
+      "\u20b950 Cr - \u20b9500 Cr","\u20b9500 Cr - \u20b95,000 Cr","\u20b95,000 Cr+","Prefer not to say",
+    ],
+    painPoints: [
+      "CERT-In 6-hour incident reporting not yet operational",
+      "DPDP Act 2023 consent & data mapping gaps",
+      "No Data Protection Officer (DPO) appointed",
+      "AI models deployed without governance framework",
+      "Data residency & cross-border transfer compliance",
+      "No DPDP breach notification workflow to Data Protection Board",
+      "IT (SGI) Rules 2026 deepfake & AI-content obligations",
+      "RBI FREE-AI / SEBI / IRDAI sector AI gaps unaddressed",
+      "NCIIPC critical infrastructure obligations unassessed",
+      "No AI risk register or model inventory",
+    ],
   }
 };
 
@@ -97,6 +154,7 @@ const getLocale = () => {
   const s = localStorage.getItem('bht_locale');
   if (s && LOCALES[s]) return s;
   const cc = localStorage.getItem('bht_cc');
+  if (cc === 'IN') return 'in';
   if (cc && EU_CODES.includes(cc)) return 'eu';
   return 'us';
 };
@@ -164,6 +222,7 @@ const detectGeoLocale = async () => {
       const d = await r.json();
       const cc = d.country_code;
       if (typeof window !== 'undefined') localStorage.setItem('bht_cc', cc);
+      if (cc === 'IN') return 'in';
       if (EU_CODES.includes(cc)) return 'eu';
     }
   } catch(e) {}
@@ -234,6 +293,107 @@ const AQ = [
   {d:"Governance & Compliance",icon:"shieldLock",q:["Do you handle sensitive data (PII, PHI, financial)?","Are there industry compliance requirements you must meet?","Do you have data retention and privacy policies?","Would AI decisions need to be explainable or auditable?","Are you aware of AI regulations in your state/industry?"]},
   {d:"Use Case Clarity",icon:"compass",q:["Can you name a specific pain point AI could address today?","Have you evaluated any AI tools in the past 12 months?","Do you have 1-2 high-impact, low-risk AI use cases identified?","Would automating customer-facing tasks benefit you?","Are there reporting/analytics tasks that take too long?"]},
 ];
+/* ═══════════════ INDIA QUESTION BANK — AQ_IN (35 questions, 7 domains) ═══════════════
+   Each question maps to: CERT-In Directions 2022, DPDP Act 2023, DPDP Rules 2025,
+   MeitY AI Governance Guidelines (Nov 2025), RBI FREE-AI Report (Aug 2025),
+   IT Act 2000, NCIIPC Guidelines, IT (SGI) Amendment Rules 2026
+   Citation format: answers yes=4pts, partial=2pts, no=0pts via existing engine
+   ═══════════════════════════════════════════════════════════════════════════════════ */
+const AQ_IN = [
+  {d:"Data Foundation & DPDP",icon:"database",q:[
+    "Has your organization completed a data mapping exercise covering all personal data of Indian citizens — as required under DPDP Act §8 and DPDP Rules 2025 Rule 4?",
+    "Does your consent management system meet DPDP Act §6 requirements — free, specific, informed, unambiguous, revocable consent with no pre-checked boxes?",
+    "Can your organization meet CERT-In\u2019s 6-hour cybersecurity incident reporting requirement and the DPDP Act\u2019s dual notification obligation to both CERT-In and the Data Protection Board?",
+    "Is your data quality and lineage sufficient for AI training — with documented provenance, bias-check processes, and data minimization controls per DPDP Act §8(3)?",
+    "If you may be a Significant Data Fiduciary, are you prepared for the additional DPDP Rules 2025 Rule 13 obligations — DPIA, annual independent audit, and DPO appointment?",
+  ]},
+  {d:"Process Maturity",icon:"workflow",q:[
+    "Does your organization have documented AI lifecycle processes — development, validation, deployment, monitoring, decommissioning — aligned to MeitY AI Guidelines §Policy and RBI FREE-AI Pillar 4?",
+    "How mature is your incident response for AI-specific failures — model drift, adversarial attacks, deepfakes — with CERT-In reporting integrated per CERT-In Directions §3?",
+    "Do your vendor management processes include DPDP Act-compliant data processor agreements requiring data processors to follow DPDP procedures per DPDP Act §8(2)?",
+    "Does your change management require AI impact assessments before deploying models, per MeitY AI Guidelines §Accountability and NIST AI RMF Gov 1.2?",
+    "Are your data retention and deletion processes capable of fulfilling Data Principal rights — right to erasure, correction, and grievance redressal — per DPDP Act §12\u201314?",
+  ]},
+  {d:"Technology Readiness",icon:"server",q:[
+    "Does your M365 or cloud environment meet data residency requirements — personal data of Indian citizens stored within India or in DPDP Act §16 approved jurisdictions?",
+    "Do you maintain logs and audit trails as required by CERT-In Directions §3(v) — comprehensive system, network, and security event logs retained for at least 180 days?",
+    "Are your AI systems configured with explainability and transparency controls enabling human oversight and the ability to explain automated decisions per MeitY AI Guidelines §Understandable by Design?",
+    "Does your technology stack include controls to detect, label, and manage Synthetically Generated Information (SGI) per the IT (SGI) Amendment Rules February 2026?",
+    "Is your AI infrastructure resilient against AI-specific threats — adversarial inputs, prompt injection, model extraction — per CERT-In Directions §3 and NCIIPC Guidelines?",
+  ]},
+  {d:"People & Culture",icon:"users",q:[
+    "Is your board or senior leadership AI-literate enough to exercise effective governance — understanding DPDP Act liability and MeitY\u2019s seven sutras accountability obligations?",
+    "Have your staff received training on DPDP Act obligations, responsible AI use, and how to identify and report AI incidents or data breaches per MeitY AI Guidelines §Capacity Building?",
+    "Does your organization have an AI ethics and responsible use policy mapped to MeitY\u2019s seven sutras — Trust, People First, Fairness, Accountability, Transparency, Safety, Innovation?",
+    "How effectively does your organization manage change when deploying AI — addressing displacement concerns, role redefinition, and employee trust per MeitY AI Guidelines §People First?",
+    "Is there a clear grievance redressal mechanism for individuals affected by automated AI decisions — per DPDP Act §13 and MeitY\u2019s accountability sutra?",
+  ]},
+  {d:"Strategy & ROI",icon:"target",q:[
+    "Does your AI strategy account for India\u2019s dual regulatory model — sectoral regulators (RBI/SEBI/IRDAI/ICMR) plus MeitY national guidelines — with risk assessment per MeitY AI Guidelines §Policy?",
+    "Have you built DPDP compliance costs — breach notifications, DPO, audits, DPIA — into your AI business case, given penalties up to \u20b9250 crore under DPDP Act §25?",
+    "Is your AI roadmap aligned with India\u2019s Digital Public Infrastructure (DPI) ecosystem — Aadhaar, ONDC, UPI, DigiLocker — per MeitY AI Guidelines §Infrastructure and IndiaAI Mission?",
+    "Do you have a strategy for AI governance talent — addressing India\u2019s AI skills shortage and building India-specific compliance expertise per RBI FREE-AI Pillar 3?",
+    "Has your organization assessed the impact of the proposed Digital India Act — expected to replace IT Act 2000 — on your AI governance and platform obligations?",
+  ]},
+  {d:"Governance & Compliance",icon:"shield",q:[
+    "Does your organization have an AI governance framework — risk classification, approval workflows, accountability — aligned to MeitY AI Guidelines §Accountability and ISO/IEC 42001:2023?",
+    "Is your organization CERT-In compliant — CERT-In empaneled auditor engaged, NTP synchronization correct, 6-hour incident reporting capability verified per CERT-In Audit Policy 2025?",
+    "For organizations in critical sectors, are you compliant with your sector-specific cybersecurity regulator (RBI/SEBI/IRDAI/TRAI) on top of CERT-In base requirements?",
+    "Does your AI system register include an inventory of all production AI models — with risk classification, training data sources, and compliance status per MeitY AI Guidelines §Risk Mitigation?",
+    "Is your AI bias monitoring documented — with specific attention to India\u2019s socioeconomic, caste, regional, and language bias risks per MeitY AI Guidelines §Fairness & Equity?",
+  ]},
+  {d:"Use Case Clarity",icon:"compass",q:[
+    "For AI use cases involving personal data of Indian citizens, have you conducted a DPIA mapping risks to the DPDP Act and applicable sector regulations per DPDP Rules 2025 Rule 13?",
+    "Are your highest-priority AI use cases directly tied to India market outcomes — compliance risk reduction, Digital India integrations, or DPI ecosystem leverage?",
+    "For AI use cases in financial services, have you assessed them against RBI\u2019s FREE-AI framework — six pillars covering Infrastructure, Policy, Capacity, Governance, Protection, and Assurance?",
+    "Are your AI use cases reviewed for compliance with the IT (SGI) Amendment Rules February 2026 — particularly around AI-generated content, deepfakes, and traceability obligations?",
+    "Do you have a defined process for retiring AI models — including DPDP Act data deletion confirmation, model disposal documentation, and notification to affected parties?",
+  ]},
+];
+
+/* ═══════════════ INDIA HERO — Banner shown when India mode is active ═══════════════ */
+function IndiaHero() {
+  return (
+    <section style={{
+      background:"linear-gradient(135deg, #000080 0%, #0D3B8E 60%, #006400 100%)",
+      padding:"48px 24px 40px",
+      textAlign:"center",
+      borderBottom:"3px solid #FF9933",
+    }}>
+      <div style={{maxWidth:800, margin:"0 auto"}}>
+        <div style={{
+          display:"inline-flex",alignItems:"center",gap:8,
+          background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",
+          padding:"5px 16px",borderRadius:100,
+          fontSize:12,color:"rgba(255,255,255,.8)",
+          fontFamily:"'DM Mono',monospace",letterSpacing:".06em",
+          marginBottom:20,
+        }}>
+          <span>🇮🇳</span> India AI Readiness · Mapped to Indian Regulatory Framework
+        </div>
+        <h2 style={{
+          fontFamily:"'Poppins',sans-serif",fontSize:"clamp(24px,4vw,40px)",
+          fontWeight:800,color:"#fff",marginBottom:12,letterSpacing:"-.02em",
+        }}>
+          Is your organization <span style={{color:"#FF9933"}}>India AI-ready?</span>
+        </h2>
+        <p style={{color:"rgba(255,255,255,.75)",fontSize:15,marginBottom:24,lineHeight:1.7}}>
+          35 questions across 7 domains · Scored against CERT-In, DPDP Act 2023, MeitY AI Guidelines Nov 2025, RBI FREE-AI Aug 2025, and NCIIPC frameworks.
+        </p>
+        <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",marginBottom:8}}>
+          {["CERT-In Directions","DPDP Act 2023","DPDP Rules 2025","MeitY AI Guidelines","RBI FREE-AI","NCIIPC","IT Act 2000","IT (SGI) Rules 2026"].map(f=>(
+            <span key={f} style={{
+              background:"rgba(255,255,255,.1)",border:"1px solid rgba(255,255,255,.2)",
+              padding:"3px 10px",borderRadius:4,fontSize:11,
+              color:"rgba(255,255,255,.75)",fontFamily:"'DM Mono',monospace",letterSpacing:".04em",
+            }}>{f}</span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ═══════════════ SCALE-AWARE PRICING — adapts to company size + industry ═══════════════ */
 const PKGS_BASE = [
   {name:"AI Discovery",tier:"discovery",base:0,per:"",color:C.teal,pop:false,desc:"30-min call. We review your situation and tell you what we'd do first.",baseFeats:["Review your assessment results","2-3 priority recommendations","Honest fit assessment","Zero obligation"],cta:"Book Free Call",hours:0},
@@ -258,7 +418,14 @@ const IND_MULTS = [
 /* ═══════════════ MAIN EXPORT ═══════════════ */
 export default function TheBHTLabs() {
   const [nav, setNav] = useState("assess");
-  const [mode, setMode] = useState("commercial"); // commercial | federal
+  const [mode, setMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.hostname === 'india.thebhtlabs.com') return 'india';
+      const mp = new URLSearchParams(window.location.search).get('mode');
+      if (mp === 'india' || mp === 'federal' || mp === 'commercial') return mp;
+    }
+    return 'commercial';
+  }); // commercial | federal | india
 
   const scrollTo = id => { document.getElementById(id)?.scrollIntoView({behavior:"smooth"}); setNav(id); };
 
@@ -281,6 +448,12 @@ export default function TheBHTLabs() {
         <>
           <FederalHub scrollTo={scrollTo} />
           <Assessment id="assess" />
+          <Partner id="partner" />
+        </>
+      ) : mode === 'india' ? (
+        <>
+          <IndiaHero />
+          <Assessment id="assess" locale="in" forceLocale={true} />
           <Partner id="partner" />
         </>
       ) : (
@@ -430,21 +603,21 @@ function Hero({scrollTo, nav, mode, setMode}) {
           {/* --- MODE PILL SWITCHER --- */}
           <div style={{
             display:"flex",alignItems:"center",
-            background:mode==='federal'?"rgba(30,41,59,.8)":C.bgMuted,
+            background:mode==='federal'?"rgba(30,41,59,.8)":mode==='india'?"rgba(19,136,8,.08)":C.bgMuted,
             borderRadius:14,padding:3,
-            border:`1px solid ${mode==='federal'?'#334155':C.border}`,
+            border:`1px solid ${mode==='federal'?'#334155':mode==='india'?'rgba(19,136,8,.3)':C.border}`,
             boxShadow:"0 1px 4px rgba(0,0,0,.06)",
             position:"relative",
           }}>
             {/* Sliding pill background */}
             <div style={{
               position:"absolute",top:3,bottom:3,
-              left:mode==='commercial'?3:'50%',
-              width:"calc(50% - 3px)",
-              background:mode==='commercial'?C.teal:"#F59E0B",
+              left:mode==='commercial'?3:mode==='federal'?'calc(33.33% + 1px)':'calc(66.66% + 1px)',
+              width:"calc(33.33% - 3px)",
+              background:mode==='commercial'?C.teal:mode==='federal'?"#F59E0B":"#138808",
               borderRadius:11,
               transition:"all .35s cubic-bezier(.4,0,.2,1)",
-              boxShadow:mode==='commercial'?`0 2px 12px ${C.teal}44`:"0 2px 12px rgba(245,158,11,.4)",
+              boxShadow:mode==='commercial'?`0 2px 12px ${C.teal}44`:mode==='federal'?"0 2px 12px rgba(245,158,11,.4)":"0 2px 12px rgba(19,136,8,.4)",
             }} />
             <button onClick={()=>{setMode('commercial');window.scrollTo({top:0,behavior:'smooth'});}}
               style={{
@@ -473,6 +646,20 @@ function Hero({scrollTo, nav, mode, setMode}) {
               }}>
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               Federal
+            </button>
+            <button onClick={()=>{setMode('india');if(typeof window!=='undefined'){localStorage.setItem('bht_locale','in');window.scrollTo({top:0,behavior:'smooth'});}}}
+              style={{
+                position:"relative",zIndex:1,
+                padding:"8px 18px",fontSize:12,fontWeight:700,fontFamily:F.h,
+                border:"none",cursor:"pointer",borderRadius:11,
+                background:"transparent",
+                color:mode==='india'?"#fff":C.textMuted,
+                transition:"color .25s",
+                display:"flex",alignItems:"center",gap:5,
+                whiteSpace:"nowrap",
+              }}>
+              <span style={{fontSize:13}}>🇮🇳</span>
+              India
             </button>
           </div>
 
@@ -612,7 +799,7 @@ function Hero({scrollTo, nav, mode, setMode}) {
 }
 
 /* ═══════════════ FREE VALUE STACK — What visitors get at $0 ═══════════════ */
-function Assessment({id}) {
+function Assessment({id, locale: localeProp, forceLocale}) {
   const [phase, setPhase] = useState("landing"); // landing, intake, questions, results
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState({});
@@ -624,14 +811,19 @@ function Assessment({id}) {
   const [startTime, setStartTime] = useState(null); // time gate
   const [companySuggest, setCompanySuggest] = useState("");
 
-  useEffect(() => { 
+  useEffect(() => {
+    if (forceLocale && localeProp && LOCALES[localeProp]) {
+      setLocale(localeProp);
+      if (typeof window !== 'undefined') localStorage.setItem('bht_locale', localeProp);
+      return;
+    }
     const initial = getLocale();
     setLocale(initial);
     // If no stored preference and no URL param, try geo-detection
     if (typeof window !== 'undefined' && !localStorage.getItem('bht_locale') && !new URLSearchParams(window.location.search).get('locale')) {
       detectGeoLocale().then(geo => { if (geo !== initial) { setLocale(geo); localStorage.setItem('bht_locale', geo); } });
     }
-  }, []);
+  }, [forceLocale, localeProp]);
   const loc = LOCALES[locale] || LOCALES.us;
   const [cc, setCc] = useState(null);
   useEffect(() => { if (typeof window !== 'undefined') setCc(localStorage.getItem('bht_cc')); }, []);
@@ -643,8 +835,10 @@ function Assessment({id}) {
   const upI = (k,v) => setIntake(p=>({...p,[k]:v}));
   const togglePain = (p) => setIntake(prev => ({...prev, pains: prev.pains.includes(p) ? prev.pains.filter(x=>x!==p) : prev.pains.length < 3 ? [...prev.pains, p] : prev.pains}));
 
-  const cur = AQ[step], total = 35, answered = Object.keys(ans).length;
+  const activeAQ = (locale === 'in') ? AQ_IN : AQ;
+  const cur = activeAQ[step], total = 35, answered = Object.keys(ans).length;
   const ds = (di) => { let y=0; for(let q=0;q<5;q++){const v=ans[di+"-"+q]; if(v==="yes")y++; else if(v==="partial")y+=.5} return Math.round((y/5)*100); };
+  const activeAQRef = (locale === 'in') ? AQ_IN : AQ;
   const overall = () => { let y=0; Object.values(ans).forEach(v=>{if(v==="yes")y++;else if(v==="partial")y+=.5}); return Math.round((y/total)*100); };
   const lvl = (s) => s>=80?{l:"AI-Leading",c:C.teal}:s>=65?{l:"AI-Ready",c:C.blue}:s>=40?{l:"AI-Building",c:C.coral}:{l:"AI-Unready",c:C.rose};
   const indObj = activeIndustries.find(i=>i.v===intake.industry) || {l:"your industry",avg:52};
@@ -686,7 +880,7 @@ function Assessment({id}) {
 
   const saveResults = async () => {
     setSaving(true);
-    const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    const domains = activeAQRef.map((d,i)=>({name:d.d,score:ds(i)}));
     const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
     const aria = calcARIA(intake, dScores, locale);
     const elapsed = startTime ? Math.round((Date.now() - startTime) / 1000) : 999;
@@ -712,7 +906,7 @@ function Assessment({id}) {
   const bookDiscovery = async () => {
     if(discoveryStatus === "sent" || discoveryStatus === "sending") return;
     setDiscoveryStatus("sending");
-    const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    const domains = activeAQRef.map((d,i)=>({name:d.d,score:ds(i)}));
     const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
     const aria = calcARIA(intake, dScores, locale);
     const sorted = [...domains].sort((a,b)=>a.score-b.score);
@@ -736,7 +930,7 @@ function Assessment({id}) {
   const generatePDF = () => {
     if(!saved) saveResults();
     const s = overall(), lv = lvl(s);
-    const domains = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    const domains = activeAQRef.map((d,i)=>({name:d.d,score:ds(i)}));
     const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
     const aria = calcARIA(intake, dScores, locale);
     const cta = getCTA(s, domains, aria);
@@ -1030,7 +1224,7 @@ function Assessment({id}) {
   // ═══ RESULTS ═══
   if (phase==="results") {
     const sc = overall(), lv = lvl(sc);
-    const domainResults = AQ.map((d,i)=>({name:d.d,score:ds(i)}));
+    const domainResults = activeAQRef.map((d,i)=>({name:d.d,score:ds(i)}));
     const dScores = {data:ds(0),process:ds(1),tech:ds(2),people:ds(3),strategy:ds(4),governance:ds(5),usecase:ds(6)};
     const aria = calcARIA(intake, dScores, locale);
     const cta = getCTA(sc, domainResults, aria);
