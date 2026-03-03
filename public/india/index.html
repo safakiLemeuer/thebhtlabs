@@ -1108,19 +1108,22 @@ async function sendChat() {
   chatHistory.push({role:'user', content:text});
   const typing = addTyping();
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    // Use the main site's server-side proxy — key stays on server, rate limiting applies
+    const resp = await fetch('https://www.thebhtlabs.com/api/chat', {
       method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
-        model:'claude-sonnet-4-5-20251001',
-        max_tokens:400,
-        system: CHAT_SYSTEM,
-        messages: chatHistory.slice(-10)
+        messages: [
+          // Prepend India context as a seeded turn so the proxy's system prompt is overridden
+          {role:'user',    content:'[INDIA CONTEXT] You are the India AI Compliance Assistant for TheBHTLabs. Answer ONLY questions about Indian AI and cybersecurity regulations: CERT-In Directions 2022 (6-hr reporting, 180-day logs, empaneled auditor), DPDP Act 2023 + Rules 2025 (consent §6, rights §12-14, SDF, DPO, penalties up to ₹250 crore §25), MeitY AI Guidelines Nov 2025 (seven sutras), RBI FREE-AI Aug 2025 (6 pillars, 26 recommendations), IT (SGI) Rules Feb 2026 (deepfake/synthetic content), NCIIPC Guidelines (critical infrastructure), IT Act 2000 §43A §70A, and sector regulators SEBI/IRDAI/TRAI/ICMR. TheBHTLabs India: Quick Scan ₹2,10,000/10hrs, Readiness Sprint ₹5,50,000/30hrs, Launchpad ₹9,00,000/mo. Contact india@bhtsolutions.com. Cite section numbers. Never give legal advice. Confirm.'},
+          {role:'assistant',content:'Understood. I am the TheBHTLabs India AI Compliance Assistant, focused on CERT-In, DPDP Act 2023, DPDP Rules 2025, MeitY AI Guidelines (Nov 2025), RBI FREE-AI (Aug 2025), IT (SGI) Rules 2026, and NCIIPC. How can I help?'},
+          ...chatHistory.slice(-8)
+        ]
       })
     });
     const data = await resp.json();
     typing.remove();
-    const reply = data.content?.[0]?.text || "I apologize — I couldn't process that. Please email india@bhtsolutions.com for direct assistance.";
+    const reply = data.content || "I apologize — I couldn't process that. Please email india@bhtsolutions.com for direct assistance.";
     chatHistory.push({role:'assistant', content:reply});
     addBotMsg(reply);
   } catch(e) {
