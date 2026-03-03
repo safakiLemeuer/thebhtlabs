@@ -445,7 +445,7 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
           <svg width="28" height="28" viewBox="0 0 36 36" fill="none"><defs><linearGradient id="ftGrad" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#0E7490"/><stop offset="100%" stop-color="#155E75"/></linearGradient></defs><path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill="url(#ftGrad)"/><text x="18" y="23" text-anchor="middle" fill="#fff" font-family="'DM Mono',monospace" font-weight="800" font-size="18">&#955;</text></svg>
           <span style="font-weight:800;font-size:16px;color:#F5F5F4;font-family:'Poppins',sans-serif;">TheBHT<span style="color:#0E7490">Labs</span> <span style="font-size:11px;color:#FF9933;">&#127470;&#127475; India</span></span>
         </div>
-        <div style="font-size:12px;line-height:1.8;">Bluebery Hawaii Technology Solutions LLC<br/>Cypress, TX 77433<br/>india@bhtsolutions.com<br/><a href="https://www.thebhtlabs.com" style="color:#0E7490;">thebhtlabs.com</a></div>
+        <div style="font-size:12px;line-height:1.8;">Bluebery Hawaii Technology Solutions LLC<br/>Cypress, TX 77433<br/>info@bhtsolutions.com<br/><a href="https://www.thebhtlabs.com" style="color:#0E7490;">thebhtlabs.com</a></div>
       </div>
       <div>
         <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;color:#78716C;margin-bottom:8px;">India Frameworks</div>
@@ -866,7 +866,7 @@ function showResults() {
   <!-- Watermark footer -->
   <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
     <div style="font-size:11px;font-family:'DM Mono',monospace;color:#78716C;">&#127470;&#127475; TheBHTLabs India &bull; BHT Solutions LLC &bull; SBA 8(a) &bull; EDWOSB &bull; CAGE: 7DBB9</div>
-    <div style="font-size:11px;font-family:'DM Mono',monospace;color:#0E7490;">india@bhtsolutions.com &bull; india.thebhtlabs.com</div>
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:#0E7490;">info@bhtsolutions.com &bull; india.thebhtlabs.com</div>
   </div>
 
   <div style="text-align:center;">
@@ -1000,7 +1000,7 @@ function downloadPDF() {
   doc.setFillColor(14,116,144);
   doc.rect(0,285,W,12,'F');
   doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(255,255,255);
-  doc.text('TheBHTLabs India  |  BHT Solutions LLC (SBA 8a, EDWOSB)  |  CAGE: 7DBB9  |  india@bhtsolutions.com  |  india.thebhtlabs.com', M, 293);
+  doc.text('TheBHTLabs India  |  BHT Solutions LLC (SBA 8a, EDWOSB)  |  CAGE: 7DBB9  |  info@bhtsolutions.com  |  india.thebhtlabs.com', M, 293);
 
   doc.save('India-AI-Readiness-'+state.intake.company.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
   btn.textContent = '&#8595; Download PDF Report'; btn.disabled = false;
@@ -1091,7 +1091,7 @@ You ONLY answer questions about India's AI and cybersecurity regulatory landscap
 8. Sector regulators — SEBI Cybersecurity Circular, IRDAI Information Security Guidelines, TRAI AI Guidelines, ICMR AI Guidelines
 9. TheBHTLabs India services — AI Quick Scan (₹2,10,000/10hrs), Readiness Sprint (₹5,50,000/30hrs), AI Launchpad (₹9,00,000/mo)
 
-Be concise, cite specific section numbers when relevant, and always offer to connect them with Nitin Nagar at india@bhtsolutions.com for a free discovery call. Never give legal advice — always recommend consulting qualified DPDP Act counsel for specific compliance decisions.`;
+Be concise, cite specific section numbers when relevant, and always offer to connect them with Nitin Nagar at info@bhtsolutions.com for a free discovery call. Never give legal advice — always recommend consulting qualified DPDP Act counsel for specific compliance decisions.`;
 
 function toggleChat() {
   chatOpen = !chatOpen;
@@ -1148,7 +1148,7 @@ async function sendChat() {
       body:JSON.stringify({
         messages: [
           // Prepend India context as a seeded turn so the proxy's system prompt is overridden
-          {role:'user',    content:'[INDIA CONTEXT] You are the India AI Compliance Assistant for TheBHTLabs. Answer ONLY questions about Indian AI and cybersecurity regulations: CERT-In Directions 2022 (6-hr reporting, 180-day logs, empaneled auditor), DPDP Act 2023 + Rules 2025 (consent §6, rights §12-14, SDF, DPO, penalties up to ₹250 crore §25), MeitY AI Guidelines Nov 2025 (seven sutras), RBI FREE-AI Aug 2025 (6 pillars, 26 recommendations), IT (SGI) Rules Feb 2026 (deepfake/synthetic content), NCIIPC Guidelines (critical infrastructure), IT Act 2000 §43A §70A, and sector regulators SEBI/IRDAI/TRAI/ICMR. TheBHTLabs India: Quick Scan ₹2,10,000/10hrs, Readiness Sprint ₹5,50,000/30hrs, Launchpad ₹9,00,000/mo. Contact india@bhtsolutions.com. Cite section numbers. Never give legal advice. Confirm.'},
+          {role:'user',    content:'[INDIA CONTEXT] You are the India AI Compliance Assistant for TheBHTLabs. Answer ONLY questions about Indian AI and cybersecurity regulations: CERT-In Directions 2022 (6-hr reporting, 180-day logs, empaneled auditor), DPDP Act 2023 + Rules 2025 (consent §6, rights §12-14, SDF, DPO, penalties up to ₹250 crore §25), MeitY AI Guidelines Nov 2025 (seven sutras), RBI FREE-AI Aug 2025 (6 pillars, 26 recommendations), IT (SGI) Rules Feb 2026 (deepfake/synthetic content), NCIIPC Guidelines (critical infrastructure), IT Act 2000 §43A §70A, and sector regulators SEBI/IRDAI/TRAI/ICMR. TheBHTLabs India: Quick Scan ₹2,10,000/10hrs, Readiness Sprint ₹5,50,000/30hrs, Launchpad ₹9,00,000/mo. Contact info@bhtsolutions.com. Cite section numbers. Never give legal advice. Confirm.'},
           {role:'assistant',content:'Understood. I am the TheBHTLabs India AI Compliance Assistant, focused on CERT-In, DPDP Act 2023, DPDP Rules 2025, MeitY AI Guidelines (Nov 2025), RBI FREE-AI (Aug 2025), IT (SGI) Rules 2026, and NCIIPC. How can I help?'},
           ...chatHistory.slice(-8)
         ]
@@ -1156,12 +1156,12 @@ async function sendChat() {
     });
     const data = await resp.json();
     typing.remove();
-    const reply = data.content || "I apologize — I couldn't process that. Please email india@bhtsolutions.com for direct assistance.";
+    const reply = data.content || "I apologize — I couldn't process that. Please email info@bhtsolutions.com for direct assistance.";
     chatHistory.push({role:'assistant', content:reply});
     addBotMsg(reply);
   } catch(e) {
     typing.remove();
-    addBotMsg("I'm having trouble connecting right now. Please email india@bhtsolutions.com or call (513) 638-1986 for immediate assistance.");
+    addBotMsg("I'm having trouble connecting right now. Please email info@bhtsolutions.com or call (513) 638-1986 for immediate assistance.");
   }
 }
 
