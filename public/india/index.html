@@ -465,14 +465,14 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
               <div><label class="plabel">City *</label><input id="p-city" type="text" placeholder="Mumbai / Bengaluru / Delhi..." class="inp"/></div>
               <div><label class="plabel">Website</label><input id="p-website" type="url" placeholder="https://yourfirm.com" class="inp"/></div>
               <div><label class="plabel">Company Size</label>
-                <select id="p-size" class="inp">
+                <select id="p-size" class="inp" onchange="calcPartnerScore();document.getElementById('p-step1-hint').style.display='block'">
                   <option value="">Select...</option>
                   <option>1-5 (Boutique)</option><option>6-20</option><option>21-50</option>
                   <option>51-200</option><option>201-500</option><option>500+</option>
                 </select>
               </div>
               <div><label class="plabel">Years Operating</label>
-                <select id="p-years" class="inp">
+                <select id="p-years" class="inp" onchange="calcPartnerScore()">
                   <option value="">Select...</option>
                   <option>Less than 1 year</option><option>1-3 years</option><option>3-5 years</option>
                   <option>5-10 years</option><option>10+ years</option>
@@ -480,7 +480,7 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
               </div>
             </div>
             <div style="margin-bottom:12px;"><label class="plabel">Annual Revenue (INR)</label>
-              <select id="p-revenue" class="inp">
+              <select id="p-revenue" class="inp" onchange="calcPartnerScore();document.getElementById('p-step1-hint').style.display='block'">
                 <option value="">Select range...</option>
                 <option>Less than Rs 50 Lakh</option><option>Rs 50L to Rs 2 Cr</option>
                 <option>Rs 2 Cr to Rs 10 Cr</option><option>Rs 10 Cr to Rs 50 Cr</option>
@@ -488,6 +488,7 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
                 <option>Prefer not to say</option>
               </select>
             </div>
+            <div id="p-step1-hint" style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;text-align:center;padding:6px 0;display:none;">Your readiness score is calculating →</div>
             <div id="partner-err" style="display:none;color:#DC2626;font-size:13px;font-weight:500;margin-bottom:10px;"></div>
             <div style="text-align:right;margin-top:16px;">
               <button onclick="partnerNext(1)" class="btn-primary">Next: Capabilities</button>
@@ -497,7 +498,7 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
           <div id="partner-step2" style="display:none;">
             <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#A8A29E;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;">Step 2 of 3 &mdash; Capabilities</div>
             <div style="margin-bottom:12px;"><label class="plabel">Microsoft Partnership Status</label>
-              <select id="p-ms" class="inp">
+              <select id="p-ms" class="inp" onchange="calcPartnerScore()">
                 <option value="">Select...</option>
                 <option>Solutions Partner (formerly Gold)</option>
                 <option>Solutions Partner (formerly Silver)</option>
@@ -517,10 +518,46 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
               <textarea id="p-services" rows="2" placeholder="VAPT, ISO 27001 audits, DPDP Act advisory, Copilot deployments..." class="inp" style="resize:vertical;"></textarea>
             </div>
             <div style="margin-bottom:12px;"><label class="plabel">Delivery Team Size (AI / Security)</label>
-              <select id="p-teamsize" class="inp">
+              <select id="p-teamsize" class="inp" onchange="calcPartnerScore()">
                 <option value="">Select...</option>
                 <option>1-2 (founders only)</option><option>3-5</option><option>6-10</option>
                 <option>11-25</option><option>25+</option>
+              </select>
+            </div>
+            <div style="margin-bottom:12px;"><label class="plabel">Can your team run a CERT-In / DPDP compliance engagement independently — without BHT on every client call?</label>
+              <select id="p-independent" class="inp" onchange="calcPartnerScore()">
+                <option value="">Select...</option>
+                <option value="yes">Yes — we have done it before with another methodology</option>
+                <option value="partial">Partially — we need technical support on first 2-3 engagements</option>
+                <option value="no">No — we would need BHT on every client call</option>
+              </select>
+            </div>
+            <div style="margin-bottom:12px;"><label class="plabel">How many named CISO / CTO / CIO contacts do you have right now in Mumbai, Bengaluru, Delhi, or Hyderabad who would take your call on an AI compliance topic?</label>
+              <select id="p-ciso-contacts" class="inp" onchange="calcPartnerScore()">
+                <option value="">Select...</option>
+                <option value="10+">10 or more</option>
+                <option value="5-9">5 to 9</option>
+                <option value="2-4">2 to 4</option>
+                <option value="1">1</option>
+                <option value="0">None yet</option>
+              </select>
+            </div>
+            <div style="margin-bottom:12px;"><label class="plabel">Have you previously delivered a compliance audit, gap assessment, or implementation project for a regulated Indian enterprise?</label>
+              <select id="p-compliance-exp" class="inp" onchange="calcPartnerScore()">
+                <option value="">Select...</option>
+                <option value="multiple">Yes — multiple times, we have client references</option>
+                <option value="once">Yes — once, references available on request</option>
+                <option value="adjacent">Not directly, but adjacent work (ISO 27001, VAPT, etc.)</option>
+                <option value="no">No — this would be our first compliance engagement</option>
+              </select>
+            </div>
+            <div style="margin-bottom:12px;"><label class="plabel">How many Quick Scan clients (Rs 2,10,000 each) are you targeting to close in the first 60 days?</label>
+              <select id="p-target-clients" class="inp" onchange="calcPartnerScore()">
+                <option value="">Select...</option>
+                <option value="5+">5 or more</option>
+                <option value="3-4">3 to 4</option>
+                <option value="1-2">1 to 2</option>
+                <option value="0">I need to assess the market first</option>
               </select>
             </div>
             <div style="display:flex;gap:10px;justify-content:space-between;margin-top:16px;">
@@ -582,6 +619,9 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
             <div style="margin-bottom:12px;"><label class="plabel">Why are you the right partner for this client?</label>
               <textarea id="p-why" rows="3" placeholder="Your existing relationship, domain expertise, or unique access that makes this engagement possible..." class="inp" style="resize:vertical;"></textarea>
             </div>
+            <div style="margin-bottom:12px;"><label class="plabel">Can you provide 1-2 client references who would vouch for your compliance delivery capability? (name + title only)</label>
+              <input id="p-references" type="text" placeholder="e.g. Rajesh Sharma, CISO at XYZ Bank (reference available on request)" class="inp"/>
+            </div>
             <input type="text" id="p-hp" style="display:none;" tabindex="-1" autocomplete="off"/>
             <div id="partner-success" style="display:none;background:#F0FDFE;border:1px solid #A5F3FC;border-radius:10px;padding:14px 18px;color:#0E7490;font-size:14px;font-weight:600;margin-bottom:10px;">Application received. We will review and contact you within 3 business days.</div>
             <div style="display:flex;gap:10px;justify-content:space-between;margin-top:16px;">
@@ -594,6 +634,76 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
             <div id="pdot-0" style="width:20px;height:8px;border-radius:4px;background:#0E7490;transition:all .2s;"></div>
             <div id="pdot-1" style="width:8px;height:8px;border-radius:50%;background:#E7E5E4;transition:all .2s;"></div>
             <div id="pdot-2" style="width:8px;height:8px;border-radius:50%;background:#E7E5E4;transition:all .2s;"></div>
+          </div>
+          <div id="p-score-tracker" style="display:none;margin-top:16px;border-radius:12px;overflow:hidden;border:1px solid #E0F7FA;">
+            <!-- Header bar -->
+            <div style="background:#0D1B2A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+              <div style="font-size:10px;font-weight:700;color:#A5F3FC;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;">Partner Readiness Score</div>
+              <div id="p-score-badge" style="font-size:18px;font-weight:800;color:#FFFFFF;font-family:'DM Mono',monospace;">--/100</div>
+            </div>
+            <!-- Master progress bar -->
+            <div style="background:#E0F7FA;height:6px;">
+              <div id="p-score-bar" style="height:6px;background:#0E7490;width:0%;transition:width .5s ease;"></div>
+            </div>
+            <!-- Tier badge -->
+            <div id="p-score-tier-wrap" style="padding:10px 16px;background:#F0FDFE;border-bottom:1px solid #E0F7FA;">
+              <div id="p-score-tier" style="font-size:12px;font-weight:700;color:#0E7490;margin-bottom:3px;"></div>
+              <div id="p-score-suggestion" style="font-size:11px;color:#78716C;line-height:1.5;"></div>
+            </div>
+            <!-- 5-criteria breakdown -->
+            <div style="padding:12px 16px;background:#FFFFFF;">
+              <div style="font-size:10px;font-weight:700;color:#A8A29E;text-transform:uppercase;letter-spacing:.06em;font-family:'DM Mono',monospace;margin-bottom:10px;">Score Breakdown</div>
+              <!-- Criterion 1: India Market Access -->
+              <div style="margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                  <span style="font-size:10px;color:#44403C;font-weight:600;">India Market Access</span>
+                  <span id="sc-contacts-val" style="font-size:10px;color:#0E7490;font-weight:700;font-family:'DM Mono',monospace;">0/25</span>
+                </div>
+                <div style="background:#F5F5F4;border-radius:3px;height:5px;"><div id="sc-contacts-bar" style="height:5px;background:#0E7490;border-radius:3px;width:0%;transition:width .4s;"></div></div>
+                <div id="sc-contacts-msg" style="font-size:9px;color:#A8A29E;margin-top:2px;"></div>
+              </div>
+              <!-- Criterion 2: Delivery Independence -->
+              <div style="margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                  <span style="font-size:10px;color:#44403C;font-weight:600;">Delivery Independence</span>
+                  <span id="sc-indep-val" style="font-size:10px;color:#0E7490;font-weight:700;font-family:'DM Mono',monospace;">0/25</span>
+                </div>
+                <div style="background:#F5F5F4;border-radius:3px;height:5px;"><div id="sc-indep-bar" style="height:5px;background:#0E7490;border-radius:3px;width:0%;transition:width .4s;"></div></div>
+                <div id="sc-indep-msg" style="font-size:9px;color:#A8A29E;margin-top:2px;"></div>
+              </div>
+              <!-- Criterion 3: Compliance Experience -->
+              <div style="margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                  <span style="font-size:10px;color:#44403C;font-weight:600;">Compliance Experience</span>
+                  <span id="sc-exp-val" style="font-size:10px;color:#0E7490;font-weight:700;font-family:'DM Mono',monospace;">0/20</span>
+                </div>
+                <div style="background:#F5F5F4;border-radius:3px;height:5px;"><div id="sc-exp-bar" style="height:5px;background:#0E7490;border-radius:3px;width:0%;transition:width .4s;"></div></div>
+                <div id="sc-exp-msg" style="font-size:9px;color:#A8A29E;margin-top:2px;"></div>
+              </div>
+              <!-- Criterion 4: Commitment Signal -->
+              <div style="margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                  <span style="font-size:10px;color:#44403C;font-weight:600;">60-Day Commitment</span>
+                  <span id="sc-commit-val" style="font-size:10px;color:#0E7490;font-weight:700;font-family:'DM Mono',monospace;">0/15</span>
+                </div>
+                <div style="background:#F5F5F4;border-radius:3px;height:5px;"><div id="sc-commit-bar" style="height:5px;background:#0E7490;border-radius:3px;width:0%;transition:width .4s;"></div></div>
+                <div id="sc-commit-msg" style="font-size:9px;color:#A8A29E;margin-top:2px;"></div>
+              </div>
+              <!-- Criterion 5: Business Credibility -->
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+                  <span style="font-size:10px;color:#44403C;font-weight:600;">Business Credibility</span>
+                  <span id="sc-biz-val" style="font-size:10px;color:#0E7490;font-weight:700;font-family:'DM Mono',monospace;">0/15</span>
+                </div>
+                <div style="background:#F5F5F4;border-radius:3px;height:5px;"><div id="sc-biz-bar" style="height:5px;background:#0E7490;border-radius:3px;width:0%;transition:width .4s;"></div></div>
+                <div id="sc-biz-msg" style="font-size:9px;color:#A8A29E;margin-top:2px;"></div>
+              </div>
+            </div>
+            <!-- Conditional action block -->
+            <div id="p-score-action" style="display:none;padding:10px 16px;background:#FAFAF9;border-top:1px solid #E7E5E4;">
+              <div style="font-size:10px;font-weight:700;color:#A8A29E;text-transform:uppercase;letter-spacing:.06em;font-family:'DM Mono',monospace;margin-bottom:6px;">Your Next Step</div>
+              <div id="p-score-action-text" style="font-size:11px;color:#44403C;line-height:1.6;"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -643,6 +753,7 @@ function partnerNext(fromStep){
     document.getElementById('partner-step1').style.display='none';
     document.getElementById('partner-step2').style.display='';
     updateDots(2);
+    calcPartnerScore();
   }else if(fromStep===2){
     document.getElementById('partner-step2').style.display='none';
     document.getElementById('partner-step3').style.display='';
@@ -687,7 +798,157 @@ async function submitPartner(){
     why_partner:document.getElementById('p-why').value.trim(),
     source:'india.thebhtlabs.com/partner',
     locale:'in',
+    delivery_independent: document.getElementById('p-independent').value,
+    ciso_contacts: document.getElementById('p-ciso-contacts').value,
+    compliance_experience: document.getElementById('p-compliance-exp').value,
+    target_clients_60d: document.getElementById('p-target-clients').value,
+    client_references: document.getElementById('p-references').value.trim(),
+    partner_score: calcPartnerScore(true),
   };
+function calcPartnerScore(returnOnly){
+  // ── SCORE EACH CRITERION INDIVIDUALLY ──────────────────────────────────────
+  let s1=0,s2=0,s3=0,s4=0,s5=0;
+  let m1='',m2='',m3='',m4='',m5='';
+
+  // 1. India Market Access (0-25)
+  const contacts=document.getElementById('p-ciso-contacts');
+  if(contacts&&contacts.value){
+    if(contacts.value==='10+'){s1=25;m1='Strong — 10+ senior contacts is a real pipeline.';}
+    else if(contacts.value==='5-9'){s1=18;m1='Good — enough to run a focused campaign.';}
+    else if(contacts.value==='2-4'){s1=10;m1='Thin — 2-4 contacts limits your 60-day reach.';}
+    else if(contacts.value==='1'){s1=5;m1='Critical gap — India buys on relationships. 1 contact is 1 shot.';}
+    else{s1=0;m1='Blocker — no contacts means no meetings. Fix this before applying.';}
+  }
+
+  // 2. Delivery Independence (0-25)
+  const indep=document.getElementById('p-independent');
+  if(indep&&indep.value){
+    if(indep.value==='yes'){s2=25;m2='Strong — you can run engagements independently.';}
+    else if(indep.value==='partial'){s2=15;m2='Acceptable — BHT supports first 2-3, then you own delivery.';}
+    else{s2=4;m2='Concern — every engagement needs BHT, capping your scale and margin.';}
+  }
+
+  // 3. Compliance Experience (0-20)
+  const exp=document.getElementById('p-compliance-exp');
+  if(exp&&exp.value){
+    if(exp.value==='multiple'){s3=20;m3='Excellent — repeat delivery builds client trust fast.';}
+    else if(exp.value==='once'){s3=14;m3='Solid — one reference is enough to start.';}
+    else if(exp.value==='adjacent'){s3=8;m3='OK — adjacent experience counts but first engagement needs oversight.';}
+    else{s3=0;m3='Gap — no prior compliance delivery. Quick Scan pilot only until reference exists.';}
+  }
+
+  // 4. 60-Day Commitment (0-15)
+  const target=document.getElementById('p-target-clients');
+  if(target&&target.value){
+    if(target.value==='5+'){s4=15;m4='High conviction — 5 targets = serious pipeline.';}
+    else if(target.value==='3-4'){s4=11;m4='Good — 3 Quick Scans in 60 days is achievable.';}
+    else if(target.value==='1-2'){s4=7;m4='Conservative — 1-2 targets is a test, not a channel.';}
+    else{s4=0;m4='Low signal — no 60-day target suggests you are still evaluating the opportunity.';}
+  }
+
+  // 5. Business Credibility (revenue + MS + years) (0-15)
+  const rev=document.getElementById('p-revenue');
+  const ms=document.getElementById('p-ms');
+  const yrs=document.getElementById('p-years');
+  let bizPts=0;
+  if(rev&&rev.value&&!rev.value.includes('Select')){
+    if(rev.value.includes('500 Cr'))bizPts+=7;
+    else if(rev.value.includes('50 Cr'))bizPts+=6;
+    else if(rev.value.includes('10 Cr'))bizPts+=5;
+    else if(rev.value.includes('2 Cr'))bizPts+=3;
+    else bizPts+=1;
+  }
+  if(ms&&ms.value){
+    if(ms.value.includes('Solutions Partner'))bizPts+=5;
+    else if(ms.value.includes('Action Pack'))bizPts+=2;
+  }
+  if(yrs&&yrs.value){
+    if(yrs.value.includes('10+'))bizPts+=3;
+    else if(yrs.value.includes('5-10'))bizPts+=2;
+    else if(yrs.value.includes('3-5'))bizPts+=1;
+  }
+  s5=Math.min(15,bizPts);
+  m5=s5>=12?'Strong business credibility.':s5>=8?'Good — established firm with track record.':s5>=4?'Developing — young or small firm, manageable.':'Early stage — revenue and longevity matter to enterprise clients.';
+
+  const total=Math.min(100,s1+s2+s3+s4+s5);
+
+  // ── TIER + NARRATIVE ───────────────────────────────────────────────────────
+  let tier,tierColor,suggestion,action;
+  if(total>=80){
+    tier='Preferred Partner';tierColor='#059669';
+    suggestion='Top tier. Priority onboarding, white-label delivery rights, direct access to Nitin.';
+    action='We will contact you within 48 hours to schedule your onboarding call. Prepare your first client name — we want to scope it together on the first call.';
+  } else if(total>=60){
+    tier='Active Partner';tierColor='#0E7490';
+    suggestion='Qualified. Standard agreement, full enablement package, monthly partner calls.';
+    action='Submit this application. We will review within 5 business days and send you the partner agreement, the client pitch deck, and assessment tool access. Identify 2-3 prospects before our first call.';
+  } else if(total>=40){
+    tier='Developing Partner';tierColor='#D97706';
+    suggestion='Conditional — 60-day pilot, Quick Scan engagements only, milestone review at Day 60.';
+    // Build specific gap guidance
+    let gapItems=[];
+    if(s1<10)gapItems.push('Build 5+ CISO/CTO contacts in your city before outreach');
+    if(s2<15)gapItems.push('Complete one shadowed engagement with BHT to demonstrate delivery capability');
+    if(s3<8)gapItems.push('Complete at least one compliance-adjacent engagement and document it as a reference');
+    if(s4<7)gapItems.push('Identify and name 3 specific target clients before submitting');
+    action='Pilot path: '+gapItems.join('. ')+'. Hit these, and Active Partner status is yours at Day 60 review.';
+  } else {
+    tier='Not Ready — Apply in 90 Days';tierColor='#DC2626';
+    suggestion='The gaps are structural, not cosmetic. Rushing the application wastes both our time.';
+    let fixList=[];
+    if(s1<5)fixList.push('Step 1: Attend one CISO/CIO event in Mumbai, Bengaluru, or Delhi. Walk out with 5 cards.');
+    if(s2<10)fixList.push('Step 2: Take the India AI assessment yourself as a client. Run a mock Quick Scan internally.');
+    if(s3<8)fixList.push('Step 3: Complete one DPDP Act or CERT-In advisory project — even pro bono — so you have a reference.');
+    fixList.push('Then reapply. The market will still need you in 90 days.');
+    action=fixList.join(' ');
+  }
+
+  if(!returnOnly){
+    const tracker=document.getElementById('p-score-tracker');
+    const anyAnswered=s1+s2+s3+s4+s5>0||(rev&&rev.value&&!rev.value.includes('Select'));
+    if(tracker&&anyAnswered){
+      tracker.style.display='block';
+
+      // Master score
+      document.getElementById('p-score-badge').textContent=total+'/100';
+      const barGrad=total>=80?'linear-gradient(90deg,#059669,#10B981)':total>=60?'linear-gradient(90deg,#0E7490,#06B6D4)':total>=40?'linear-gradient(90deg,#D97706,#F59E0B)':'linear-gradient(90deg,#DC2626,#F87171)';
+      document.getElementById('p-score-bar').style.width=total+'%';
+      document.getElementById('p-score-bar').style.background=barGrad;
+
+      // Tier
+      document.getElementById('p-score-tier').textContent=tier;
+      document.getElementById('p-score-tier').style.color=tierColor;
+      document.getElementById('p-score-suggestion').textContent=suggestion;
+
+      // Helper to update each criterion bar
+      function setBar(id,pts,max,msg,col){
+        const pct=Math.round(pts/max*100);
+        const barCol=pts>=max*0.8?'#059669':pts>=max*0.5?col:pts>0?'#D97706':'#E5E7EB';
+        const valEl=document.getElementById('sc-'+id+'-val');
+        const barEl=document.getElementById('sc-'+id+'-bar');
+        const msgEl=document.getElementById('sc-'+id+'-msg');
+        if(valEl){valEl.textContent=pts+'/'+max;valEl.style.color=barCol;}
+        if(barEl){barEl.style.width=pct+'%';barEl.style.background=barCol;}
+        if(msgEl){msgEl.textContent=msg;msgEl.style.color=pts>=max*0.5?'#78716C':pts>0?'#D97706':'#DC2626';}
+      }
+      setBar('contacts',s1,25,m1,tierColor);
+      setBar('indep',s2,25,m2,tierColor);
+      setBar('exp',s3,20,m3,tierColor);
+      setBar('commit',s4,15,m4,tierColor);
+      setBar('biz',s5,15,m5,tierColor);
+
+      // Action block
+      if(action){
+        const actionEl=document.getElementById('p-score-action');
+        document.getElementById('p-score-action-text').textContent=action;
+        if(actionEl)actionEl.style.display='block';
+        document.getElementById('p-score-action').style.borderTopColor=tierColor;
+      }
+    }
+  }
+  return total;
+}
+
   try{await fetch('https://www.thebhtlabs.com/api/partner',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});}catch(e){}
   document.getElementById('partner-success').style.display='block';
   btn.style.display='none';
@@ -790,19 +1051,19 @@ async function submitPartner(){
             </select>
           </div>
           <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Company Size *</label>
-            <select id="p-size" class="inp">
+            <select id="p-size" class="inp" onchange="calcPartnerScore();document.getElementById('p-step1-hint').style.display='block'">
               <option value="">Select size&hellip;</option>
               <option>1–10 employees</option><option>11–50 employees</option><option>51–200 employees</option><option>201–500 employees</option><option>500+ employees</option>
             </select>
           </div>
           <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Years in Business *</label>
-            <select id="p-years" class="inp">
+            <select id="p-years" class="inp" onchange="calcPartnerScore()">
               <option value="">Select&hellip;</option>
               <option>Less than 1 year</option><option>1–3 years</option><option>3–5 years</option><option>5–10 years</option><option>10+ years</option>
             </select>
           </div>
           <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Annual Revenue (INR)</label>
-            <select id="p-revenue" class="inp">
+            <select id="p-revenue" class="inp" onchange="calcPartnerScore();document.getElementById('p-step1-hint').style.display='block'">
               <option value="">Select range&hellip;</option>
               <option>&lt; &#8377;1 Cr</option><option>&#8377;1–10 Cr</option><option>&#8377;10–50 Cr</option><option>&#8377;50–500 Cr</option><option>&#8377;500 Cr+</option><option>Prefer not to say</option>
             </select>
@@ -819,7 +1080,7 @@ async function submitPartner(){
         <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F5F5F4;">03 &mdash; Capabilities &amp; Certifications</div>
         <div style="margin-bottom:14px;">
           <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:8px;">Microsoft Partnership Level</label>
-          <select id="p-ms" class="inp">
+          <select id="p-ms" class="inp" onchange="calcPartnerScore()">
             <option value="">Select level&hellip;</option>
             <option>Microsoft Solutions Partner</option><option>Azure Expert MSP</option><option>Microsoft Action Pack</option><option>Registered Partner</option><option>Not a Microsoft partner yet</option>
           </select>
