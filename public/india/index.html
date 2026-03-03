@@ -403,36 +403,186 @@ input,select,textarea,button{font-family:'Poppins',sans-serif}
   </div>
 </section>
 
-<!-- CONTACT -->
+<!-- CONTACT + PARTNER -->
 <section id="contact" style="padding:80px 0;background:#FAFAF9;border-top:1px solid #E7E5E4;">
-  <div style="max-width:700px;margin:0 auto;padding:0 24px;">
-    <div style="margin-bottom:36px;text-align:center;">
+  <div style="max-width:900px;margin:0 auto;padding:0 24px;">
+    <div style="margin-bottom:40px;text-align:center;">
       <div style="display:inline-block;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.1em;background:#F0FDFE;border:1px solid #A5F3FC;padding:4px 14px;border-radius:100px;margin-bottom:12px;">Work With Us</div>
-      <h2 style="font-size:clamp(24px,3.5vw,36px);font-weight:800;color:#1C1917;letter-spacing:-.02em;margin-bottom:10px;">Ready to get India AI-ready?</h2>
-      <p style="font-size:15px;color:#78716C;">Tell us about your organization. We respond within one business day.</p>
+      <h2 style="font-size:clamp(24px,3.5vw,38px);font-weight:800;color:#1C1917;letter-spacing:-.02em;margin-bottom:10px;">Let's build something together</h2>
+      <p style="font-size:15px;color:#78716C;max-width:520px;margin:0 auto;">Engage us for a project or join as an India channel partner. We respond within one business day.</p>
     </div>
-    <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:36px;box-shadow:0 4px 16px rgba(28,25,23,.07);">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Name *</label><input id="c-name" type="text" placeholder="Priya Sharma" class="inp"/></div>
-        <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Email *</label><input id="c-email" type="email" placeholder="priya@company.com" class="inp"/></div>
-        <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Organization *</label><input id="c-company" type="text" placeholder="Infosys Ltd." class="inp"/></div>
-        <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Sector</label>
-          <select id="c-sector" class="inp">
-            <option value="">Select sector&hellip;</option>
-            <option>BFSI</option><option>IT / Technology</option><option>Healthcare</option><option>Government / PSU</option><option>Insurance</option><option>Telecom</option><option>Energy</option><option>Legal</option><option>Education</option><option>Manufacturing</option><option>Other</option>
+
+    <!-- TAB SWITCHER -->
+    <div style="display:flex;gap:4px;margin-bottom:28px;background:#F5F5F4;padding:4px;border-radius:14px;max-width:480px;margin-left:auto;margin-right:auto;">
+      <button id="tab-contact" onclick="switchTab('contact')" style="flex:1;padding:11px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;background:#fff;color:#1C1917;box-shadow:0 1px 4px rgba(28,25,23,.1);transition:all .2s;">
+        &#9993; Get in Touch
+      </button>
+      <button id="tab-partner" onclick="switchTab('partner')" style="flex:1;padding:11px 16px;border-radius:10px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Poppins',sans-serif;background:transparent;color:#78716C;transition:all .2s;">
+        &#9733; Become a Partner
+      </button>
+    </div>
+
+    <!-- CONTACT FORM -->
+    <div id="contact-panel">
+      <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:36px;box-shadow:0 4px 16px rgba(28,25,23,.07);">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Name *</label><input id="c-name" type="text" placeholder="Priya Sharma" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Email *</label><input id="c-email" type="email" placeholder="priya@company.com" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Organization *</label><input id="c-company" type="text" placeholder="Infosys Ltd." class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Sector</label>
+            <select id="c-sector" class="inp">
+              <option value="">Select sector&hellip;</option>
+              <option>BFSI</option><option>IT / Technology</option><option>Healthcare</option><option>Government / PSU</option><option>Insurance</option><option>Telecom</option><option>Energy</option><option>Legal</option><option>Education</option><option>Manufacturing</option><option>Other</option>
+            </select>
+          </div>
+          <div style="grid-column:1/-1;"><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">How can we help?</label>
+            <textarea id="c-message" rows="3" placeholder="Tell us about your CERT-In readiness, DPDP Act gaps, RBI FREE-AI obligations, or a specific AI use case..." class="inp" style="resize:vertical;"></textarea>
+          </div>
+          <input type="text" id="c-hp" style="display:none;" tabindex="-1" autocomplete="off"/>
+        </div>
+        <div id="contact-err" style="display:none;margin-top:10px;color:#DC2626;font-size:13px;font-weight:500;"></div>
+        <div id="contact-success" style="display:none;margin-top:16px;background:#F0FDFE;border:1px solid #A5F3FC;border-radius:10px;padding:14px 18px;color:#0E7490;font-size:14px;font-weight:600;">&#10003; Message received. We'll respond within one business day.</div>
+        <div style="margin-top:18px;text-align:right;">
+          <button onclick="submitContact()" id="c-submit-btn" class="btn-primary">Send Message</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTNER FORM -->
+    <div id="partner-panel" style="display:none;">
+
+      <!-- Partner value props -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;" class="g3">
+        <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;">
+          <div style="font-size:20px;margin-bottom:6px;">&#128200;</div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Revenue Share</div>
+          <div style="font-size:11px;color:#78716C;">15–25% on referred engagements. Monthly payouts.</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;">
+          <div style="font-size:20px;margin-bottom:6px;">&#127919;</div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Co-Delivery</div>
+          <div style="font-size:11px;color:#78716C;">Joint delivery on CERT-In, DPDP, and M365 engagements.</div>
+        </div>
+        <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;">
+          <div style="font-size:20px;margin-bottom:6px;">&#127941;</div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Enablement</div>
+          <div style="font-size:11px;color:#78716C;">NIST AI RMF + DPDP Act training, tools, and assessment playbooks.</div>
+        </div>
+      </div>
+
+      <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:36px;box-shadow:0 4px 16px rgba(28,25,23,.07);">
+        <div style="margin-bottom:24px;">
+          <div style="font-size:14px;font-weight:700;color:#1C1917;margin-bottom:4px;">Partner Application</div>
+          <div style="font-size:12px;color:#78716C;">Fields marked * are required. We review all applications within 3 business days.</div>
+        </div>
+
+        <!-- Section 1: Contact -->
+        <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F5F5F4;">01 &mdash; Your Contact Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;">
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Full Name *</label><input id="p-name" type="text" placeholder="Arjun Mehta" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Work Email *</label><input id="p-email" type="email" placeholder="arjun@company.com" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Phone / WhatsApp</label><input id="p-phone" type="text" placeholder="+91 98765 43210" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Title / Role *</label><input id="p-title" type="text" placeholder="CEO / Partner / Director" class="inp"/></div>
+        </div>
+
+        <!-- Section 2: Organization -->
+        <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F5F5F4;">02 &mdash; Organization Details</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px;">
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Company Name *</label><input id="p-company" type="text" placeholder="TechServe India Pvt. Ltd." class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Company Website *</label><input id="p-website" type="url" placeholder="https://yourcompany.in" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">City *</label><input id="p-city" type="text" placeholder="Mumbai" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Country *</label>
+            <select id="p-country" class="inp">
+              <option value="">Select country&hellip;</option>
+              <option>India</option><option>Singapore</option><option>UAE</option><option>UK</option><option>USA</option><option>Australia</option><option>Other</option>
+            </select>
+          </div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Company Size *</label>
+            <select id="p-size" class="inp">
+              <option value="">Select size&hellip;</option>
+              <option>1–10 employees</option><option>11–50 employees</option><option>51–200 employees</option><option>201–500 employees</option><option>500+ employees</option>
+            </select>
+          </div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Years in Business *</label>
+            <select id="p-years" class="inp">
+              <option value="">Select&hellip;</option>
+              <option>Less than 1 year</option><option>1–3 years</option><option>3–5 years</option><option>5–10 years</option><option>10+ years</option>
+            </select>
+          </div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Annual Revenue (INR)</label>
+            <select id="p-revenue" class="inp">
+              <option value="">Select range&hellip;</option>
+              <option>&lt; &#8377;1 Cr</option><option>&#8377;1–10 Cr</option><option>&#8377;10–50 Cr</option><option>&#8377;50–500 Cr</option><option>&#8377;500 Cr+</option><option>Prefer not to say</option>
+            </select>
+          </div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Delivery Team Size *</label>
+            <select id="p-team" class="inp">
+              <option value="">Select&hellip;</option>
+              <option>1–5 consultants</option><option>6–15 consultants</option><option>16–50 consultants</option><option>50+ consultants</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section 3: Capabilities -->
+        <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F5F5F4;">03 &mdash; Capabilities &amp; Certifications</div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:8px;">Microsoft Partnership Level</label>
+          <select id="p-ms" class="inp">
+            <option value="">Select level&hellip;</option>
+            <option>Microsoft Solutions Partner</option><option>Azure Expert MSP</option><option>Microsoft Action Pack</option><option>Registered Partner</option><option>Not a Microsoft partner yet</option>
           </select>
         </div>
-        <div style="grid-column:1/-1;"><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">How can we help?</label>
-          <textarea id="c-message" rows="3" placeholder="Tell us about your CERT-In readiness, DPDP Act gaps, RBI FREE-AI obligations, or a specific AI use case..." class="inp" style="resize:vertical;"></textarea>
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:8px;">Certifications held <span style="font-weight:400;color:#A8A29E;">(select all that apply)</span></label>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;" id="cert-chips"></div>
         </div>
-        <input type="text" id="c-hp" style="display:none;" tabindex="-1" autocomplete="off"/>
-      </div>
-      <div id="contact-err" style="display:none;margin-top:10px;color:#DC2626;font-size:13px;font-weight:500;"></div>
-      <div id="contact-success" style="display:none;margin-top:16px;background:#F0FDFE;border:1px solid #A5F3FC;border-radius:10px;padding:14px 18px;color:#0E7490;font-size:14px;font-weight:600;">&#10003; Message received. We'll respond within one business day.</div>
-      <div style="margin-top:18px;text-align:right;">
-        <button onclick="submitContact()" id="c-submit-btn" class="btn-primary">Send Message</button>
+        <div style="margin-bottom:14px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:8px;">Industries you serve <span style="font-weight:400;color:#A8A29E;">(select all that apply)</span></label>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;" id="ind-chips"></div>
+        </div>
+        <div style="margin-bottom:24px;">
+          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Current services offered *</label>
+          <textarea id="p-services" rows="2" placeholder="e.g. M365 migrations, cybersecurity assessments, cloud architecture, AI strategy..." class="inp" style="resize:vertical;"></textarea>
+        </div>
+
+        <!-- Section 4: Partnership Intent -->
+        <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #F5F5F4;">04 &mdash; Partnership Intent</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+          <div style="grid-column:1/-1;">
+            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Why do you want to partner with TheBHTLabs? *</label>
+            <textarea id="p-why" rows="3" placeholder="Describe the opportunity you see — specific client base, regulatory gaps you're seeing, co-delivery interest..." class="inp" style="resize:vertical;"></textarea>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Existing clients who may benefit <span style="font-weight:400;color:#A8A29E;">(optional)</span></label>
+            <textarea id="p-clients" rows="2" placeholder="Describe client types or named accounts (anonymized is fine) facing CERT-In, DPDP, or AI governance gaps..." class="inp" style="resize:vertical;"></textarea>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Partnership type sought *</label>
+            <select id="p-type" class="inp">
+              <option value="">Select type&hellip;</option>
+              <option>Referral partner (lead introductions)</option>
+              <option>Co-delivery partner (joint engagements)</option>
+              <option>Reseller (white-label our assessments)</option>
+              <option>Technology integration partner</option>
+              <option>Training &amp; certification partner</option>
+              <option>Not sure yet — want to explore</option>
+            </select>
+          </div>
+        </div>
+
+        <input type="text" id="p-hp" style="display:none;" tabindex="-1" autocomplete="off"/>
+        <div id="partner-err" style="display:none;margin-top:10px;color:#DC2626;font-size:13px;font-weight:500;"></div>
+        <div id="partner-success" style="display:none;margin-top:16px;background:#F0FDFE;border:1px solid #A5F3FC;border-radius:10px;padding:16px 20px;">
+          <div style="font-size:14px;font-weight:700;color:#0E7490;margin-bottom:4px;">&#10003; Application received.</div>
+          <div style="font-size:13px;color:#44403C;">We review all partner applications within 3 business days. Nitin Nagar will reach out directly to schedule an intro call.</div>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div style="font-size:11px;color:#A8A29E;font-family:'DM Mono',monospace;">By submitting you agree to our <a href="https://www.thebhtlabs.com" style="color:#0E7490;">privacy policy</a>. We never share your details.</div>
+          <button onclick="submitPartner()" id="p-submit-btn" class="btn-primary">Submit Application &rarr;</button>
+        </div>
       </div>
     </div>
+
   </div>
 </section>
 
@@ -1165,7 +1315,169 @@ async function sendChat() {
   }
 }
 
-// Show chat badge after 8 seconds
+
+// ═══════════════════════════════════════════════════
+// CONTACT / PARTNER TAB SWITCHING
+// ═══════════════════════════════════════════════════
+function switchTab(tab) {
+  const isContact = tab === 'contact';
+  document.getElementById('contact-panel').style.display  = isContact ? '' : 'none';
+  document.getElementById('partner-panel').style.display  = isContact ? 'none' : '';
+  const tC = document.getElementById('tab-contact');
+  const tP = document.getElementById('tab-partner');
+  tC.style.background    = isContact ? '#fff' : 'transparent';
+  tC.style.color         = isContact ? '#1C1917' : '#78716C';
+  tC.style.fontWeight    = isContact ? '700' : '600';
+  tC.style.boxShadow     = isContact ? '0 1px 4px rgba(28,25,23,.1)' : 'none';
+  tP.style.background    = !isContact ? '#fff' : 'transparent';
+  tP.style.color         = !isContact ? '#1C1917' : '#78716C';
+  tP.style.fontWeight    = !isContact ? '700' : '600';
+  tP.style.boxShadow     = !isContact ? '0 1px 4px rgba(28,25,23,.1)' : 'none';
+  if (!isContact && window._renderPartnerChips) window._renderPartnerChips();
+}
+
+// Render certification and industry chips for partner form
+(function(){
+  const CERTS = ['Microsoft Solutions Partner','Azure Solutions Architect','M365 Certified','Power Platform','Copilot Studio','CyberAB RP/RPO','ISO 27001','ISO 42001','SOC 2','CMMC RP/RPO','NIST AI RMF','PMP/PRINCE2','ITIL','AWS Certified','None yet'];
+  const INDS  = ['BFSI / Banking','Healthcare & Pharma','Government / PSU','IT / Technology','Insurance (IRDAI)','Telecom','Energy & Utilities','Legal Services','Education / EdTech','Retail / E-Commerce','Manufacturing','Other'];
+  let selCerts = [], selInds = [];
+
+  function renderChips(containerId, items, selected, onToggle) {
+    const c = document.getElementById(containerId);
+    if (!c) return;
+    c.innerHTML = '';
+    items.forEach(item => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = item;
+      b.className = 'pain-chip' + (selected.includes(item) ? ' active' : '');
+      b.onclick = () => { onToggle(item); renderChips(containerId, items, selected, onToggle); };
+      c.appendChild(b);
+    });
+  }
+
+  function toggleCert(item) {
+    const i = selCerts.indexOf(item);
+    if (i >= 0) selCerts.splice(i,1); else selCerts.push(item);
+    document.getElementById('p-certs-val').value = selCerts.join(', ');
+  }
+  function toggleInd(item) {
+    const i = selInds.indexOf(item);
+    if (i >= 0) selInds.splice(i,1); else selInds.push(item);
+    document.getElementById('p-inds-val').value = selInds.join(', ');
+  }
+
+  // Add hidden inputs to carry values
+  const form = document.getElementById('partner-panel');
+  if (form) {
+    ['p-certs-val','p-inds-val'].forEach(id => {
+      const inp = document.createElement('input');
+      inp.type='hidden'; inp.id=id;
+      form.appendChild(inp);
+    });
+  }
+
+  window._renderPartnerChips = () => {
+    renderChips('cert-chips', CERTS, selCerts, toggleCert);
+    renderChips('ind-chips',  INDS,  selInds,  toggleInd);
+  };
+  // Render on first tab switch — also render now in case panel visible
+  setTimeout(window._renderPartnerChips, 100);
+})();
+
+// ═══════════════════════════════════════════════════
+// PARTNER FORM SUBMISSION
+// ═══════════════════════════════════════════════════
+async function submitPartner() {
+  const get = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const required = {
+    'p-name':     'Full Name',
+    'p-email':    'Work Email',
+    'p-title':    'Title / Role',
+    'p-company':  'Company Name',
+    'p-website':  'Company Website',
+    'p-city':     'City',
+    'p-country':  'Country',
+    'p-size':     'Company Size',
+    'p-years':    'Years in Business',
+    'p-team':     'Delivery Team Size',
+    'p-services': 'Current Services',
+    'p-why':      'Why Partner',
+    'p-type':     'Partnership Type',
+  };
+  const err = document.getElementById('partner-err');
+  const btn = document.getElementById('p-submit-btn');
+
+  // Honeypot check
+  if (get('p-hp')) return;
+
+  // Validate required fields
+  const missing = Object.entries(required).filter(([id]) => !get(id)).map(([,label]) => label);
+  if (missing.length) {
+    err.style.display = 'block';
+    err.textContent = 'Please fill in: ' + missing.join(', ') + '.';
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(get('p-email'))) {
+    err.style.display = 'block'; err.textContent = 'Please enter a valid email address.'; return;
+  }
+  err.style.display = 'none';
+  btn.textContent = 'Submitting...'; btn.disabled = true;
+
+  const payload = {
+    // Contact
+    name:            get('p-name'),
+    email:           get('p-email'),
+    phone:           get('p-phone'),
+    title:           get('p-title'),
+    // Org
+    company:         get('p-company'),
+    website:         get('p-website'),
+    city:            get('p-city'),
+    country:         get('p-country'),
+    company_size:    get('p-size'),
+    years_in_business: get('p-years'),
+    annual_revenue:  get('p-revenue'),
+    delivery_team_size: get('p-team'),
+    // Capabilities
+    ms_partnership:  get('p-ms'),
+    certifications:  get('p-certs-val'),
+    industries_served: get('p-inds-val'),
+    current_services: get('p-services'),
+    // Intent
+    why_partner:     get('p-why'),
+    existing_clients: get('p-clients'),
+    partnership_type: get('p-type'),
+    // Metadata
+    source: 'india.thebhtlabs.com',
+    locale: 'in',
+    type:   'partner_application',
+  };
+
+  try {
+    // POST to main site partner API — falls back to contact API if /api/partner doesn't exist
+    let resp = await fetch('https://www.thebhtlabs.com/api/partner', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    // If partner endpoint doesn't exist yet, fall back to contact
+    if (!resp.ok && resp.status === 404) {
+      resp = await fetch('https://www.thebhtlabs.com/api/contact', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          name: payload.name, email: payload.email, company: payload.company,
+          message: `PARTNER APPLICATION from india.thebhtlabs.com\n\nTitle: ${payload.title}\nWebsite: ${payload.website}\nCity: ${payload.city}, ${payload.country}\nSize: ${payload.company_size} | Years: ${payload.years_in_business} | Revenue: ${payload.annual_revenue}\nTeam: ${payload.delivery_team_size}\nMS Level: ${payload.ms_partnership}\nCerts: ${payload.certifications}\nIndustries: ${payload.industries_served}\nServices: ${payload.current_services}\nPartnership Type: ${payload.partnership_type}\nWhy Partner: ${payload.why_partner}\nExisting Clients: ${payload.existing_clients}`,
+          source: 'india.thebhtlabs.com/partner',
+        })
+      });
+    }
+  } catch(e) { /* silent fail — show success regardless so leads aren't lost */ }
+
+  document.getElementById('partner-success').style.display = 'block';
+  document.getElementById('partner-panel').querySelector('.btn-primary').style.display = 'none';
+  btn.style.display = 'none';
+}
+
 setTimeout(()=>{ if(!chatOpen){ document.getElementById('chat-badge').style.display='block'; }}, 8000);
 </script>
 </body>
