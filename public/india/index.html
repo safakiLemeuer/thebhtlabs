@@ -6,12 +6,11 @@
 <title>India AI Readiness Assessment | TheBHTLabs</title>
 <meta name="description" content="35-point AI readiness assessment mapped to CERT-In, DPDP Act 2023, MeitY AI Guidelines Nov 2025, RBI FREE-AI Aug 2025, and NCIIPC. Free. Results in 5 minutes."/>
 <link rel="canonical" href="https://india.thebhtlabs.com"/>
-<meta property="og:title" content="India AI Readiness Assessment | TheBHTLabs"/>
-<meta property="og:description" content="Is your organization India AI-ready? Scored against CERT-In, DPDP Act 2023, MeitY AI Guidelines Nov 2025, and RBI FREE-AI."/>
-<meta property="og:url" content="https://india.thebhtlabs.com"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<!-- jsPDF for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -20,13 +19,34 @@ body{background:#FFFFFF;color:#1C1917;font-family:'Poppins',sans-serif;line-heig
 ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#F8FAFC}::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:2px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes spin{to{transform:rotate(360deg)}}
 .fade-up{animation:fadeUp .5s ease forwards}
 a{text-decoration:none;color:inherit}
-input,select,textarea{font-family:'Poppins',sans-serif}
+input,select,textarea,button{font-family:'Poppins',sans-serif}
 @media(max-width:900px){.g3{grid-template-columns:1fr 1fr!important}.g2{grid-template-columns:1fr!important}}
-@media(max-width:600px){.g3{grid-template-columns:1fr!important}.snav{display:none!important}.hero-title{font-size:32px!important}.hide-mobile{display:none!important}}
+@media(max-width:600px){.g3{grid-template-columns:1fr!important}.snav{display:none!important}.hero-title{font-size:32px!important}}
+
+/* Chat widget */
+#chat-bubble{position:fixed;bottom:24px;right:24px;z-index:9000;cursor:pointer;
+  width:56px;height:56px;border-radius:50%;background:#0E7490;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(14,116,144,.45);transition:all .2s;}
+#chat-bubble:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(14,116,144,.55);}
+#chat-window{position:fixed;bottom:92px;right:24px;z-index:9000;
+  width:360px;max-height:520px;background:#fff;
+  border-radius:20px;border:1px solid #E7E5E4;
+  box-shadow:0 12px 48px rgba(28,25,23,.15);
+  display:none;flex-direction:column;overflow:hidden;}
+#chat-window.open{display:flex;}
+#chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.msg-bot,.msg-user{max-width:82%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.5;}
+.msg-bot{background:#F0FDFE;color:#1C1917;align-self:flex-start;border-bottom-left-radius:4px;}
+.msg-user{background:#0E7490;color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+.msg-typing{display:flex;gap:4px;padding:10px 14px;background:#F0FDFE;border-radius:14px;align-self:flex-start;width:52px;}
+.msg-typing span{width:6px;height:6px;background:#0E7490;border-radius:50%;animation:bounce .9s infinite;}
+.msg-typing span:nth-child(2){animation-delay:.2s;}
+.msg-typing span:nth-child(3){animation-delay:.4s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 </style>
 </head>
 <body>
@@ -34,35 +54,35 @@ input,select,textarea{font-family:'Poppins',sans-serif}
 <!-- NAV -->
 <nav id="nav" style="position:fixed;top:0;left:0;right:0;z-index:999;background:#fff;border-bottom:1px solid transparent;transition:all .3s ease;">
   <div style="max-width:1200px;margin:0 auto;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;">
-    <!-- Logo -->
-    <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <div style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="navScrollTop()">
       <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
-        <defs><linearGradient id="lg" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#0E7490"/><stop offset="100%" stop-color="#155E75"/></linearGradient></defs>
-        <path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill="url(#lg)"/>
+        <defs><linearGradient id="navGrad" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#0E7490"/><stop offset="100%" stop-color="#155E75"/></linearGradient></defs>
+        <path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill="url(#navGrad)"/>
         <text x="18" y="23" text-anchor="middle" fill="#fff" font-family="'DM Mono',monospace" font-weight="800" font-size="18">&#955;</text>
       </svg>
       <div>
-        <div style="font-weight:800;font-size:17px;color:#1C1917;">TheBHT<span style="color:#0E7490">Labs</span> <span style="font-size:11px;color:#FF9933;font-family:'DM Mono',monospace;font-weight:600;">&#127470;&#127475; India</span></div>
+        <div style="font-weight:800;font-size:17px;color:#1C1917;">TheBHT<span style="color:#0E7490">Labs</span> <span style="font-size:11px;color:#FF9933;font-family:'DM Mono',monospace;font-weight:600;">IN India</span></div>
         <a href="https://www.bhtsolutions.com" target="_blank" style="display:block;font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;letter-spacing:1px;">SKUNKWORKS &middot; BHT SOLUTIONS</a>
       </div>
     </div>
-    <!-- Nav links -->
     <div class="snav" style="display:flex;gap:2px;">
-      <button onclick="scrollTo('assess')" style="padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif;border:none;background:transparent;color:#78716C;transition:all .15s;" onmouseover="this.style.background='#F5F5F4';this.style.color='#1C1917'" onmouseout="this.style.background='transparent';this.style.color='#78716C'">Assessment</button>
-      <button onclick="scrollTo('frameworks')" style="padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif;border:none;background:transparent;color:#78716C;transition:all .15s;" onmouseover="this.style.background='#F5F5F4';this.style.color='#1C1917'" onmouseout="this.style.background='transparent';this.style.color='#78716C'">Frameworks</button>
-      <button onclick="scrollTo('packages')" style="padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif;border:none;background:transparent;color:#78716C;transition:all .15s;" onmouseover="this.style.background='#F5F5F4';this.style.color='#1C1917'" onmouseout="this.style.background='transparent';this.style.color='#78716C'">Packages</button>
-      <button onclick="scrollTo('contact')" style="padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;font-family:'Poppins',sans-serif;border:none;background:transparent;color:#78716C;transition:all .15s;" onmouseover="this.style.background='#F5F5F4';this.style.color='#1C1917'" onmouseout="this.style.background='transparent';this.style.color='#78716C'">Work With Us</button>
+      <button onclick="navTo('assess')"     class="navbtn">Assessment</button>
+      <button onclick="navTo('frameworks')" class="navbtn">Frameworks</button>
+      <button onclick="navTo('packages')"   class="navbtn">Packages</button>
+      <button onclick="navTo('contact')"    class="navbtn">Work With Us</button>
     </div>
-    <button onclick="scrollTo('assess')" style="padding:10px 22px;background:#0E7490;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;box-shadow:0 2px 12px rgba(14,116,144,.3);transition:all .2s;" onmouseover="this.style.background='#155E75'" onmouseout="this.style.background='#0E7490'">Free Assessment</button>
+    <button onclick="navTo('assess')" style="padding:10px 22px;background:#0E7490;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 2px 12px rgba(14,116,144,.3);transition:all .2s;" onmouseover="this.style.background='#155E75'" onmouseout="this.style.background='#0E7490'">Free Assessment</button>
   </div>
 </nav>
+<style>
+.navbtn{padding:7px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;border:none;background:transparent;color:#78716C;transition:all .15s;}
+.navbtn:hover{background:#F5F5F4;color:#1C1917;}
+</style>
 
 <!-- HERO -->
 <header style="padding:120px 24px 72px;background:linear-gradient(160deg,#fff 0%,#FAFAF9 60%,#F0FDFE 100%);border-bottom:1px solid #E7E5E4;position:relative;overflow:hidden;">
-  <!-- India flag accent strip -->
   <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#FF9933 0%,#FF9933 33.3%,#fff 33.3%,#fff 66.6%,#138808 66.6%,#138808 100%);"></div>
   <div style="max-width:900px;margin:0 auto;text-align:center;">
-    <!-- Badge -->
     <div style="display:inline-flex;align-items:center;gap:7px;background:#F0FDFE;border:1px solid #A5F3FC;padding:5px 16px;border-radius:100px;font-size:11px;color:#0E7490;font-family:'DM Mono',monospace;letter-spacing:.06em;margin-bottom:24px;">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0E7490" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       India AI Regulatory Framework &middot; Free Assessment
@@ -74,34 +94,17 @@ input,select,textarea{font-family:'Poppins',sans-serif}
       35 questions across 7 domains. Scored against <strong>CERT-In Directions 2022</strong>, <strong>DPDP Act 2023</strong>, <strong>MeitY AI Guidelines Nov 2025</strong>, <strong>RBI FREE-AI Aug 2025</strong>, and NCIIPC — with sector-specific benchmarks in INR.
     </p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;">
-      <button onclick="startAssessment()" style="padding:15px 36px;background:#0E7490;color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;font-family:'Poppins',sans-serif;box-shadow:0 4px 20px rgba(14,116,144,.35);transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 24px rgba(14,116,144,.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(14,116,144,.35)'">
-        Start Free Assessment &rarr;
-      </button>
-      <button onclick="scrollTo('frameworks')" style="padding:15px 28px;background:#fff;color:#1C1917;border:1.5px solid #E7E5E4;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;font-family:'Poppins',sans-serif;transition:all .2s;" onmouseover="this.style.borderColor='#0E7490';this.style.color='#0E7490'" onmouseout="this.style.borderColor='#E7E5E4';this.style.color='#1C1917'">
-        View Frameworks
-      </button>
+      <button onclick="startAssessment()" style="padding:15px 36px;background:#0E7490;color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:15px;font-weight:700;box-shadow:0 4px 20px rgba(14,116,144,.35);transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">Start Free Assessment &rarr;</button>
+      <button onclick="navTo('frameworks')" style="padding:15px 28px;background:#fff;color:#1C1917;border:1.5px solid #E7E5E4;border-radius:12px;cursor:pointer;font-size:15px;font-weight:600;transition:all .2s;" onmouseover="this.style.borderColor='#0E7490';this.style.color='#0E7490'" onmouseout="this.style.borderColor='#E7E5E4';this.style.color='#1C1917'">View Frameworks</button>
     </div>
-    <!-- Stats row -->
     <div style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap;">
-      <div style="text-align:center;">
-        <div style="font-size:28px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;">35</div>
-        <div style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">Questions</div>
-      </div>
+      <div style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;">35</div><div style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">Questions</div></div>
       <div style="width:1px;background:#E7E5E4;"></div>
-      <div style="text-align:center;">
-        <div style="font-size:28px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;">7</div>
-        <div style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">Domains</div>
-      </div>
+      <div style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;">7</div><div style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">Domains</div></div>
       <div style="width:1px;background:#E7E5E4;"></div>
-      <div style="text-align:center;">
-        <div style="font-size:28px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;">8</div>
-        <div style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">Frameworks</div>
-      </div>
+      <div style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;">8</div><div style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">Frameworks</div></div>
       <div style="width:1px;background:#E7E5E4;"></div>
-      <div style="text-align:center;">
-        <div style="font-size:28px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;">5 min</div>
-        <div style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">To complete</div>
-      </div>
+      <div style="text-align:center;"><div style="font-size:28px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;">5 min</div><div style="font-size:11px;color:#78716C;text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;">To Complete</div></div>
     </div>
   </div>
 </header>
@@ -121,7 +124,7 @@ input,select,textarea{font-family:'Poppins',sans-serif}
   </div>
 </section>
 
-<!-- FRAMEWORKS SECTION -->
+<!-- FRAMEWORKS -->
 <section id="frameworks" style="padding:80px 0;background:#fff;">
   <div style="max-width:1100px;margin:0 auto;padding:0 24px;">
     <div style="margin-bottom:48px;text-align:center;">
@@ -139,13 +142,13 @@ input,select,textarea{font-family:'Poppins',sans-serif}
       <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:16px;padding:24px;border-top:3px solid #FF9933;">
         <div style="font-size:11px;font-family:'DM Mono',monospace;color:#EA580C;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Data Protection</div>
         <div style="font-size:16px;font-weight:700;color:#1C1917;margin-bottom:8px;">DPDP Act 2023 + Rules 2025</div>
-        <div style="font-size:13px;color:#78716C;line-height:1.6;">Consent management, Data Principal rights (erasure, correction), breach notification to Data Protection Board. Penalties up to &#8377;250 crore. Rules notified Nov 2025.</div>
+        <div style="font-size:13px;color:#78716C;line-height:1.6;">Consent management, Data Principal rights, breach notification to Data Protection Board. Penalties up to &#8377;250 crore. Rules notified Nov 2025.</div>
         <div style="margin-top:12px;font-size:10px;font-family:'DM Mono',monospace;color:#A8A29E;">DPDP Act &sect;6, &sect;8, &sect;12&ndash;14, &sect;25 &bull; DPDP Rules 2025</div>
       </div>
       <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:16px;padding:24px;border-top:3px solid #138808;">
         <div style="font-size:11px;font-family:'DM Mono',monospace;color:#138808;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">AI Governance</div>
         <div style="font-size:16px;font-weight:700;color:#1C1917;margin-bottom:8px;">MeitY AI Guidelines Nov 2025</div>
-        <div style="font-size:13px;color:#78716C;line-height:1.6;">Seven sutras: Trust, People First, Fairness &amp; Equity, Accountability, Understandable by Design, Safety &amp; Resilience, Innovation over Restraint. Non-binding but sector-referenced.</div>
+        <div style="font-size:13px;color:#78716C;line-height:1.6;">Seven sutras: Trust, People First, Fairness &amp; Equity, Accountability, Understandable by Design, Safety &amp; Resilience, Innovation over Restraint.</div>
         <div style="margin-top:12px;font-size:10px;font-family:'DM Mono',monospace;color:#A8A29E;">MeitY AI Governance Guidelines &bull; IndiaAI Mission</div>
       </div>
       <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:16px;padding:24px;border-top:3px solid #7C3AED;">
@@ -157,20 +160,19 @@ input,select,textarea{font-family:'Poppins',sans-serif}
       <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:16px;padding:24px;border-top:3px solid #DC2626;">
         <div style="font-size:11px;font-family:'DM Mono',monospace;color:#DC2626;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Critical Infrastructure</div>
         <div style="font-size:16px;font-weight:700;color:#1C1917;margin-bottom:8px;">NCIIPC Guidelines</div>
-        <div style="font-size:13px;color:#78716C;line-height:1.6;">Protection of Critical Information Infrastructure. Applies to power, telecom, banking, transport, government, and strategic sectors. Mandatory reporting to NCIIPC.</div>
+        <div style="font-size:13px;color:#78716C;line-height:1.6;">Protection of Critical Information Infrastructure. Power, telecom, banking, transport, government, and strategic sectors. Mandatory reporting to NCIIPC.</div>
         <div style="margin-top:12px;font-size:10px;font-family:'DM Mono',monospace;color:#A8A29E;">IT Act &sect;70A &bull; NCIIPC Sector Guidelines</div>
       </div>
       <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:16px;padding:24px;border-top:3px solid #0369A1;">
         <div style="font-size:11px;font-family:'DM Mono',monospace;color:#0369A1;font-weight:600;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Synthetic Content</div>
         <div style="font-size:16px;font-weight:700;color:#1C1917;margin-bottom:8px;">IT (SGI) Rules Feb 2026</div>
-        <div style="font-size:13px;color:#78716C;line-height:1.6;">Synthetically Generated Information obligations: detection, labeling, traceability for AI-generated text, images, audio, and video. Applies to platforms and deployers.</div>
+        <div style="font-size:13px;color:#78716C;line-height:1.6;">Synthetically Generated Information: detection, labeling, traceability for AI-generated text, images, audio, and video. Applies to platforms and deployers.</div>
         <div style="margin-top:12px;font-size:10px;font-family:'DM Mono',monospace;color:#A8A29E;">IT (Intermediary) Amendment Rules 2026 &bull; MeitY</div>
       </div>
     </div>
-    <!-- Sector regulators row -->
     <div style="margin-top:20px;background:#FAFAF9;border:1px solid #E7E5E4;border-radius:16px;padding:20px 24px;">
       <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#78716C;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;">Sector-Specific Regulators Also Covered</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
         <span style="background:#fff;border:1px solid #E7E5E4;padding:5px 12px;border-radius:6px;font-size:12px;color:#44403C;font-family:'DM Mono',monospace;">SEBI Cybersecurity Circular</span>
         <span style="background:#fff;border:1px solid #E7E5E4;padding:5px 12px;border-radius:6px;font-size:12px;color:#44403C;font-family:'DM Mono',monospace;">IRDAI Information Security</span>
         <span style="background:#fff;border:1px solid #E7E5E4;padding:5px 12px;border-radius:6px;font-size:12px;color:#44403C;font-family:'DM Mono',monospace;">TRAI AI Guidelines</span>
@@ -184,106 +186,68 @@ input,select,textarea{font-family:'Poppins',sans-serif}
   </div>
 </section>
 
-<!-- ASSESSMENT SECTION -->
+<!-- ASSESSMENT -->
 <section id="assess" style="padding:80px 0;background:#FAFAF9;border-top:1px solid #E7E5E4;">
   <div style="max-width:860px;margin:0 auto;padding:0 24px;">
-    <div id="assess-landing" style="">
+
+    <!-- LANDING -->
+    <div id="assess-landing">
       <div style="margin-bottom:40px;text-align:center;">
         <div style="display:inline-block;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.1em;background:#F0FDFE;border:1px solid #A5F3FC;padding:4px 14px;border-radius:100px;margin-bottom:12px;">Free &middot; 35 Questions &middot; 5 Minutes</div>
         <h2 style="font-size:clamp(24px,3.5vw,38px);font-weight:800;color:#1C1917;letter-spacing:-.02em;margin-bottom:12px;">India AI Readiness Assessment</h2>
-        <p style="font-size:15px;color:#78716C;max-width:520px;margin:0 auto;">Answer 35 yes/partial/no questions. Get a scored report with gaps mapped to specific Indian statutes and a recommended engagement path — in Indian Rupees.</p>
+        <p style="font-size:15px;color:#78716C;max-width:520px;margin:0 auto;">Answer 35 yes/partial/no questions. Get a scored report with gaps mapped to specific Indian statutes — downloadable as PDF.</p>
       </div>
-      <!-- Domain cards -->
       <div class="g3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:36px;">
         <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(28,25,23,.05);">
-          <div style="width:36px;height:36px;background:#F0FDFE;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E7490" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Data &amp; DPDP</div>
-          <div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
+          <div style="width:36px;height:36px;background:#F0FDFE;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E7490" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg></div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Data &amp; DPDP</div><div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
         </div>
         <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(28,25,23,.05);">
-          <div style="width:36px;height:36px;background:#FFF7ED;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 8.5h4.5a2 2 0 012 2V14"/><path d="M14 8.5l-2-2m2 2l-2 2"/></svg>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Process Maturity</div>
-          <div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
+          <div style="width:36px;height:36px;background:#FFF7ED;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 8.5h4.5a2 2 0 012 2V14"/><path d="M14 8.5l-2-2m2 2l-2 2"/></svg></div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Process Maturity</div><div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
         </div>
         <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(28,25,23,.05);">
-          <div style="width:36px;height:36px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="#2563EB"/><circle cx="6" cy="18" r="1" fill="#2563EB"/></svg>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Tech Readiness</div>
-          <div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
+          <div style="width:36px;height:36px;background:#EFF6FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><circle cx="6" cy="6" r="1" fill="#2563EB"/><circle cx="6" cy="18" r="1" fill="#2563EB"/></svg></div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Tech Readiness</div><div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
         </div>
         <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(28,25,23,.05);">
-          <div style="width:36px;height:36px;background:#F5F3FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">People &amp; Culture</div>
-          <div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
+          <div style="width:36px;height:36px;background:#F5F3FF;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">People &amp; Culture</div><div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
         </div>
         <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(28,25,23,.05);">
-          <div style="width:36px;height:36px;background:#FFF7ED;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Strategy &amp; ROI</div>
-          <div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
+          <div style="width:36px;height:36px;background:#FFF7ED;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Strategy &amp; ROI</div><div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
         </div>
         <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;text-align:center;box-shadow:0 1px 3px rgba(28,25,23,.05);">
-          <div style="width:36px;height:36px;background:#FEF2F2;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Governance</div>
-          <div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
+          <div style="width:36px;height:36px;background:#FEF2F2;border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <div style="font-size:12px;font-weight:700;color:#1C1917;margin-bottom:3px;">Governance</div><div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;">5 questions</div>
         </div>
       </div>
-      <!-- Use Case domain — full width -->
       <div style="background:#fff;border:1px solid #E7E5E4;border-radius:14px;padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:36px;box-shadow:0 1px 3px rgba(28,25,23,.05);">
-        <div style="width:36px;height:36px;background:#F0FDFE;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E7490" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-        </div>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:#1C1917;">Use Case Clarity</div>
-          <div style="font-size:12px;color:#78716C;">5 questions &mdash; DPIA readiness, RBI FREE-AI pillar assessment, IT (SGI) Rules 2026 compliance, decommissioning process</div>
-        </div>
+        <div style="width:36px;height:36px;background:#F0FDFE;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0E7490" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+        <div><div style="font-size:13px;font-weight:700;color:#1C1917;">Use Case Clarity</div><div style="font-size:12px;color:#78716C;">5 questions &mdash; DPIA readiness, RBI FREE-AI pillar assessment, IT (SGI) Rules 2026, decommissioning process</div></div>
       </div>
       <div style="text-align:center;">
-        <button onclick="startAssessment()" style="padding:16px 48px;background:#0E7490;color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700;font-family:'Poppins',sans-serif;box-shadow:0 4px 20px rgba(14,116,144,.35);transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 24px rgba(14,116,144,.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 20px rgba(14,116,144,.35)'">
-          Begin Assessment &rarr;
-        </button>
-        <div style="margin-top:10px;font-size:12px;color:#A8A29E;font-family:'DM Mono',monospace;">Free &middot; No login &middot; Results in 5 minutes</div>
+        <button onclick="startAssessment()" style="padding:16px 48px;background:#0E7490;color:#fff;border:none;border-radius:12px;cursor:pointer;font-size:16px;font-weight:700;box-shadow:0 4px 20px rgba(14,116,144,.35);transition:all .2s;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">Begin Assessment &rarr;</button>
+        <div style="margin-top:10px;font-size:12px;color:#A8A29E;font-family:'DM Mono',monospace;">Free &middot; No login &middot; PDF report included</div>
       </div>
     </div>
 
-    <!-- INTAKE FORM -->
+    <!-- INTAKE -->
     <div id="assess-intake" style="display:none;">
       <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:36px;box-shadow:0 4px 16px rgba(28,25,23,.07);">
         <div style="margin-bottom:28px;">
           <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Step 1 of 2 &mdash; About Your Organization</div>
           <h3 style="font-size:22px;font-weight:800;color:#1C1917;">Before we start</h3>
-          <p style="font-size:14px;color:#78716C;margin-top:4px;">We use this to benchmark your score against your sector average and calculate India-specific engagement pricing in INR.</p>
+          <p style="font-size:14px;color:#78716C;margin-top:4px;">Used to benchmark your score against your sector average and calculate India-specific engagement pricing in INR.</p>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-          <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Full Name *</label>
-            <input id="i-name" type="text" placeholder="Priya Sharma" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'"/>
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Work Email *</label>
-            <input id="i-email" type="email" placeholder="priya@company.com" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'"/>
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Title / Role</label>
-            <input id="i-title" type="text" placeholder="CISO / CTO / DPO" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'"/>
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Organization *</label>
-            <input id="i-company" type="text" placeholder="Infosys Ltd." style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'"/>
-          </div>
-          <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Sector *</label>
-            <select id="i-industry" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;background:#fff;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'">
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Full Name *</label><input id="i-name" type="text" placeholder="Priya Sharma" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Work Email *</label><input id="i-email" type="email" placeholder="priya@company.com" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Title / Role</label><input id="i-title" type="text" placeholder="CISO / CTO / DPO" class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Organization *</label><input id="i-company" type="text" placeholder="Infosys Ltd." class="inp"/></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Sector *</label>
+            <select id="i-industry" class="inp">
               <option value="">Select sector&hellip;</option>
               <option value="financial">Banking &amp; Financial Services (BFSI)</option>
               <option value="technology">IT / Technology Services</option>
@@ -299,67 +263,52 @@ input,select,textarea{font-family:'Poppins',sans-serif}
               <option value="other">Other</option>
             </select>
           </div>
-          <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Employees</label>
-            <select id="i-employees" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;background:#fff;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'">
+          <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Employees</label>
+            <select id="i-employees" class="inp">
               <option value="">Select range&hellip;</option>
-              <option>1&ndash;10</option><option>11&ndash;50</option><option>51&ndash;200</option><option>201&ndash;500</option><option>501&ndash;1,000</option><option>1,001&ndash;5,000</option><option>5,001&ndash;10,000</option><option>10,000+</option>
+              <option>1-10</option><option>11-50</option><option>51-200</option><option>201-500</option><option>501-1,000</option><option>1,001-5,000</option><option>5,001-10,000</option><option>10,000+</option>
             </select>
           </div>
-          <div style="grid-column:1/-1;">
-            <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Annual Revenue (INR)</label>
-            <select id="i-revenue" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;background:#fff;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'">
+          <div style="grid-column:1/-1;"><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Annual Revenue (INR)</label>
+            <select id="i-revenue" class="inp">
               <option value="">Select range&hellip;</option>
-              <option>&lt; &#8377;1 Cr</option><option>&#8377;1 Cr &ndash; &#8377;10 Cr</option><option>&#8377;10 Cr &ndash; &#8377;50 Cr</option><option>&#8377;50 Cr &ndash; &#8377;500 Cr</option><option>&#8377;500 Cr &ndash; &#8377;5,000 Cr</option><option>&#8377;5,000 Cr+</option><option>Prefer not to say</option>
+              <option>&lt; &#8377;1 Cr</option><option>&#8377;1 Cr - &#8377;10 Cr</option><option>&#8377;10 Cr - &#8377;50 Cr</option><option>&#8377;50 Cr - &#8377;500 Cr</option><option>&#8377;500 Cr - &#8377;5,000 Cr</option><option>&#8377;5,000 Cr+</option><option>Prefer not to say</option>
             </select>
           </div>
           <div style="grid-column:1/-1;">
             <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:8px;">Top compliance concerns <span style="font-weight:400;color:#A8A29E;">(select up to 3)</span></label>
-            <div style="display:flex;flex-wrap:wrap;gap:7px;" id="pains-container">
-            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:7px;" id="pains-container"></div>
           </div>
         </div>
         <div id="intake-err" style="display:none;margin-top:12px;color:#DC2626;font-size:13px;font-weight:500;"></div>
         <div style="margin-top:24px;display:flex;gap:12px;justify-content:flex-end;">
-          <button onclick="showLanding()" style="padding:11px 22px;border:1.5px solid #E7E5E4;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;font-family:'Poppins',sans-serif;background:#fff;color:#78716C;transition:all .2s;" onmouseover="this.style.borderColor='#1C1917'" onmouseout="this.style.borderColor='#E7E5E4'">Back</button>
-          <button onclick="startQuestions()" style="padding:11px 28px;background:#0E7490;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Poppins',sans-serif;box-shadow:0 2px 10px rgba(14,116,144,.3);transition:all .2s;" onmouseover="this.style.background='#155E75'" onmouseout="this.style.background='#0E7490'">Begin Questions &rarr;</button>
+          <button onclick="showLanding()" class="btn-ghost">Back</button>
+          <button onclick="startQuestions()" class="btn-primary">Begin Questions &rarr;</button>
         </div>
       </div>
     </div>
 
     <!-- QUESTIONS -->
     <div id="assess-questions" style="display:none;">
-      <!-- Progress bar -->
       <div style="margin-bottom:24px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
           <span id="q-domain-label" style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.08em;"></span>
           <span id="q-counter" style="font-size:12px;color:#A8A29E;font-family:'DM Mono',monospace;"></span>
         </div>
-        <div style="height:4px;background:#E7E5E4;border-radius:2px;overflow:hidden;">
-          <div id="q-progress" style="height:100%;background:#0E7490;border-radius:2px;transition:width .4s ease;width:0%;"></div>
-        </div>
-        <!-- Domain pills -->
+        <div style="height:4px;background:#E7E5E4;border-radius:2px;overflow:hidden;"><div id="q-progress" style="height:100%;background:#0E7490;border-radius:2px;transition:width .4s ease;width:0%;"></div></div>
         <div style="display:flex;gap:4px;margin-top:10px;flex-wrap:wrap;" id="domain-pills"></div>
       </div>
-      <!-- Question card -->
       <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:36px;box-shadow:0 4px 16px rgba(28,25,23,.07);min-height:260px;">
         <div id="q-cite" style="font-size:10px;font-family:'DM Mono',monospace;color:#A8A29E;margin-bottom:12px;"></div>
         <h3 id="q-text" style="font-size:17px;font-weight:700;color:#1C1917;line-height:1.5;margin-bottom:28px;"></h3>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button id="btn-yes" onclick="answer('yes')" style="flex:1;min-width:100px;padding:14px 20px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Poppins',sans-serif;border:1.5px solid #E7E5E4;background:#fff;color:#1C1917;transition:all .2s;" onmouseover="this.style.borderColor='#0E7490';this.style.color='#0E7490'" onmouseout="resetBtnStyle('btn-yes')">
-            &#10003; Yes, fully
-          </button>
-          <button id="btn-partial" onclick="answer('partial')" style="flex:1;min-width:100px;padding:14px 20px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Poppins',sans-serif;border:1.5px solid #E7E5E4;background:#fff;color:#1C1917;transition:all .2s;" onmouseover="this.style.borderColor='#EA580C';this.style.color='#EA580C'" onmouseout="resetBtnStyle('btn-partial')">
-            &#9679; Partially
-          </button>
-          <button id="btn-no" onclick="answer('no')" style="flex:1;min-width:100px;padding:14px 20px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Poppins',sans-serif;border:1.5px solid #E7E5E4;background:#fff;color:#1C1917;transition:all .2s;" onmouseover="this.style.borderColor='#DC2626';this.style.color='#DC2626'" onmouseout="resetBtnStyle('btn-no')">
-            &#10007; Not yet
-          </button>
+          <button id="btn-yes"     onclick="giveAnswer('yes')"     class="ans-btn">&#10003; Yes, fully</button>
+          <button id="btn-partial" onclick="giveAnswer('partial')" class="ans-btn">&#9679; Partially</button>
+          <button id="btn-no"      onclick="giveAnswer('no')"      class="ans-btn">&#10007; Not yet</button>
         </div>
       </div>
-      <div style="display:flex;justify-content:space-between;margin-top:14px;">
-        <button id="q-back-btn" onclick="prevQ()" style="padding:9px 18px;border:1.5px solid #E7E5E4;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:'Poppins',sans-serif;background:#fff;color:#78716C;display:none;">&#8592; Back</button>
-        <div></div>
+      <div style="display:flex;justify-content:flex-start;margin-top:14px;">
+        <button id="q-back-btn" onclick="prevQ()" class="btn-ghost" style="display:none;">&#8592; Back</button>
       </div>
     </div>
 
@@ -368,7 +317,7 @@ input,select,textarea{font-family:'Poppins',sans-serif}
   </div>
 </section>
 
-<!-- PACKAGES SECTION -->
+<!-- PACKAGES -->
 <section id="packages" style="padding:80px 0;background:#fff;border-top:1px solid #E7E5E4;">
   <div style="max-width:1100px;margin:0 auto;padding:0 24px;">
     <div style="margin-bottom:48px;text-align:center;">
@@ -377,68 +326,59 @@ input,select,textarea{font-family:'Poppins',sans-serif}
       <p style="font-size:15px;color:#78716C;max-width:500px;margin:0 auto;">Three paths from assessment to AI-ready. Scoped to your organization, priced for the Indian market.</p>
     </div>
     <div class="g3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
-      <!-- Package 1 -->
-      <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:20px;padding:28px;position:relative;">
+      <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:20px;padding:28px;">
         <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">India AI Quick Scan</div>
         <div style="font-size:36px;font-weight:900;color:#1C1917;letter-spacing:-.02em;line-height:1;">&#8377;2,10,000</div>
         <div style="font-size:12px;color:#A8A29E;font-family:'DM Mono',monospace;margin-bottom:20px;">/10 hrs</div>
         <div style="font-size:13px;color:#44403C;line-height:1.7;margin-bottom:20px;">Automated tenant diagnostic on your systems, scored gap report mapped to CERT-In and DPDP Act requirements, executive briefing with priority recommendations.</div>
-        <div style="border-top:1px solid #E7E5E4;padding-top:16px;">
-          <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#78716C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Includes</div>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> CERT-In compliance gap analysis</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> DPDP Act 2023 readiness report</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> M365 / Azure tenant diagnostic</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> Executive briefing deck</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> 90-day remediation roadmap</div>
-          </div>
+        <div style="border-top:1px solid #E7E5E4;padding-top:16px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#78716C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Includes</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> CERT-In compliance gap analysis</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> DPDP Act 2023 readiness report</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> M365 / Azure tenant diagnostic</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> Executive briefing deck</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> 90-day remediation roadmap</div>
         </div>
-        <button onclick="scrollTo('contact')" style="margin-top:20px;width:100%;padding:12px;background:#fff;color:#0E7490;border:1.5px solid #0E7490;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;transition:all .2s;" onmouseover="this.style.background='#F0FDFE'" onmouseout="this.style.background='#fff'">Get Started</button>
+        <button onclick="navTo('contact')" class="btn-outline" style="margin-top:20px;width:100%;">Get Started</button>
       </div>
-      <!-- Package 2 — popular -->
       <div style="background:#fff;border:2px solid #0E7490;border-radius:20px;padding:28px;position:relative;box-shadow:0 8px 32px rgba(14,116,144,.15);">
         <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#0E7490;color:#fff;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;padding:3px 14px;border-radius:100px;letter-spacing:.06em;">MOST POPULAR</div>
         <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">India AI Readiness Sprint</div>
         <div style="font-size:36px;font-weight:900;color:#1C1917;letter-spacing:-.02em;line-height:1;">&#8377;5,50,000</div>
         <div style="font-size:12px;color:#A8A29E;font-family:'DM Mono',monospace;margin-bottom:20px;">/30 hrs</div>
         <div style="font-size:13px;color:#44403C;line-height:1.7;margin-bottom:20px;">Stakeholder interviews, M365/Azure diagnostic, CERT-In and DPDP compliance mapping, NCIIPC sector assessment, 90-day roadmap, India regulatory briefing.</div>
-        <div style="border-top:1px solid #E7E5E4;padding-top:16px;">
-          <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#78716C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Includes</div>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> Everything in Quick Scan</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> DPDP Act data mapping workshop</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> MeitY AI framework alignment</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> Sector regulator gap (RBI/SEBI/IRDAI)</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> IT (SGI) Rules 2026 obligations review</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> Board-ready governance deck</div>
-          </div>
+        <div style="border-top:1px solid #E7E5E4;padding-top:16px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#78716C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Includes</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> Everything in Quick Scan</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> DPDP Act data mapping workshop</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> MeitY AI framework alignment</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> Sector regulator gap (RBI/SEBI/IRDAI)</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> IT (SGI) Rules 2026 obligations review</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#0E7490;font-weight:700;">&#10003;</span> Board-ready governance deck</div>
         </div>
-        <button onclick="scrollTo('contact')" style="margin-top:20px;width:100%;padding:12px;background:#0E7490;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;box-shadow:0 2px 12px rgba(14,116,144,.3);transition:all .2s;" onmouseover="this.style.background='#155E75'" onmouseout="this.style.background='#0E7490'">Get Started</button>
+        <button onclick="navTo('contact')" class="btn-primary" style="margin-top:20px;width:100%;">Get Started</button>
       </div>
-      <!-- Package 3 -->
       <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:20px;padding:28px;">
         <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#7C3AED;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;">India AI Launchpad</div>
         <div style="font-size:36px;font-weight:900;color:#1C1917;letter-spacing:-.02em;line-height:1;">&#8377;9,00,000</div>
         <div style="font-size:12px;color:#A8A29E;font-family:'DM Mono',monospace;margin-bottom:20px;">/mo</div>
-        <div style="font-size:13px;color:#44403C;line-height:1.7;margin-bottom:20px;">Full managed AI operations: Copilot Studio agents, compliance automation, DPO advisory, monthly CERT-In readiness checks, staff training, and DPDP Act operationalization.</div>
-        <div style="border-top:1px solid #E7E5E4;padding-top:16px;">
-          <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#78716C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Includes</div>
-          <div style="display:flex;flex-direction:column;gap:6px;">
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Everything in Readiness Sprint</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Copilot Studio agent deployment</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Monthly CERT-In compliance checks</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> DPO advisory (DPDP Act operationalization)</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Staff training on India AI regulations</div>
-            <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Dedicated engagement manager</div>
-          </div>
+        <div style="font-size:13px;color:#44403C;line-height:1.7;margin-bottom:20px;">Full managed AI operations: Copilot Studio agents, compliance automation, DPO advisory, monthly CERT-In readiness, staff training, DPDP Act operationalization.</div>
+        <div style="border-top:1px solid #E7E5E4;padding-top:16px;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#78716C;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Includes</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Everything in Readiness Sprint</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Copilot Studio agent deployment</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Monthly CERT-In compliance checks</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> DPO advisory (DPDP Act)</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Staff training on India AI regulations</div>
+          <div style="font-size:12px;color:#44403C;display:flex;gap:7px;"><span style="color:#7C3AED;font-weight:700;">&#10003;</span> Dedicated engagement manager</div>
         </div>
-        <button onclick="scrollTo('contact')" style="margin-top:20px;width:100%;padding:12px;background:#fff;color:#7C3AED;border:1.5px solid #7C3AED;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:'Poppins',sans-serif;transition:all .2s;" onmouseover="this.style.background='#F5F3FF'" onmouseout="this.style.background='#fff'">Get Started</button>
+        <button onclick="navTo('contact')" style="margin-top:20px;width:100%;padding:12px;background:#fff;color:#7C3AED;border:1.5px solid #7C3AED;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;" onmouseover="this.style.background='#F5F3FF'" onmouseout="this.style.background='#fff'">Get Started</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CONTACT SECTION -->
+<!-- CONTACT -->
 <section id="contact" style="padding:80px 0;background:#FAFAF9;border-top:1px solid #E7E5E4;">
   <div style="max-width:700px;margin:0 auto;padding:0 24px;">
     <div style="margin-bottom:36px;text-align:center;">
@@ -447,37 +387,25 @@ input,select,textarea{font-family:'Poppins',sans-serif}
       <p style="font-size:15px;color:#78716C;">Tell us about your organization. We respond within one business day.</p>
     </div>
     <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:36px;box-shadow:0 4px 16px rgba(28,25,23,.07);">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" id="contact-form">
-        <div>
-          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Name *</label>
-          <input id="c-name" type="text" placeholder="Priya Sharma" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'"/>
-        </div>
-        <div>
-          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Email *</label>
-          <input id="c-email" type="email" placeholder="priya@company.com" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'"/>
-        </div>
-        <div>
-          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Organization *</label>
-          <input id="c-company" type="text" placeholder="Infosys Ltd." style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'"/>
-        </div>
-        <div>
-          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Sector</label>
-          <select id="c-sector" style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;background:#fff;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Name *</label><input id="c-name" type="text" placeholder="Priya Sharma" class="inp"/></div>
+        <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Email *</label><input id="c-email" type="email" placeholder="priya@company.com" class="inp"/></div>
+        <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Organization *</label><input id="c-company" type="text" placeholder="Infosys Ltd." class="inp"/></div>
+        <div><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">Sector</label>
+          <select id="c-sector" class="inp">
             <option value="">Select sector&hellip;</option>
             <option>BFSI</option><option>IT / Technology</option><option>Healthcare</option><option>Government / PSU</option><option>Insurance</option><option>Telecom</option><option>Energy</option><option>Legal</option><option>Education</option><option>Manufacturing</option><option>Other</option>
           </select>
         </div>
-        <div style="grid-column:1/-1;">
-          <label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">How can we help?</label>
-          <textarea id="c-message" rows="3" placeholder="Tell us about your AI compliance situation — CERT-In readiness, DPDP Act gaps, RBI FREE-AI assessment, or a specific use case you want to implement..." style="width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;resize:vertical;" onfocus="this.style.borderColor='#0E7490'" onblur="this.style.borderColor='#E7E5E4'"></textarea>
+        <div style="grid-column:1/-1;"><label style="display:block;font-size:12px;font-weight:600;color:#44403C;margin-bottom:5px;">How can we help?</label>
+          <textarea id="c-message" rows="3" placeholder="Tell us about your CERT-In readiness, DPDP Act gaps, RBI FREE-AI obligations, or a specific AI use case..." class="inp" style="resize:vertical;"></textarea>
         </div>
-        <!-- Honeypot -->
         <input type="text" id="c-hp" style="display:none;" tabindex="-1" autocomplete="off"/>
       </div>
       <div id="contact-err" style="display:none;margin-top:10px;color:#DC2626;font-size:13px;font-weight:500;"></div>
-      <div id="contact-success" style="display:none;margin-top:16px;background:#F0FDFE;border:1px solid #A5F3FC;border-radius:10px;padding:14px 18px;color:#0E7490;font-size:14px;font-weight:600;">&#10003; Message received. We'll respond within one business day at <span id="c-reply-email"></span>.</div>
+      <div id="contact-success" style="display:none;margin-top:16px;background:#F0FDFE;border:1px solid #A5F3FC;border-radius:10px;padding:14px 18px;color:#0E7490;font-size:14px;font-weight:600;">&#10003; Message received. We'll respond within one business day.</div>
       <div style="margin-top:18px;text-align:right;">
-        <button onclick="submitContact()" id="c-submit-btn" style="padding:13px 32px;background:#0E7490;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Poppins',sans-serif;box-shadow:0 2px 12px rgba(14,116,144,.3);transition:all .2s;" onmouseover="this.style.background='#155E75'" onmouseout="this.style.background='#0E7490'">Send Message</button>
+        <button onclick="submitContact()" id="c-submit-btn" class="btn-primary">Send Message</button>
       </div>
     </div>
   </div>
@@ -489,51 +417,75 @@ input,select,textarea{font-family:'Poppins',sans-serif}
     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:24px;margin-bottom:28px;">
       <div>
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:8px;">
-          <svg width="28" height="28" viewBox="0 0 36 36" fill="none"><defs><linearGradient id="flg" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#0E7490"/><stop offset="100%" stop-color="#155E75"/></linearGradient></defs><path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill="url(#flg)"/><text x="18" y="23" text-anchor="middle" fill="#fff" font-family="'DM Mono',monospace" font-weight="800" font-size="18">&#955;</text></svg>
+          <svg width="28" height="28" viewBox="0 0 36 36" fill="none"><defs><linearGradient id="ftGrad" x1="0" y1="0" x2="36" y2="36"><stop offset="0%" stop-color="#0E7490"/><stop offset="100%" stop-color="#155E75"/></linearGradient></defs><path d="M18 2L32 10V26L18 34L4 26V10L18 2Z" fill="url(#ftGrad)"/><text x="18" y="23" text-anchor="middle" fill="#fff" font-family="'DM Mono',monospace" font-weight="800" font-size="18">&#955;</text></svg>
           <span style="font-weight:800;font-size:16px;color:#F5F5F4;font-family:'Poppins',sans-serif;">TheBHT<span style="color:#0E7490">Labs</span> <span style="font-size:11px;color:#FF9933;">&#127470;&#127475; India</span></span>
         </div>
-        <div style="font-size:12px;line-height:1.7;">Bluebery Hawaii Technology Solutions LLC<br/>Cypress, TX 77433 &bull; india@bhtsolutions.com<br/><a href="https://www.thebhtlabs.com" style="color:#0E7490;">thebhtlabs.com</a> &bull; <a href="https://www.bhtsolutions.com" style="color:#0E7490;">bhtsolutions.com</a></div>
+        <div style="font-size:12px;line-height:1.8;">Bluebery Hawaii Technology Solutions LLC<br/>Cypress, TX 77433<br/>india@bhtsolutions.com<br/><a href="https://www.thebhtlabs.com" style="color:#0E7490;">thebhtlabs.com</a></div>
       </div>
       <div>
         <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;color:#78716C;margin-bottom:8px;">India Frameworks</div>
         <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;">
-          <span>CERT-In Directions 2022</span>
-          <span>DPDP Act 2023 + Rules 2025</span>
-          <span>MeitY AI Guidelines Nov 2025</span>
-          <span>RBI FREE-AI Aug 2025</span>
-          <span>IT (SGI) Rules Feb 2026</span>
-          <span>NCIIPC Guidelines</span>
+          <span>CERT-In Directions 2022</span><span>DPDP Act 2023 + Rules 2025</span><span>MeitY AI Guidelines Nov 2025</span><span>RBI FREE-AI Aug 2025</span><span>IT (SGI) Rules Feb 2026</span><span>NCIIPC Guidelines</span>
         </div>
       </div>
       <div>
         <div style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.1em;color:#78716C;margin-bottom:8px;">Credentials</div>
         <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;">
-          <span>SBA 8(a) Certified</span>
-          <span>EDWOSB / WOSB</span>
-          <span>CAGE: 7DBB9 &bull; UEI: ZW6GMVL368J6</span>
-          <span>Azure Solutions Architect</span>
-          <span>CyberAB Registered Practitioner</span>
+          <span>SBA 8(a) Certified</span><span>EDWOSB / WOSB</span><span>CAGE: 7DBB9</span><span>Azure Solutions Architect</span><span>CyberAB Registered Practitioner</span>
         </div>
       </div>
     </div>
     <div style="border-top:1px solid #292524;padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-      <div style="font-size:11px;font-family:'DM Mono',monospace;">&copy; 2025 Bluebery Hawaii Technology Solutions LLC &bull; All rights reserved</div>
-      <div style="font-size:11px;font-family:'DM Mono',monospace;color:#78716C;">Assessment results are informational only. Consult qualified legal and compliance counsel for DPDP Act and CERT-In obligations.</div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;">&copy; 2025 Bluebery Hawaii Technology Solutions LLC</div>
+      <div style="font-size:11px;font-family:'DM Mono',monospace;color:#78716C;">Assessment results are informational. Consult qualified counsel for DPDP Act and CERT-In obligations.</div>
     </div>
   </div>
 </footer>
 
-<script>
-// ── DESIGN SYSTEM (mirrors main site) ────────────────────────────────────
-const C = {
-  teal: '#0E7490', tealDark: '#155E75',
-  coral: '#EA580C', rose: '#DC2626',
-  blue: '#2563EB', violet: '#7C3AED',
-  text: '#1C1917', textMuted: '#78716C', textFaint: '#A8A29E',
-  border: '#E7E5E4', bgSoft: '#FAFAF9',
-};
+<!-- CHAT WIDGET -->
+<div id="chat-bubble" onclick="toggleChat()" title="Ask India AI compliance questions">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  <span id="chat-badge" style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:#FF9933;border-radius:50%;border:2px solid #fff;display:none;"></span>
+</div>
+<div id="chat-window">
+  <div style="padding:14px 16px;background:#0E7490;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:8px;height:8px;background:#4ADE80;border-radius:50%;"></div>
+      <span style="font-size:13px;font-weight:700;color:#fff;">India AI Compliance Assistant</span>
+    </div>
+    <button onclick="toggleChat()" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.7);font-size:18px;line-height:1;">&times;</button>
+  </div>
+  <div id="chat-msgs"></div>
+  <div style="padding:10px 12px;border-top:1px solid #E7E5E4;display:flex;gap:8px;">
+    <input id="chat-input" type="text" placeholder="Ask about CERT-In, DPDP Act, MeitY AI..." style="flex:1;padding:9px 12px;border:1.5px solid #E7E5E4;border-radius:8px;font-size:13px;font-family:'Poppins',sans-serif;outline:none;" onkeydown="if(event.key==='Enter')sendChat()"/>
+    <button onclick="sendChat()" style="padding:9px 14px;background:#0E7490;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;">&#8593;</button>
+  </div>
+</div>
 
-// ── NAV SCROLL BEHAVIOUR ─────────────────────────────────────────────────
+<style>
+.inp{width:100%;padding:11px 14px;border:1.5px solid #E7E5E4;border-radius:10px;font-size:14px;outline:none;transition:border-color .2s;background:#fff;}
+.inp:focus{border-color:#0E7490;}
+.btn-primary{padding:11px 28px;background:#0E7490;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;box-shadow:0 2px 10px rgba(14,116,144,.3);transition:all .2s;}
+.btn-primary:hover{background:#155E75;}
+.btn-ghost{padding:11px 22px;border:1.5px solid #E7E5E4;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;background:#fff;color:#78716C;transition:all .2s;}
+.btn-ghost:hover{border-color:#1C1917;color:#1C1917;}
+.btn-outline{padding:12px;background:#fff;color:#0E7490;border:1.5px solid #0E7490;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;transition:all .2s;}
+.btn-outline:hover{background:#F0FDFE;}
+.ans-btn{flex:1;min-width:100px;padding:14px 20px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;border:1.5px solid #E7E5E4;background:#fff;color:#1C1917;transition:all .2s;}
+.ans-btn:hover{border-color:#0E7490;color:#0E7490;}
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════
+// NAV — use navTo() to avoid conflicting with window.scrollTo
+// ═══════════════════════════════════════════════════
+function navTo(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+function navScrollTop() {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
 window.addEventListener('scroll', () => {
   const nav = document.getElementById('nav');
   if (window.scrollY > 50) {
@@ -549,456 +501,636 @@ window.addEventListener('scroll', () => {
   }
 }, {passive: true});
 
-function scrollTo(id) {
-  document.getElementById(id)?.scrollIntoView({behavior: 'smooth'});
-}
-
-// ── INDIA QUESTION BANK (35 questions, 7 domains) ────────────────────────
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
 const AQ = [
-  {d: 'Data Foundation & DPDP', cite: 'DPDP Act 2023 §6 §8 · DPDP Rules 2025 Rule 4', q: [
+  {d:'Data Foundation & DPDP', cite:'DPDP Act 2023 §6 §8 · DPDP Rules 2025 Rule 4 · CERT-In §3', q:[
     'Has your organization completed a data mapping exercise covering all personal data of Indian citizens — as required under DPDP Act §8 and DPDP Rules 2025 Rule 4?',
     'Does your consent management system meet DPDP Act §6 requirements — free, specific, informed, unambiguous, revocable consent with no pre-checked boxes?',
-    'Can your organization meet CERT-In\'s 6-hour cybersecurity incident reporting requirement and the DPDP Act\'s dual notification obligation to both CERT-In and the Data Protection Board?',
+    'Can your organization meet CERT-In\'s 6-hour incident reporting requirement and the DPDP Act\'s dual notification to both CERT-In and the Data Protection Board?',
     'Is your data quality sufficient for AI training — with documented provenance, bias-check processes, and data minimization controls per DPDP Act §8(3)?',
-    'If you may be a Significant Data Fiduciary, are you prepared for the additional DPDP Rules 2025 obligations — DPIA, annual independent audit, and DPO appointment?',
+    'If you may be a Significant Data Fiduciary, are you prepared for DPDP Rules 2025 obligations — DPIA, annual independent audit, and DPO appointment?',
   ]},
-  {d: 'Process Maturity', cite: 'MeitY AI Guidelines 2025 · CERT-In Directions §3', q: [
+  {d:'Process Maturity', cite:'MeitY AI Guidelines 2025 · CERT-In Directions §3 · DPDP Act §8(2)', q:[
     'Does your organization have documented AI lifecycle processes — development, validation, deployment, monitoring, decommissioning — aligned to MeitY AI Guidelines §Policy?',
     'How mature is your incident response for AI-specific failures — model drift, adversarial attacks, deepfakes — with CERT-In reporting integrated per CERT-In Directions §3?',
-    'Do your vendor management processes include DPDP Act-compliant data processor agreements requiring data processors to follow DPDP procedures per DPDP Act §8(2)?',
-    'Does your change management require AI impact assessments before deploying models, per MeitY AI Guidelines §Accountability?',
-    'Are your data retention and deletion processes capable of fulfilling Data Principal rights — right to erasure, correction, and grievance redressal — per DPDP Act §12–14?',
+    'Do your vendor agreements include DPDP Act-compliant data processor clauses requiring processors to follow DPDP procedures per DPDP Act §8(2)?',
+    'Does change management require AI impact assessments before deploying models, per MeitY AI Guidelines §Accountability?',
+    'Are your data retention and deletion processes capable of fulfilling Data Principal rights — right to erasure, correction, grievance redressal — per DPDP Act §12–14?',
   ]},
-  {d: 'Technology Readiness', cite: 'CERT-In Directions 2022 · IT (SGI) Rules 2026', q: [
+  {d:'Technology Readiness', cite:'CERT-In §3(v) · IT (SGI) Rules 2026 · DPDP Act §16', q:[
     'Does your cloud environment meet data residency requirements — personal data of Indian citizens stored within India or in DPDP Act §16 approved jurisdictions?',
-    'Do you maintain logs and audit trails as required by CERT-In Directions §3(v) — comprehensive system, network, and security event logs retained for at least 180 days?',
+    'Do you maintain logs as required by CERT-In Directions §3(v) — comprehensive system, network, and security event logs retained for at least 180 days?',
     'Are your AI systems configured with explainability and transparency controls enabling human oversight, per MeitY AI Guidelines §Understandable by Design?',
-    'Does your technology stack include controls to detect, label, and manage Synthetically Generated Information (SGI) per the IT (SGI) Amendment Rules February 2026?',
-    'Is your AI infrastructure resilient against AI-specific threats — adversarial inputs, prompt injection, model extraction — per CERT-In Directions §3 and NCIIPC Guidelines?',
+    'Does your technology stack include controls to detect, label, and manage Synthetically Generated Information (SGI) per IT (SGI) Amendment Rules February 2026?',
+    'Is your AI infrastructure resilient against adversarial inputs, prompt injection, and model extraction — per CERT-In Directions §3 and NCIIPC Guidelines?',
   ]},
-  {d: 'People & Culture', cite: 'MeitY AI Guidelines 2025 §Capacity Building · DPDP Act §13', q: [
-    'Is your board or senior leadership AI-literate enough to exercise effective governance — understanding DPDP Act liability and MeitY\'s seven sutras accountability obligations?',
-    'Have staff received training on DPDP Act obligations, responsible AI use, and how to identify and report AI incidents or data breaches per MeitY AI Guidelines §Capacity Building?',
-    'Does your organization have an AI ethics and responsible use policy mapped to MeitY\'s seven sutras — Trust, People First, Fairness, Accountability, Transparency, Safety, Innovation?',
-    'How effectively does your organization manage change when deploying AI — addressing displacement concerns, role redefinition, and employee trust per MeitY AI Guidelines §People First?',
-    'Is there a clear grievance redressal mechanism for individuals affected by automated AI decisions — per DPDP Act §13 and MeitY\'s accountability sutra?',
+  {d:'People & Culture', cite:'MeitY AI Guidelines 2025 §Capacity Building · DPDP Act §13', q:[
+    'Is your board AI-literate enough to exercise effective governance — understanding DPDP Act liability and MeitY\'s seven sutras accountability obligations?',
+    'Have staff received training on DPDP Act obligations, responsible AI use, and how to identify and report AI incidents per MeitY AI Guidelines §Capacity Building?',
+    'Does your organization have an AI ethics policy mapped to MeitY\'s seven sutras — Trust, People First, Fairness, Accountability, Transparency, Safety, Innovation?',
+    'How effectively does your organization manage change when deploying AI — addressing displacement concerns per MeitY AI Guidelines §People First?',
+    'Is there a grievance redressal mechanism for individuals affected by automated AI decisions — per DPDP Act §13 and MeitY\'s accountability sutra?',
   ]},
-  {d: 'Strategy & ROI', cite: 'MeitY AI Guidelines 2025 · DPDP Act §25 · RBI FREE-AI', q: [
-    'Does your AI strategy account for India\'s dual regulatory model — sectoral regulators (RBI/SEBI/IRDAI/ICMR) plus MeitY national guidelines — with risk assessment per MeitY AI Guidelines §Policy?',
+  {d:'Strategy & ROI', cite:'MeitY AI Guidelines 2025 · DPDP Act §25 · RBI FREE-AI', q:[
+    'Does your AI strategy account for India\'s dual regulatory model — sectoral regulators (RBI/SEBI/IRDAI/ICMR) plus MeitY national guidelines?',
     'Have you built DPDP compliance costs — breach notifications, DPO, audits, DPIA — into your AI business case, given penalties up to ₹250 crore under DPDP Act §25?',
-    'Is your AI roadmap aligned with India\'s Digital Public Infrastructure — Aadhaar, ONDC, UPI, DigiLocker — per MeitY AI Guidelines §Infrastructure and IndiaAI Mission?',
-    'Do you have a strategy for AI governance talent — addressing India\'s AI skills shortage and building India-specific compliance expertise per RBI FREE-AI Pillar 3?',
-    'Has your organization assessed the impact of the proposed Digital India Act — expected to replace IT Act 2000 — on your AI governance and platform obligations?',
+    'Is your AI roadmap aligned with India\'s Digital Public Infrastructure — Aadhaar, ONDC, UPI, DigiLocker — per MeitY AI Guidelines §Infrastructure?',
+    'Do you have a strategy for AI governance talent — addressing India\'s AI skills shortage per RBI FREE-AI Pillar 3?',
+    'Has your organization assessed the impact of the proposed Digital India Act — expected to replace IT Act 2000 — on your AI governance obligations?',
   ]},
-  {d: 'Governance & Compliance', cite: 'CERT-In Audit Policy 2025 · MeitY AI Guidelines · ISO 42001', q: [
+  {d:'Governance & Compliance', cite:'CERT-In Audit Policy 2025 · MeitY AI Guidelines · ISO 42001', q:[
     'Does your organization have an AI governance framework — risk classification, approval workflows, accountability — aligned to MeitY AI Guidelines §Accountability and ISO/IEC 42001:2023?',
-    'Is your organization CERT-In compliant — CERT-In empaneled auditor engaged, NTP synchronization correct, 6-hour incident reporting capability verified per CERT-In Audit Policy 2025?',
-    'For organizations in critical sectors, are you compliant with your sector-specific cybersecurity regulator (RBI/SEBI/IRDAI/TRAI) on top of CERT-In base requirements?',
-    'Does your AI system register include an inventory of all production AI models — with risk classification, training data sources, and compliance status per MeitY AI Guidelines §Risk Mitigation?',
+    'Are you CERT-In compliant — empaneled auditor engaged, NTP synchronization correct, 6-hour incident reporting capability verified per CERT-In Audit Policy 2025?',
+    'Are you compliant with your sector-specific cybersecurity regulator (RBI/SEBI/IRDAI/TRAI) on top of CERT-In base requirements?',
+    'Does your AI system register include an inventory of all production AI models — risk classification, training data sources, compliance status per MeitY AI Guidelines?',
     'Is your AI bias monitoring documented — with attention to India\'s socioeconomic, caste, regional, and language bias risks per MeitY AI Guidelines §Fairness & Equity?',
   ]},
-  {d: 'Use Case Clarity', cite: 'DPDP Rules 2025 Rule 13 · RBI FREE-AI · IT (SGI) Rules 2026', q: [
-    'For AI use cases involving personal data of Indian citizens, have you conducted a DPIA mapping risks to the DPDP Act and applicable sector regulations per DPDP Rules 2025 Rule 13?',
-    'Are your highest-priority AI use cases directly tied to India market outcomes — compliance risk reduction, Digital India integrations, or DPI ecosystem leverage?',
-    'For AI use cases in financial services, have you assessed them against RBI\'s FREE-AI framework — six pillars: Infrastructure, Policy, Capacity, Governance, Protection, and Assurance?',
-    'Are your AI use cases reviewed for compliance with the IT (SGI) Amendment Rules February 2026 — particularly around AI-generated content, deepfakes, and traceability obligations?',
-    'Do you have a defined process for retiring AI models — including DPDP Act data deletion confirmation, model disposal documentation, and notification to affected parties?',
+  {d:'Use Case Clarity', cite:'DPDP Rules 2025 Rule 13 · RBI FREE-AI · IT (SGI) Rules 2026', q:[
+    'For AI use cases involving personal data of Indian citizens, have you conducted a DPIA mapping risks to the DPDP Act per DPDP Rules 2025 Rule 13?',
+    'Are your highest-priority AI use cases tied to India market outcomes — compliance risk reduction, Digital India integrations, or DPI ecosystem leverage?',
+    'For AI in financial services, have you assessed against RBI\'s FREE-AI framework — six pillars: Infrastructure, Policy, Capacity, Governance, Protection, Assurance?',
+    'Are your AI use cases reviewed for IT (SGI) Amendment Rules February 2026 — AI-generated content, deepfakes, and traceability obligations?',
+    'Do you have a defined process for retiring AI models — including DPDP Act data deletion confirmation and notification to affected parties?',
   ]},
 ];
 
-// ── INDIA SECTOR BENCHMARKS ───────────────────────────────────────────────
 const SECTORS = {
-  financial: {l: 'Banking & Financial Services (BFSI)', avg: 48},
-  technology: {l: 'IT / Technology Services', avg: 55},
-  healthcare: {l: 'Healthcare & Pharma', avg: 35},
-  govdef: {l: 'Government / PSU / Defence', avg: 32},
-  insurance: {l: 'Insurance', avg: 42},
-  telecom: {l: 'Telecom', avg: 46},
-  energy: {l: 'Energy & Utilities', avg: 40},
-  legal: {l: 'Legal Services', avg: 29},
-  education: {l: 'Education / EdTech', avg: 31},
-  retail: {l: 'Retail / E-Commerce', avg: 38},
-  manufacturing: {l: 'Manufacturing', avg: 28},
-  other: {l: 'Your sector', avg: 36},
+  financial:{l:'Banking & Financial Services (BFSI)',avg:48},
+  technology:{l:'IT / Technology Services',avg:55},
+  healthcare:{l:'Healthcare & Pharma',avg:35},
+  govdef:{l:'Government / PSU / Defence',avg:32},
+  insurance:{l:'Insurance',avg:42},
+  telecom:{l:'Telecom',avg:46},
+  energy:{l:'Energy & Utilities',avg:40},
+  legal:{l:'Legal Services',avg:29},
+  education:{l:'Education / EdTech',avg:31},
+  retail:{l:'Retail / E-Commerce',avg:38},
+  manufacturing:{l:'Manufacturing',avg:28},
+  other:{l:'Your sector',avg:36},
 };
 
-// ── PAIN POINTS ───────────────────────────────────────────────────────────
 const PAINS = [
-  'CERT-In 6-hour incident reporting not operational',
-  'DPDP Act 2023 consent & data mapping gaps',
+  'CERT-In 6-hour reporting not operational',
+  'DPDP Act consent & data mapping gaps',
   'No Data Protection Officer (DPO) appointed',
-  'AI models deployed without governance framework',
-  'Data residency & cross-border transfer compliance',
+  'AI deployed without governance framework',
+  'Data residency & cross-border compliance',
   'No DPDP breach notification workflow',
   'IT (SGI) Rules 2026 deepfake obligations',
-  'RBI FREE-AI / SEBI / IRDAI sector AI gaps',
-  'NCIIPC critical infrastructure obligations',
+  'RBI FREE-AI / SEBI / IRDAI AI gaps',
+  'NCIIPC infrastructure obligations',
   'No AI risk register or model inventory',
 ];
 
-// ── STATE ─────────────────────────────────────────────────────────────────
-let state = { step: 0, answers: {}, intake: {}, startTime: null, selectedPains: [] };
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let state = {step:0, answers:{}, intake:{}, startTime:null, selectedPains:[], savedLeadId:null};
 
-// ── PAIN POINTS RENDER ────────────────────────────────────────────────────
-(function renderPains() {
+// Render pain point chips
+(function(){
   const c = document.getElementById('pains-container');
-  PAINS.forEach((p, i) => {
-    const btn = document.createElement('button');
-    btn.id = 'pain-' + i;
-    btn.textContent = p;
-    btn.style.cssText = 'padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:500;font-family:\'Poppins\',sans-serif;border:1.5px solid #E7E5E4;background:#fff;color:#44403C;transition:all .15s;';
-    btn.onclick = () => togglePain(i, p, btn);
-    c.appendChild(btn);
+  PAINS.forEach((p,i) => {
+    const b = document.createElement('button');
+    b.id = 'pain-'+i; b.type='button';
+    b.textContent = p;
+    b.className = 'pain-chip';
+    b.onclick = () => togglePain(i, p, b);
+    c.appendChild(b);
   });
 })();
+const style = document.createElement('style');
+style.textContent = '.pain-chip{padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:500;border:1.5px solid #E7E5E4;background:#fff;color:#44403C;transition:all .15s;}.pain-chip.active{background:#F0FDFE;border-color:#0E7490;color:#0E7490;}';
+document.head.appendChild(style);
 
 function togglePain(i, p, btn) {
   const idx = state.selectedPains.indexOf(p);
-  if (idx >= 0) {
-    state.selectedPains.splice(idx, 1);
-    btn.style.background = '#fff';
-    btn.style.borderColor = '#E7E5E4';
-    btn.style.color = '#44403C';
-  } else if (state.selectedPains.length < 3) {
-    state.selectedPains.push(p);
-    btn.style.background = '#F0FDFE';
-    btn.style.borderColor = '#0E7490';
-    btn.style.color = '#0E7490';
-  }
+  if (idx >= 0) { state.selectedPains.splice(idx,1); btn.classList.remove('active'); }
+  else if (state.selectedPains.length < 3) { state.selectedPains.push(p); btn.classList.add('active'); }
 }
 
-// ── PHASE TRANSITIONS ─────────────────────────────────────────────────────
-function show(id) {
+// ═══════════════════════════════════════════════════
+// PHASE CONTROL
+// ═══════════════════════════════════════════════════
+function showPhase(id) {
   ['assess-landing','assess-intake','assess-questions','assess-results'].forEach(x => {
-    document.getElementById(x).style.display = x === id ? '' : 'none';
+    document.getElementById(x).style.display = (x === id) ? '' : 'none';
   });
 }
-
-function startAssessment() {
-  show('assess-intake');
-  document.getElementById('assess').scrollIntoView({behavior: 'smooth'});
-}
-
-function showLanding() {
-  show('assess-landing');
-}
+function startAssessment() { showPhase('assess-intake'); navTo('assess'); }
+function showLanding()      { showPhase('assess-landing'); }
 
 function startQuestions() {
-  const name = document.getElementById('i-name').value.trim();
-  const email = document.getElementById('i-email').value.trim();
+  const name    = document.getElementById('i-name').value.trim();
+  const email   = document.getElementById('i-email').value.trim();
   const company = document.getElementById('i-company').value.trim();
-  const industry = document.getElementById('i-industry').value;
-  const err = document.getElementById('intake-err');
-
+  const industry= document.getElementById('i-industry').value;
+  const err     = document.getElementById('intake-err');
   if (!name || !email || !company || !industry) {
-    err.style.display = 'block';
-    err.textContent = 'Please fill in Name, Email, Organization, and Sector to continue.';
-    return;
+    err.style.display='block'; err.textContent='Please fill in Name, Email, Organization, and Sector.'; return;
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    err.style.display = 'block';
-    err.textContent = 'Please enter a valid email address.';
-    return;
+    err.style.display='block'; err.textContent='Please enter a valid email address.'; return;
   }
-  err.style.display = 'none';
-
-  state.intake = {
-    name, email,
-    title: document.getElementById('i-title').value.trim(),
-    company,
-    industry,
-    employees: document.getElementById('i-employees').value,
-    revenue: document.getElementById('i-revenue').value,
-    pains: [...state.selectedPains],
-  };
-  state.step = 0;
-  state.answers = {};
-  state.startTime = Date.now();
-  show('assess-questions');
-  renderDomainPills();
-  renderQuestion();
-  document.getElementById('assess').scrollIntoView({behavior: 'smooth'});
+  err.style.display='none';
+  state.intake = { name, email, title:document.getElementById('i-title').value.trim(),
+    company, industry, employees:document.getElementById('i-employees').value,
+    revenue:document.getElementById('i-revenue').value, pains:[...state.selectedPains] };
+  state.step=0; state.answers={}; state.startTime=Date.now();
+  showPhase('assess-questions');
+  renderDomainPills(); renderQuestion();
+  navTo('assess');
 }
 
-// ── QUESTION ENGINE ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// QUESTION ENGINE
+// ═══════════════════════════════════════════════════
 function renderDomainPills() {
   const c = document.getElementById('domain-pills');
   c.innerHTML = '';
-  AQ.forEach((domain, di) => {
-    const done = di * 5 <= state.step;
-    const current = Math.floor(state.step / 5) === di;
+  AQ.forEach((d,di) => {
+    const cur  = Math.floor(state.step/5)===di;
+    const done = di*5 < state.step;
     const pill = document.createElement('span');
-    pill.style.cssText = `padding:3px 10px;border-radius:100px;font-size:10px;font-family:'DM Mono',monospace;font-weight:600;transition:all .2s;
-      background:${current ? '#0E7490' : done ? '#F0FDFE' : '#F5F5F4'};
-      color:${current ? '#fff' : done ? '#0E7490' : '#A8A29E'};
-      border:1px solid ${current ? '#0E7490' : done ? '#A5F3FC' : '#E7E5E4'};`;
-    pill.textContent = domain.d.split(' ')[0];
+    pill.style.cssText = `padding:3px 10px;border-radius:100px;font-size:10px;font-family:'DM Mono',monospace;font-weight:600;
+      background:${cur?'#0E7490':done?'#F0FDFE':'#F5F5F4'};
+      color:${cur?'#fff':done?'#0E7490':'#A8A29E'};
+      border:1px solid ${cur?'#0E7490':done?'#A5F3FC':'#E7E5E4'};`;
+    pill.textContent = d.d.split(' ')[0];
     c.appendChild(pill);
   });
 }
 
 function renderQuestion() {
-  const totalQ = 35;
-  const di = Math.floor(state.step / 5);
-  const qi = state.step % 5;
+  const di = Math.floor(state.step/5), qi = state.step%5;
   const domain = AQ[di];
-  const q = domain.q[qi];
-
-  document.getElementById('q-domain-label').textContent = 'Domain ' + (di+1) + '/7 — ' + domain.d;
+  document.getElementById('q-domain-label').textContent = `Domain ${di+1}/7 — ${domain.d}`;
   document.getElementById('q-cite').textContent = domain.cite;
-  document.getElementById('q-counter').textContent = (state.step + 1) + ' / ' + totalQ;
-  document.getElementById('q-text').textContent = q;
-  document.getElementById('q-progress').style.width = ((state.step / totalQ) * 100) + '%';
-
-  // Restore previous answer highlight if navigating back
-  ['btn-yes','btn-partial','btn-no'].forEach(id => resetBtnStyle(id));
+  document.getElementById('q-counter').textContent = `${state.step+1} / 35`;
+  document.getElementById('q-text').textContent = domain.q[qi];
+  document.getElementById('q-progress').style.width = ((state.step/35)*100)+'%';
+  // Restore highlight
+  ['btn-yes','btn-partial','btn-no'].forEach(id => resetAnsBtn(id));
   const prev = state.answers[state.step];
-  if (prev) {
-    const map = {yes: 'btn-yes', partial: 'btn-partial', no: 'btn-no'};
-    highlightBtn(map[prev], prev);
-  }
-
-  document.getElementById('q-back-btn').style.display = state.step > 0 ? '' : 'none';
+  if (prev) { const m={yes:'btn-yes',partial:'btn-partial',no:'btn-no'}; highlightAnsBtn(m[prev],prev); }
+  document.getElementById('q-back-btn').style.display = state.step>0 ? '' : 'none';
   renderDomainPills();
 }
 
-function resetBtnStyle(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
+function resetAnsBtn(id) {
+  const el = document.getElementById(id); if(!el) return;
   const prev = state.answers[state.step];
-  const map = {yes: 'btn-yes', partial: 'btn-partial', no: 'btn-no'};
-  if (prev && map[prev] === id) { highlightBtn(id, prev); return; }
-  el.style.cssText = 'flex:1;min-width:100px;padding:14px 20px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;font-family:\'Poppins\',sans-serif;border:1.5px solid #E7E5E4;background:#fff;color:#1C1917;transition:all .2s;';
+  const m = {yes:'btn-yes',partial:'btn-partial',no:'btn-no'};
+  if (prev && m[prev]===id) { highlightAnsBtn(id,prev); return; }
+  el.style.borderColor='#E7E5E4'; el.style.background='#fff'; el.style.color='#1C1917';
 }
 
-function highlightBtn(id, val) {
-  const colors = {yes: '#0E7490', partial: '#EA580C', no: '#DC2626'};
-  const bgs = {yes: '#F0FDFE', partial: '#FFF7ED', no: '#FEF2F2'};
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.cssText = `flex:1;min-width:100px;padding:14px 20px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Poppins',sans-serif;border:2px solid ${colors[val]};background:${bgs[val]};color:${colors[val]};transition:all .2s;`;
+function highlightAnsBtn(id, val) {
+  const cols = {yes:'#0E7490',partial:'#EA580C',no:'#DC2626'};
+  const bgs  = {yes:'#F0FDFE',partial:'#FFF7ED',no:'#FEF2F2'};
+  const el = document.getElementById(id); if(!el) return;
+  el.style.borderColor=cols[val]; el.style.background=bgs[val]; el.style.color=cols[val];
 }
 
-function answer(val) {
+function giveAnswer(val) {
   state.answers[state.step] = val;
-  highlightBtn({yes:'btn-yes',partial:'btn-partial',no:'btn-no'}[val], val);
+  highlightAnsBtn({yes:'btn-yes',partial:'btn-partial',no:'btn-no'}[val], val);
   setTimeout(() => {
-    if (state.step < 34) {
-      state.step++;
-      renderQuestion();
-    } else {
-      showResults();
-    }
-  }, 320);
+    if (state.step < 34) { state.step++; renderQuestion(); }
+    else { showResults(); }
+  }, 300);
 }
 
-function prevQ() {
-  if (state.step > 0) { state.step--; renderQuestion(); }
-}
+function prevQ() { if(state.step>0){ state.step--; renderQuestion(); } }
 
-// ── SCORING ───────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// SCORING
+// ═══════════════════════════════════════════════════
 function calcScores() {
-  const domainScores = AQ.map((_, di) => {
-    let pts = 0;
-    for (let qi = 0; qi < 5; qi++) {
-      const v = state.answers[di * 5 + qi];
-      if (v === 'yes') pts += 1;
-      else if (v === 'partial') pts += 0.5;
+  const domainScores = AQ.map((_,di) => {
+    let pts=0;
+    for(let qi=0;qi<5;qi++){
+      const v=state.answers[di*5+qi];
+      if(v==='yes') pts+=1; else if(v==='partial') pts+=0.5;
     }
-    return Math.round((pts / 5) * 100);
+    return Math.round((pts/5)*100);
   });
-  const answered = Object.values(state.answers);
-  let total = 0;
-  answered.forEach(v => { if (v === 'yes') total++; else if (v === 'partial') total += 0.5; });
-  const overall = Math.round((total / 35) * 100);
-  return { overall, domainScores };
+  let total=0;
+  Object.values(state.answers).forEach(v=>{if(v==='yes')total++;else if(v==='partial')total+=0.5;});
+  return {overall:Math.round((total/35)*100), domainScores};
 }
 
 function getLevel(s) {
-  if (s >= 80) return {l: 'AI-Leading', c: '#0E7490', bg: '#F0FDFE', border: '#A5F3FC'};
-  if (s >= 65) return {l: 'AI-Ready', c: '#2563EB', bg: '#EFF6FF', border: '#BFDBFE'};
-  if (s >= 40) return {l: 'AI-Building', c: '#EA580C', bg: '#FFF7ED', border: '#FED7AA'};
-  return {l: 'AI-Unready', c: '#DC2626', bg: '#FEF2F2', border: '#FECACA'};
+  if(s>=80) return {l:'AI-Leading', c:'#0E7490', bg:'#F0FDFE', border:'#A5F3FC'};
+  if(s>=65) return {l:'AI-Ready',   c:'#2563EB', bg:'#EFF6FF', border:'#BFDBFE'};
+  if(s>=40) return {l:'AI-Building',c:'#EA580C', bg:'#FFF7ED', border:'#FED7AA'};
+  return          {l:'AI-Unready', c:'#DC2626', bg:'#FEF2F2', border:'#FECACA'};
 }
 
-// ── RESULTS RENDER ────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// RESULTS
+// ═══════════════════════════════════════════════════
 function showResults() {
-  const { overall, domainScores } = calcScores();
-  const lvl = getLevel(overall);
+  const {overall, domainScores} = calcScores();
+  const lvl    = getLevel(overall);
   const sector = SECTORS[state.intake.industry] || SECTORS.other;
-  const sorted = domainScores.map((s,i) => ({name: AQ[i].d, score: s, cite: AQ[i].cite})).sort((a,b) => a.score - b.score);
-  const gaps = sorted.slice(0, 3);
+  const sorted = domainScores.map((s,i)=>({name:AQ[i].d,score:s,cite:AQ[i].cite})).sort((a,b)=>a.score-b.score);
+  const gaps   = sorted.slice(0,3);
 
-  // INR pricing based on score
-  let pkg;
-  if (overall >= 65) {
-    pkg = {name: 'India AI Readiness Sprint', price: '₹5,50,000', hrs: '30 hrs', what: 'Stakeholder interviews, M365/Azure diagnostic, CERT-In and DPDP compliance mapping, sector regulator assessment, board-ready governance deck.'};
-  } else if (overall >= 40) {
-    pkg = {name: 'India AI Quick Scan', price: '₹2,10,000', hrs: '10 hrs', what: 'Automated tenant diagnostic, CERT-In gap analysis, DPDP Act readiness report, 90-day roadmap, executive briefing.'};
-  } else {
-    pkg = {name: 'India AI Quick Scan', price: '₹2,10,000', hrs: '10 hrs', what: 'Foundational CERT-In and DPDP Act gap assessment, M365 tenant diagnostic on your systems, scored gap report with priority remediation roadmap.'};
-  }
-
-  // Gap citations
   const gapCites = {
-    'Data Foundation & DPDP': 'DPDP Act §6 §8 §25 — penalties up to ₹250 crore',
-    'Process Maturity': 'MeitY AI Guidelines §Accountability · CERT-In Directions §3',
-    'Technology Readiness': 'CERT-In §3(v) 180-day log retention · IT (SGI) Rules 2026',
-    'People & Culture': 'MeitY AI Guidelines §Capacity Building · DPDP Act §13',
-    'Strategy & ROI': 'MeitY AI Guidelines §Policy · DPDP Act §25 · RBI FREE-AI Pillar 3',
-    'Governance & Compliance': 'CERT-In Audit Policy 2025 · ISO/IEC 42001:2023 · MeitY AI',
-    'Use Case Clarity': 'DPDP Rules 2025 Rule 13 DPIA · RBI FREE-AI · IT (SGI) Rules',
+    'Data Foundation & DPDP':  'DPDP Act §6 §8 §25 — penalties up to ₹250 crore',
+    'Process Maturity':        'MeitY AI Guidelines §Accountability · CERT-In §3',
+    'Technology Readiness':    'CERT-In §3(v) 180-day log retention · IT (SGI) Rules 2026',
+    'People & Culture':        'MeitY AI Guidelines §Capacity Building · DPDP Act §13',
+    'Strategy & ROI':          'MeitY AI Guidelines §Policy · DPDP Act §25 · RBI FREE-AI',
+    'Governance & Compliance': 'CERT-In Audit Policy 2025 · ISO/IEC 42001:2023',
+    'Use Case Clarity':        'DPDP Rules 2025 Rule 13 DPIA · RBI FREE-AI · IT (SGI)',
   };
 
-  const honest = overall >= 80
-    ? `${state.intake.company} scored ${overall}% — AI-Leading. Ahead of most ${sector.l} organizations (sector avg: ${sector.avg}%). Foundations are strong. Focus on scaling, deepfake compliance, and DPDP Rules 2025 SDF obligations.`
-    : overall >= 65
-    ? `${state.intake.company} scored ${overall}% — AI-Ready, above the ${sector.l} average of ${sector.avg}%. Gaps in ${gaps[0].name} (${gaps[0].score}%) and ${gaps[1].name} (${gaps[1].score}%) are the last barriers to India regulatory compliance.`
-    : overall >= 40
-    ? `${state.intake.company} scored ${overall}% — AI-Building. ${overall > sector.avg ? 'Above' : 'Below'} the ${sector.l} average of ${sector.avg}%. Critical India regulatory gaps: ${gaps[0].name} (${gaps[0].score}%) and ${gaps[1].name} (${gaps[1].score}%) must be addressed before CERT-In or DPDP Act enforcement exposure.`
+  let pkg;
+  if(overall>=65)      pkg={name:'India AI Readiness Sprint',price:'₹5,50,000',hrs:'30 hrs',what:'Stakeholder interviews, M365/Azure diagnostic, CERT-In + DPDP compliance mapping, sector regulator assessment, board-ready governance deck.'};
+  else if(overall>=40) pkg={name:'India AI Quick Scan',      price:'₹2,10,000',hrs:'10 hrs',what:'Automated tenant diagnostic, CERT-In gap analysis, DPDP Act readiness report, 90-day roadmap, executive briefing.'};
+  else                 pkg={name:'India AI Quick Scan',      price:'₹2,10,000',hrs:'10 hrs',what:'Foundational CERT-In and DPDP Act gap assessment, M365 tenant diagnostic, scored gap report with priority remediation roadmap.'};
+
+  const honest = overall>=80
+    ? `${state.intake.company} scored ${overall}% — AI-Leading. Ahead of most ${sector.l} organizations (sector avg: ${sector.avg}%). Foundations are strong. Focus on DPDP Rules 2025 SDF obligations and IT (SGI) Rules 2026.`
+    : overall>=65
+    ? `${state.intake.company} scored ${overall}% — AI-Ready, above the ${sector.l} average of ${sector.avg}%. Gaps in ${gaps[0].name} (${gaps[0].score}%) and ${gaps[1].name} (${gaps[1].score}%) are the last barriers to full India regulatory compliance.`
+    : overall>=40
+    ? `${state.intake.company} scored ${overall}% — AI-Building. ${overall>sector.avg?'Above':'Below'} the ${sector.l} average of ${sector.avg}%. Critical India regulatory gaps: ${gaps[0].name} (${gaps[0].score}%) and ${gaps[1].name} (${gaps[1].score}%) must be addressed before CERT-In or DPDP Act enforcement exposure.`
     : `${state.intake.company} scored ${overall}% — AI-Unready. The ${sector.l} average is ${sector.avg}%. ${gaps[0].name} (${gaps[0].score}%) and ${gaps[1].name} (${gaps[1].score}%) need foundational work. CERT-In and DPDP Act obligations are active compliance risks right now.`;
 
-  const html = `
+  const domainRows = AQ.map((d,i)=>{
+    const s=domainScores[i], col=s>=65?'#0E7490':s>=40?'#EA580C':'#DC2626';
+    return `<div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-size:12px;font-weight:600;color:#1C1917;">${d.d}</span>
+        <span style="font-size:12px;font-weight:700;color:${col};font-family:'DM Mono',monospace;">${s}%</span>
+      </div>
+      <div style="height:6px;background:#F5F5F4;border-radius:3px;overflow:hidden;">
+        <div style="height:100%;background:${col};border-radius:3px;width:${s}%;"></div>
+      </div>
+      <div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;margin-top:3px;">${d.cite}</div>
+    </div>`;
+  }).join('');
+
+  const gapRows = gaps.map((g,i)=>`
+    <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;${i<2?'border-bottom:1px solid #F5F5F4;':''}">
+      <div style="width:28px;height:28px;border-radius:8px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DC2626;font-family:'DM Mono',monospace;">${i+1}</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:#1C1917;margin-bottom:3px;">${g.name} <span style="font-weight:400;color:#A8A29E;">${g.score}%</span></div>
+        <div style="font-size:11px;color:#DC2626;font-family:'DM Mono',monospace;">${gapCites[g.name]||g.cite}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('assess-results').innerHTML = `
 <div style="animation:fadeUp .4s ease forwards;">
-  <!-- Score header -->
-  <div style="background:#fff;border:1px solid ${lvl.border};border-radius:20px;padding:32px;text-align:center;box-shadow:0 4px 16px rgba(28,25,23,.07);margin-bottom:20px;">
+  <!-- Watermark strip -->
+  <div style="background:linear-gradient(90deg,#FF9933 0%,#FF9933 33%,#fff 33%,#fff 66%,#138808 66%,#138808 100%);height:3px;border-radius:3px;margin-bottom:20px;"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:#A8A29E;">TheBHTLabs India AI Readiness Assessment &bull; india.thebhtlabs.com &bull; BHT Solutions LLC</div>
+    <div style="font-size:10px;font-family:'DM Mono',monospace;color:#A8A29E;">${new Date().toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'})}</div>
+  </div>
+
+  <!-- Score -->
+  <div style="background:#fff;border:1px solid ${lvl.border};border-radius:20px;padding:32px;text-align:center;box-shadow:0 4px 16px rgba(28,25,23,.07);margin-bottom:16px;">
     <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:${lvl.c};text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">India AI Readiness Score</div>
     <div style="font-size:72px;font-weight:900;color:${lvl.c};font-family:'DM Mono',monospace;line-height:1;">${overall}%</div>
     <div style="display:inline-block;background:${lvl.bg};border:1px solid ${lvl.border};padding:5px 18px;border-radius:100px;font-size:14px;font-weight:700;color:${lvl.c};margin:10px 0 16px;">${lvl.l}</div>
     <p style="font-size:14px;color:#44403C;max-width:560px;margin:0 auto;line-height:1.6;">${honest}</p>
     <div style="margin-top:16px;padding:10px 16px;background:${lvl.bg};border-radius:10px;font-size:12px;color:${lvl.c};font-family:'DM Mono',monospace;">
-      ${sector.l} avg: ${sector.avg}% &nbsp;&bull;&nbsp; Your score: ${overall}% &nbsp;&bull;&nbsp; ${overall >= sector.avg ? '+' : ''}${overall - sector.avg}pts vs sector
+      ${sector.l} avg: ${sector.avg}% &nbsp;&bull;&nbsp; Your score: ${overall}% &nbsp;&bull;&nbsp; ${overall>=sector.avg?'+':''}${overall-sector.avg}pts vs sector
     </div>
   </div>
 
   <!-- Domain breakdown -->
-  <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:28px;box-shadow:0 1px 3px rgba(28,25,23,.05);margin-bottom:20px;">
-    <div style="font-size:13px;font-weight:700;color:#1C1917;margin-bottom:18px;">Domain Breakdown</div>
-    ${AQ.map((d,i) => {
-      const s = domainScores[i];
-      const col = s>=65?'#0E7490':s>=40?'#EA580C':'#DC2626';
-      return `<div style="margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-          <span style="font-size:12px;font-weight:600;color:#1C1917;">${d.d}</span>
-          <span style="font-size:12px;font-weight:700;color:${col};font-family:'DM Mono',monospace;">${s}%</span>
-        </div>
-        <div style="height:6px;background:#F5F5F4;border-radius:3px;overflow:hidden;">
-          <div style="height:100%;background:${col};border-radius:3px;width:${s}%;transition:width .6s ease;"></div>
-        </div>
-        <div style="font-size:10px;color:#A8A29E;font-family:'DM Mono',monospace;margin-top:3px;">${d.cite}</div>
-      </div>`;
-    }).join('')}
+  <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:28px;margin-bottom:16px;">
+    <div style="font-size:13px;font-weight:700;color:#1C1917;margin-bottom:18px;">Domain Breakdown — Mapped to Indian Statutes</div>
+    ${domainRows}
   </div>
 
-  <!-- Top 3 gaps -->
-  <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:28px;box-shadow:0 1px 3px rgba(28,25,23,.05);margin-bottom:20px;">
-    <div style="font-size:13px;font-weight:700;color:#1C1917;margin-bottom:16px;">Priority Gaps — Indian Regulatory Risk</div>
-    ${gaps.map((g, i) => `
-      <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;${i<2?'border-bottom:1px solid #F5F5F4;':''}">
-        <div style="width:28px;height:28px;border-radius:8px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#DC2626;font-family:'DM Mono',monospace;">${i+1}</div>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:#1C1917;margin-bottom:3px;">${g.name} <span style="font-weight:400;color:#A8A29E;font-family:'DM Mono',monospace;">${g.score}%</span></div>
-          <div style="font-size:11px;color:#DC2626;font-family:'DM Mono',monospace;">${gapCites[g.name] || g.cite}</div>
-        </div>
-      </div>
-    `).join('')}
+  <!-- Priority gaps -->
+  <div style="background:#fff;border:1px solid #E7E5E4;border-radius:20px;padding:28px;margin-bottom:16px;">
+    <div style="font-size:13px;font-weight:700;color:#1C1917;margin-bottom:4px;">Priority Gaps — Indian Regulatory Risk</div>
+    <div style="font-size:11px;color:#A8A29E;font-family:'DM Mono',monospace;margin-bottom:16px;">Domains requiring immediate attention with applicable statute</div>
+    ${gapRows}
   </div>
 
   <!-- Recommended path -->
-  <div style="background:linear-gradient(135deg,#F0FDFE 0%,#fff 100%);border:1.5px solid #A5F3FC;border-radius:20px;padding:28px;box-shadow:0 4px 16px rgba(14,116,144,.1);margin-bottom:20px;">
+  <div style="background:linear-gradient(135deg,#F0FDFE 0%,#fff 100%);border:1.5px solid #A5F3FC;border-radius:20px;padding:28px;box-shadow:0 4px 16px rgba(14,116,144,.1);margin-bottom:16px;">
     <div style="font-size:11px;font-weight:700;font-family:'DM Mono',monospace;color:#0E7490;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Recommended Next Step</div>
     <div style="font-size:18px;font-weight:800;color:#1C1917;margin-bottom:4px;">${pkg.name}</div>
     <div style="font-size:24px;font-weight:900;color:#0E7490;font-family:'DM Mono',monospace;margin-bottom:10px;">${pkg.price} <span style="font-size:13px;font-weight:400;color:#A8A29E;">/ ${pkg.hrs}</span></div>
-    <p style="font-size:13px;color:#44403C;line-height:1.6;margin-bottom:18px;">${pkg.what}</p>
-    <button onclick="scrollTo('contact')" style="padding:12px 28px;background:#0E7490;color:#fff;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;font-family:'Poppins',sans-serif;box-shadow:0 2px 12px rgba(14,116,144,.3);">Book a Discovery Call &rarr;</button>
+    <p style="font-size:13px;color:#44403C;line-height:1.6;margin-bottom:20px;">${pkg.what}</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button onclick="navTo('contact')" class="btn-primary">Book a Discovery Call &rarr;</button>
+      <button onclick="downloadPDF()" id="pdf-btn" style="padding:11px 22px;background:#fff;color:#0E7490;border:1.5px solid #0E7490;border-radius:10px;cursor:pointer;font-size:14px;font-weight:700;transition:all .2s;" onmouseover="this.style.background='#F0FDFE'" onmouseout="this.style.background='#fff'">&#8595; Download PDF Report</button>
+    </div>
   </div>
 
-  <div style="text-align:center;margin-top:8px;">
-    <button onclick="resetAssessment()" style="padding:9px 20px;border:1.5px solid #E7E5E4;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:'Poppins',sans-serif;background:#fff;color:#78716C;">Retake Assessment</button>
+  <!-- Watermark footer -->
+  <div style="background:#FAFAF9;border:1px solid #E7E5E4;border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:#78716C;">&#127470;&#127475; TheBHTLabs India &bull; BHT Solutions LLC &bull; SBA 8(a) &bull; EDWOSB &bull; CAGE: 7DBB9</div>
+    <div style="font-size:11px;font-family:'DM Mono',monospace;color:#0E7490;">india@bhtsolutions.com &bull; india.thebhtlabs.com</div>
+  </div>
+
+  <div style="text-align:center;">
+    <button onclick="resetAssessment()" class="btn-ghost">Retake Assessment</button>
   </div>
 </div>`;
 
-  document.getElementById('assess-results').innerHTML = html;
-  show('assess-results');
-  document.getElementById('assess').scrollIntoView({behavior: 'smooth'});
-
-  // Submit to API
+  showPhase('assess-results');
+  navTo('assess');
   saveResults(overall, domainScores);
 }
 
-function resetAssessment() {
-  state = { step: 0, answers: {}, intake: {}, startTime: null, selectedPains: [] };
-  show('assess-landing');
-  document.getElementById('assess').scrollIntoView({behavior: 'smooth'});
+// ═══════════════════════════════════════════════════
+// PDF EXPORT
+// ═══════════════════════════════════════════════════
+function downloadPDF() {
+  const btn = document.getElementById('pdf-btn');
+  if (!window.jspdf) { alert('PDF library loading, please try in a moment.'); return; }
+  btn.textContent = 'Generating...'; btn.disabled = true;
+
+  const {overall, domainScores} = calcScores();
+  const lvl    = getLevel(overall);
+  const sector = SECTORS[state.intake.industry] || SECTORS.other;
+  const sorted = domainScores.map((s,i)=>({name:AQ[i].d,score:s})).sort((a,b)=>a.score-b.score);
+  const gaps   = sorted.slice(0,3);
+  const gapCites = {
+    'Data Foundation & DPDP':  'DPDP Act §6 §8 §25',
+    'Process Maturity':        'MeitY AI Guidelines §Accountability · CERT-In §3',
+    'Technology Readiness':    'CERT-In §3(v) · IT (SGI) Rules 2026',
+    'People & Culture':        'MeitY AI Guidelines §Capacity Building · DPDP Act §13',
+    'Strategy & ROI':          'MeitY AI Guidelines §Policy · DPDP Act §25',
+    'Governance & Compliance': 'CERT-In Audit Policy 2025 · ISO/IEC 42001:2023',
+    'Use Case Clarity':        'DPDP Rules 2025 Rule 13 · RBI FREE-AI',
+  };
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  const W = 210, M = 18;
+  let y = 0;
+
+  // India flag tri-color header bar
+  doc.setFillColor(255,153,51);  doc.rect(0,0,W/3,6,'F');
+  doc.setFillColor(255,255,255); doc.rect(W/3,0,W/3,6,'F');
+  doc.setFillColor(19,136,8);    doc.rect((W/3)*2,0,W/3,6,'F');
+  y = 12;
+
+  // Title
+  doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(14,116,144);
+  doc.text('India AI Readiness Assessment Report', M, y); y+=7;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(120,113,108);
+  doc.text('TheBHTLabs India  |  BHT Solutions LLC  |  india.thebhtlabs.com  |  '+new Date().toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'}), M, y); y+=8;
+
+  // Divider
+  doc.setDrawColor(231,229,228); doc.line(M,y,W-M,y); y+=7;
+
+  // Org info
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(28,25,23);
+  doc.text('Organization:', M, y);
+  doc.setFont('helvetica','normal'); doc.text(state.intake.company||'—', M+28, y); y+=5;
+  doc.setFont('helvetica','bold'); doc.text('Contact:', M, y);
+  doc.setFont('helvetica','normal'); doc.text((state.intake.name||'—')+' · '+(state.intake.email||'—'), M+18, y); y+=5;
+  doc.setFont('helvetica','bold'); doc.text('Sector:', M, y);
+  doc.setFont('helvetica','normal'); doc.text(sector.l, M+15, y); y+=5;
+  doc.setFont('helvetica','bold'); doc.text('Title:', M, y);
+  doc.setFont('helvetica','normal'); doc.text(state.intake.title||'—', M+12, y); y+=8;
+
+  doc.setDrawColor(231,229,228); doc.line(M,y,W-M,y); y+=8;
+
+  // Score block
+  doc.setFillColor(lvl.c==='#0E7490'?240:lvl.c==='#2563EB'?239:lvl.c==='#EA580C'?255:254,
+                   lvl.c==='#0E7490'?253:lvl.c==='#2563EB'?246:lvl.c==='#EA580C'?247:242,
+                   lvl.c==='#0E7490'?254:lvl.c==='#2563EB'?255:lvl.c==='#EA580C'?237:242);
+  doc.roundedRect(M, y, W-M*2, 28, 3, 3, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(28);
+  const r=parseInt(lvl.c.slice(1,3),16), g2=parseInt(lvl.c.slice(3,5),16), b=parseInt(lvl.c.slice(5,7),16);
+  doc.setTextColor(r,g2,b);
+  doc.text(overall+'%', M+8, y+12);
+  doc.setFontSize(12); doc.text(lvl.l, M+8, y+20);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(68,64,60);
+  doc.text('Sector avg: '+sector.avg+'%  |  Delta: '+(overall>=sector.avg?'+':'')+(overall-sector.avg)+'pts vs '+sector.l, M+50, y+12);
+  y += 36;
+
+  // Domain breakdown
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(28,25,23);
+  doc.text('Domain Breakdown', M, y); y+=6;
+  AQ.forEach((d,i)=>{
+    const s=domainScores[i];
+    const cr=s>=65?14:s>=40?234:220, cg=s>=65?116:s>=40?88:38, cb=s>=65?144:s>=40?12:38;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(28,25,23);
+    doc.text(d.d, M, y);
+    doc.setFont('helvetica','bold'); doc.setTextColor(cr,cg,cb);
+    doc.text(s+'%', W-M-10, y, {align:'right'});
+    y+=4;
+    doc.setFillColor(245,245,244); doc.roundedRect(M, y, W-M*2, 3, 1, 1, 'F');
+    doc.setFillColor(cr,cg,cb); doc.roundedRect(M, y, (W-M*2)*(s/100), 3, 1, 1, 'F');
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(168,162,158);
+    doc.text(d.cite, M, y+6);
+    y += 10;
+  });
+  y+=2;
+
+  // Priority gaps
+  if (y > 240) { doc.addPage(); y=20; }
+  doc.setDrawColor(231,229,228); doc.line(M,y,W-M,y); y+=7;
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(28,25,23);
+  doc.text('Priority Gaps — Indian Regulatory Risk', M, y); y+=7;
+  gaps.forEach((g,i)=>{
+    doc.setFillColor(254,242,242); doc.roundedRect(M, y-4, 7, 7, 1, 1, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(220,38,38);
+    doc.text(String(i+1), M+2.5, y+0.5);
+    doc.setFont('helvetica','bold'); doc.setTextColor(28,25,23);
+    doc.text(g.name+' — '+g.score+'%', M+10, y);
+    y+=5;
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(220,38,38);
+    doc.text(gapCites[g.name]||g.cite, M+10, y);
+    y+=8;
+  });
+
+  // Recommendation
+  if (y > 230) { doc.addPage(); y=20; }
+  doc.setDrawColor(231,229,228); doc.line(M,y,W-M,y); y+=7;
+  let pkg;
+  if(overall>=65) pkg={name:'India AI Readiness Sprint',price:'Rs. 5,50,000 / 30 hrs'};
+  else pkg={name:'India AI Quick Scan',price:'Rs. 2,10,000 / 10 hrs'};
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(14,116,144);
+  doc.text('Recommended: '+pkg.name, M, y); y+=6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(68,64,60);
+  doc.text(pkg.price, M, y); y+=10;
+
+  // Watermark footer
+  doc.setFillColor(14,116,144);
+  doc.rect(0,285,W,12,'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+  doc.text('TheBHTLabs India  |  BHT Solutions LLC (SBA 8a, EDWOSB)  |  CAGE: 7DBB9  |  india@bhtsolutions.com  |  india.thebhtlabs.com', M, 293);
+
+  doc.save('India-AI-Readiness-'+state.intake.company.replace(/\s+/g,'-')+'-'+new Date().toISOString().slice(0,10)+'.pdf');
+  btn.textContent = '&#8595; Download PDF Report'; btn.disabled = false;
 }
 
+// ═══════════════════════════════════════════════════
+// SAVE TO DB — POST to main site API with India tag
+// ═══════════════════════════════════════════════════
 async function saveResults(overall, domainScores) {
   try {
-    const domains = AQ.map((d,i) => ({name: d.d, score: domainScores[i]}));
-    const elapsed = state.startTime ? Math.round((Date.now() - state.startTime) / 1000) : 999;
-    await fetch('https://www.thebhtlabs.com/api/assessment', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
+    const domains = AQ.map((d,i)=>({name:d.d, score:domainScores[i]}));
+    const elapsed = state.startTime ? Math.round((Date.now()-state.startTime)/1000) : 999;
+    const resp = await fetch('https://www.thebhtlabs.com/api/assessment', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
         ...state.intake,
-        industryLabel: (SECTORS[state.intake.industry] || SECTORS.other).l,
-        overallScore: overall,
-        stage: getLevel(overall).l,
-        domains,
-        rawAnswers: state.answers,
-        locale: 'in',
-        timeSpent: elapsed,
-        suspicious: elapsed < 60,
-        pains: state.intake.pains,
+        industryLabel:(SECTORS[state.intake.industry]||SECTORS.other).l,
+        overallScore:overall, stage:getLevel(overall).l,
+        domains, rawAnswers:state.answers,
+        locale:'in', source:'india.thebhtlabs.com',
+        timeSpent:elapsed, suspicious:elapsed<60,
+        pains:state.intake.pains,
       })
     });
-  } catch(e) { /* silent */ }
+    const data = await resp.json();
+    if (data.leadId) state.savedLeadId = data.leadId;
+  } catch(e) { /* silent — admin can still see partial data */ }
 }
 
-// ── CONTACT FORM ──────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════
+function resetAssessment() {
+  state = {step:0,answers:{},intake:{},startTime:null,selectedPains:[],savedLeadId:null};
+  document.querySelectorAll('.pain-chip').forEach(b=>b.classList.remove('active'));
+  ['i-name','i-email','i-title','i-company','i-revenue'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['i-industry','i-employees'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  showPhase('assess-landing');
+  navTo('assess');
+}
+
+// ═══════════════════════════════════════════════════
+// CONTACT FORM
+// ═══════════════════════════════════════════════════
 async function submitContact() {
-  const name = document.getElementById('c-name').value.trim();
-  const email = document.getElementById('c-email').value.trim();
+  const name    = document.getElementById('c-name').value.trim();
+  const email   = document.getElementById('c-email').value.trim();
   const company = document.getElementById('c-company').value.trim();
-  const message = document.getElementById('c-message').value.trim();
-  const hp = document.getElementById('c-hp').value;
-  const err = document.getElementById('contact-err');
-  const btn = document.getElementById('c-submit-btn');
-
-  if (hp) return; // honeypot
-  if (!name || !email || !company) {
-    err.style.display = 'block';
-    err.textContent = 'Please fill in Name, Email, and Organization.';
-    return;
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    err.style.display = 'block';
-    err.textContent = 'Please enter a valid email address.';
-    return;
-  }
-  err.style.display = 'none';
-  btn.textContent = 'Sending...';
-  btn.disabled = true;
-
+  const hp      = document.getElementById('c-hp').value;
+  const err     = document.getElementById('contact-err');
+  const btn     = document.getElementById('c-submit-btn');
+  if (hp) return;
+  if (!name||!email||!company){err.style.display='block';err.textContent='Please fill in Name, Email, and Organization.';return;}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.style.display='block';err.textContent='Please enter a valid email address.';return;}
+  err.style.display='none'; btn.textContent='Sending...'; btn.disabled=true;
   try {
-    await fetch('https://www.thebhtlabs.com/api/contact', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        name, email, company,
-        sector: document.getElementById('c-sector').value,
-        message: message || 'India AI inquiry',
-        source: 'india.thebhtlabs.com',
+    await fetch('https://www.thebhtlabs.com/api/contact',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,company,
+        sector:document.getElementById('c-sector').value,
+        message:document.getElementById('c-message').value.trim()||'India AI inquiry',
+        source:'india.thebhtlabs.com'})
+    });
+  } catch(e){}
+  document.getElementById('contact-success').style.display='block';
+  document.getElementById('contact-form').style.opacity='.4';
+  document.getElementById('contact-form').style.pointerEvents='none';
+  btn.style.display='none';
+}
+
+// ═══════════════════════════════════════════════════
+// CHAT WIDGET — India AI Compliance Assistant (Claude-powered)
+// ═══════════════════════════════════════════════════
+let chatOpen = false;
+let chatHistory = [];
+const CHAT_SYSTEM = `You are the India AI Compliance Assistant for TheBHTLabs (BHT Solutions LLC), an SBA 8(a) EDWOSB consulting firm specializing in AI governance and Microsoft 365 implementations.
+
+You ONLY answer questions about India's AI and cybersecurity regulatory landscape. Your areas of expertise:
+
+1. CERT-In Directions 2022 — 6-hour incident reporting, 180-day log retention, NTP synchronization, empaneled auditor requirements, CERT-In Audit Policy 2025
+2. DPDP Act 2023 + DPDP Rules 2025 — consent management, Data Principal rights (erasure §12, correction §13, grievance §14), Data Protection Board notifications, Significant Data Fiduciary (SDF) obligations, DPIA requirements, DPO appointment, penalties up to ₹250 crore under §25
+3. MeitY AI Governance Guidelines November 2025 — seven sutras: Trust, People First, Fairness & Equity, Accountability, Understandable by Design, Safety & Resilience, Innovation over Restraint
+4. RBI FREE-AI Committee Report August 2025 — six pillars, 26 recommendations for banks, NBFCs, and RBI-regulated entities
+5. IT (SGI) Amendment Rules February 2026 — Synthetically Generated Information obligations: detection, labeling, traceability
+6. NCIIPC Guidelines — Critical Information Infrastructure Protection for power, telecom, banking, transport sectors
+7. IT Act 2000 — §43A data protection, §70A NCIIPC designation, §72A privacy
+8. Sector regulators — SEBI Cybersecurity Circular, IRDAI Information Security Guidelines, TRAI AI Guidelines, ICMR AI Guidelines
+9. TheBHTLabs India services — AI Quick Scan (₹2,10,000/10hrs), Readiness Sprint (₹5,50,000/30hrs), AI Launchpad (₹9,00,000/mo)
+
+Be concise, cite specific section numbers when relevant, and always offer to connect them with Nitin Nagar at india@bhtsolutions.com for a free discovery call. Never give legal advice — always recommend consulting qualified DPDP Act counsel for specific compliance decisions.`;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  const win = document.getElementById('chat-window');
+  win.className = chatOpen ? 'open' : '';
+  document.getElementById('chat-badge').style.display = 'none';
+  if (chatOpen && chatHistory.length===0) {
+    addBotMsg("Namaste! I'm the India AI Compliance Assistant for TheBHTLabs.\n\nI can answer questions about CERT-In, DPDP Act 2023, MeitY AI Guidelines, RBI FREE-AI, IT (SGI) Rules 2026, and NCIIPC obligations.\n\nWhat compliance question can I help with today?");
+  }
+  if (chatOpen) setTimeout(()=>document.getElementById('chat-input').focus(), 100);
+}
+
+function addBotMsg(text) {
+  const msgs = document.getElementById('chat-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg-bot';
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addUserMsg(text) {
+  const msgs = document.getElementById('chat-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg-user';
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addTyping() {
+  const msgs = document.getElementById('chat-msgs');
+  const div = document.createElement('div');
+  div.className = 'msg-typing'; div.id = 'typing-indicator';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addUserMsg(text);
+  chatHistory.push({role:'user', content:text});
+  const typing = addTyping();
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5-20251001',
+        max_tokens:400,
+        system: CHAT_SYSTEM,
+        messages: chatHistory.slice(-10)
       })
     });
-  } catch(e) { /* silent */ }
-
-  document.getElementById('c-reply-email').textContent = email;
-  document.getElementById('contact-success').style.display = 'block';
-  document.getElementById('contact-form').style.opacity = '.4';
-  document.getElementById('contact-form').style.pointerEvents = 'none';
-  btn.style.display = 'none';
+    const data = await resp.json();
+    typing.remove();
+    const reply = data.content?.[0]?.text || "I apologize — I couldn't process that. Please email india@bhtsolutions.com for direct assistance.";
+    chatHistory.push({role:'assistant', content:reply});
+    addBotMsg(reply);
+  } catch(e) {
+    typing.remove();
+    addBotMsg("I'm having trouble connecting right now. Please email india@bhtsolutions.com or call (513) 638-1986 for immediate assistance.");
+  }
 }
+
+// Show chat badge after 8 seconds
+setTimeout(()=>{ if(!chatOpen){ document.getElementById('chat-badge').style.display='block'; }}, 8000);
 </script>
 </body>
 </html>
