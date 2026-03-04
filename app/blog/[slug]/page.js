@@ -48,7 +48,7 @@ export default function BlogPost() {
   // Contextual CTA based on tags
   const isGov = post.tags.some(t => /federal|M-25|CMMC|govdef|defense|FedRAMP/i.test(t));
   const isBot = post.tags.some(t => /copilot|chatbot|bot|governance/i.test(t));
-  const ctaText = isGov ? 'Explore Federal AI Tools' : isBot ? 'Audit Your AI Bot — Free' : 'Take the 35-Point Assessment';
+  const ctaText = isGov ? 'Explore Federal AI Tools' : isBot ? 'Audit Your AI Bot' : 'Take the 35-Point Assessment';
   const ctaHref = isGov ? '/#fed-tools' : isBot ? '/#healthcheck' : '/#assess';
 
   const published = post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : '';

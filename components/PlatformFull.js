@@ -568,7 +568,7 @@ function Hero({scrollTo, nav, mode, setMode}) {
           </p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <button onClick={()=>scrollTo("healthcheck")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s"}}>
-              Audit Your AI Bot — Free
+              Audit Your AI Bot
             </button>
             <button onClick={()=>scrollTo("assess")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:`1.5px solid ${C.border}`,background:"transparent",color:C.navy,transition:"all .2s"}}>
               35-Point AI Assessment
