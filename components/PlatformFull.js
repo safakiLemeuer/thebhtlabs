@@ -487,7 +487,7 @@ function Hero({scrollTo, nav, mode, setMode}) {
             <button onClick={()=>scrollTo(mode==='federal'?"fed-tools":"healthcheck")} style={{padding:"9px 20px",borderRadius:10,cursor:"pointer",fontSize:13,fontWeight:700,fontFamily:F.h,border:"none",
               background:mode==='federal'?"#F59E0B":C.teal,color:mode==='federal'?"#0F172A":"#fff",
               boxShadow:mode==='federal'?"0 2px 8px rgba(245,158,11,.3)":`0 2px 8px ${C.teal}33`,transition:"all .2s"}}>
-              {mode==='federal'?'Federal AI Tools':'Free Assessment'}
+              {mode==='federal'?'Federal AI Tools':'Run the Audit'}
             </button>
           </div>
         </div>
@@ -842,9 +842,9 @@ function Assessment({id}) {
       <p class="insight">${cta.pkg.what}</p>
       <p style="font-size:12px;color:#0F766E;font-weight:600;margin-top:8px;padding:10px;background:#ECFDF5;border-radius:8px">${cta.pkg.value}</p>
       <div style="margin-top:14px;padding:14px;background:#fff;border-radius:10px;border:1px solid #E2E8F0">
-        <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:4px">What the free assessment told you vs. what a Quick Scan reveals:</div>
+        <div style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:4px">What the AI Audit Tool told you vs. what a Quick Scan reveals:</div>
         <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px">
-          <tr style="border-bottom:1px solid #eee"><td style="padding:6px;font-weight:600;color:#94A3B8;width:40%"></td><td style="padding:6px;font-weight:700;color:#94A3B8">Free Assessment</td><td style="padding:6px;font-weight:700;color:#0D9488">Quick Scan ($2,500)</td></tr>
+          <tr style="border-bottom:1px solid #eee"><td style="padding:6px;font-weight:600;color:#94A3B8;width:40%"></td><td style="padding:6px;font-weight:700;color:#94A3B8">AI Audit Tool</td><td style="padding:6px;font-weight:700;color:#0D9488">Quick Scan ($2,500)</td></tr>
           <tr style="border-bottom:1px solid #eee"><td style="padding:6px;font-weight:600">Method</td><td style="padding:6px;color:#64748B">Self-reported survey</td><td style="padding:6px;color:#0F172A">Our scripts on your tenant</td></tr>
           <tr style="border-bottom:1px solid #eee"><td style="padding:6px;font-weight:600">Data Finding</td><td style="padding:6px;color:#64748B">"Data Foundation: ${domains.find(d=>d.name==='Data Foundation')?.score||0}%"</td><td style="padding:6px;color:#0F172A">"14K ungoverned files, 3 DLP gaps, $47K unused licenses"</td></tr>
           <tr><td style="padding:6px;font-weight:600">Deliverable</td><td style="padding:6px;color:#64748B">This PDF</td><td style="padding:6px;color:#0F172A">Evidence-based report + exec briefing</td></tr>

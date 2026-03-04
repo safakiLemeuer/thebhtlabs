@@ -17,7 +17,7 @@ export async function GET() {
           <div style={{fontSize:'16px',color:'#A8A29E',marginTop:'12px'}}>SBA 8(a) | EDWOSB | Azure Architect | Clearance-Eligible</div>
         </div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
-          <div style={{background:'#0E7490',color:'#fff',padding:'14px 32px',borderRadius:'12px',fontSize:'18px',fontWeight:700}}>Free Assessment</div>
+          <div style={{background:'#0E7490',color:'#fff',padding:'14px 32px',borderRadius:'12px',fontSize:'18px',fontWeight:700}}>Run the Audit</div>
           <div style={{fontSize:'14px',color:'#A8A29E'}}>thebhtlabs.com</div>
         </div>
       </div>
