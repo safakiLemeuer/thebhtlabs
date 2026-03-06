@@ -240,6 +240,7 @@ const PKGS_BASE = [
   {name:"AI Quick Scan",tier:"scan",base:2500,per:"/engagement",color:C.blue,pop:false,desc:"Our scripts on YOUR tenant. Real findings, not surveys.",baseFeats:["Automated M365/Azure diagnostic","PowerShell tenant analysis","Ungoverned file & DLP gap report","License optimization findings","1-hour executive briefing","3 priority action items"],cta:"Start Scan",hours:10},
   {name:"AI Readiness Sprint",tier:"sprint",base:7500,per:"/engagement",color:C.violet,pop:true,desc:"Full engagement. Stakeholder interviews to boardroom deliverable.",baseFeats:["Everything in Quick Scan","Stakeholder interviews (3-5)","Process mapping (core workflows)","90-day prioritized roadmap","Executive presentation deck","Tool & vendor recommendations"],cta:"Start Sprint",hours:30},
   {name:"AI Launchpad",tier:"launchpad",base:15000,per:"/month",color:C.coral,pop:false,desc:"Implementation. Agents, automations, training, results.",baseFeats:["Everything in Sprint","Copilot Studio agents (production)","Custom Power Automate workflows","Staff training (up to 20)","Monthly optimization reviews","Priority support + Slack channel"],cta:"Launch Now",hours:40},
+  {name:"Governance Retainer",tier:"retainer",base:2000,per:"/month",color:"#0D9488",pop:false,desc:"Ongoing compliance. Quarterly audits. Annual policy review. Never caught off-guard.",baseFeats:["Quarterly VoiceGov IVR re-scan","Monthly AI governance digest","Annual AI Use Policy review","TRACE audit log summary (if deployed)","Regulatory deadline alerts (CMMC, EU AI Act)","Priority response within 4 hours"],cta:"Start Retainer",hours:0},
 ];
 const SCALE_TIERS = [
   {id:"startup",label:"Startup / SMB",rev:"Under $5M revenue",emp:"1-50 employees",mult:0.8,hoursK:0.8,icon:I.launch||null},
@@ -285,11 +286,14 @@ export default function TheBHTLabs() {
         </>
       ) : (
         <>
+          <CaseStudies />
           <ProofBar />
           <FedAcquisition />
           <TenantHealthCheck id="healthcheck" />
           <Assessment id="assess" />
+          <VoiceGovSection />
           <Packages id="packages" />
+          <NitinSection />
           <Partner id="partner" />
           <FAQ id="faq" />
         </>
@@ -384,7 +388,7 @@ function Hero({scrollTo, nav, mode, setMode}) {
     setDaysLeft(Math.ceil((new Date('2026-04-03')-new Date())/(1000*60*60*24)));
     return ()=>window.removeEventListener("scroll",h);
   },[]);
-  const commercialNav = [{id:"healthcheck",l:"Bot Auditor"},{id:"assess",l:"Assessment"},{id:"packages",l:"Packages"},{id:"partner",l:"Work With Us"},{id:"faq",l:"FAQ"}];
+  const commercialNav = [{id:"healthcheck",l:"Audit My Bot"},{id:"assess",l:"AI Readiness"},{id:"voicegov",l:"VoiceGov"},{id:"packages",l:"Pricing"},{id:"nitin",l:"Talk to Nitin"}];
   const federalNav = [{id:"fed-tools",l:"AI Tools"},{id:"fed-compliance",l:"Compliance"},{id:"fed-vehicles",l:"Vehicles"},{id:"assess",l:"Assessment"},{id:"partner",l:"Contact CO"}];
   const navItems = mode === 'federal' ? federalNav : commercialNav;
 
@@ -558,20 +562,20 @@ function Hero({scrollTo, nav, mode, setMode}) {
             <span style={{fontSize:12,fontWeight:700,fontFamily:F.m,color:C.rose}}>67% of AI chatbots fail basic governance checks — BHTLabs Index 2025</span>
           </div>
           <h1 className="hero-t" style={{fontSize:"clamp(36px,5vw,58px)",fontWeight:800,fontFamily:F.h,lineHeight:1.08,color:C.navy,letterSpacing:"-0.03em",maxWidth:800,margin:"0 auto"}}>
-            We govern AI.<br/><span style={{color:C.teal}}>Then we build it right.</span>
+            Before the regulator asks,<br/><span style={{color:C.teal}}>we already have the answer.</span>
           </h1>
           <p style={{color:C.textMuted,fontSize:18,lineHeight:1.7,maxWidth:640,margin:"20px auto 14px",fontFamily:F.b}}>
-            From readiness assessments and compliance frameworks to production Copilot agents and automated workflows — we take you from AI audit to AI deployment, governed from day one.
+            We audit your AI before it becomes a liability. Then we build it right — governed from day one, defensible under CMMC, HIPAA, TCPA, and NIST AI RMF.
           </p>
           <p style={{color:C.textFaint,fontSize:13,fontFamily:F.m,maxWidth:500,margin:"0 auto 32px"}}>
             SBA 8(a) · EDWOSB · Azure Solutions Architect · CyberAB RP · Clearance-Eligible
           </p>
           <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
             <button onClick={()=>scrollTo("healthcheck")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:"none",background:C.teal,color:"#fff",boxShadow:`0 4px 16px ${C.teal}33`,transition:"all .2s"}}>
-              Audit Your AI Bot
+              Audit My AI Bot — Free
             </button>
             <button onClick={()=>scrollTo("assess")} style={{padding:"14px 32px",borderRadius:12,cursor:"pointer",fontSize:15,fontWeight:700,fontFamily:F.h,border:`1.5px solid ${C.border}`,background:"transparent",color:C.navy,transition:"all .2s"}}>
-              35-Point AI Assessment
+              Not sure where to start?
             </button>
           </div>
 
@@ -1308,7 +1312,7 @@ function Packages({id}) {
   return (
     <section id={id} style={{padding:"80px 0",background:C.bgSoft}}>
       <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
-        <SH tag="Scale-Aware Pricing" title="Priced for your reality" desc="A $1M startup and a $500M enterprise need different depth, different deliverables, and different budgets. Configure below." />
+        <SH tag="Scale-Aware Pricing" title="Priced for your reality" desc="Every engagement — from a $2,500 diagnostic to a $2,000/month governance retainer — scales with your organization. No hidden fees." />
 
         {/* Scale + Industry Configurator */}
         <div style={{background:C.bg,borderRadius:20,border:`1px solid ${C.border}`,padding:28,marginBottom:32,boxShadow:C.shadow}}>
@@ -1376,7 +1380,7 @@ function Packages({id}) {
         </div>
 
         {/* Pricing Cards */}
-        <div className="g4" style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:14}}>
           {PKGS_BASE.map((p, i) => {
             const price = calcPrice(p.base);
             const hours = calcHours(p.hours);
@@ -2414,6 +2418,193 @@ function TenantHealthCheck({id}) {
   );
 }
 /* ═══════════════ PROOF BAR ═══════════════ */
+
+/* ═══════════════ CASE STUDIES — Real work, real results ═══════════════ */
+function CaseStudies() {
+  const cases = [
+    {
+      org: "City of Sanibel",
+      sector: "Municipal Government",
+      result: "3 Copilot Studio agents in production",
+      detail: "Resident services, permit intake, and public records — fully automated and governed. Deployed in 6 weeks under 8(a) sole-source.",
+      tag: "Copilot Studio · Azure Gov",
+      color: C.teal,
+    },
+    {
+      org: "EPIC Insurance",
+      sector: "Insurance / Financial Services",
+      result: "14 high-risk AI governance gaps identified",
+      detail: "NIST AI RMF 100-1 mapping, ISO 42001 gap analysis, and remediation roadmap delivered before their board AI review.",
+      tag: "AI Governance · NIST AI RMF",
+      color: C.coral,
+    },
+    {
+      org: "Defense Subcontractor",
+      sector: "Government / Defense",
+      result: "110/110 NIST 800-171 practices in 90 days",
+      detail: "GCC-High migration, Intune MDM to 200+ devices, Purview DLP with CUI labels. First-attempt C3PAO pass. Client name withheld under NDA.",
+      tag: "CMMC Level 2 · GCC-High",
+      color: C.violet,
+    },
+  ];
+  return (
+    <section style={{padding:"72px 0",background:C.bg,borderBottom:`1px solid ${C.borderLight}`}}>
+      <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{marginBottom:40,textAlign:"center"}}>
+          <div style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.textFaint,textTransform:"uppercase",letterSpacing:2,marginBottom:10}}>Real Engagements · Verified Results</div>
+          <h2 style={{fontSize:28,fontWeight:800,fontFamily:F.h,color:C.navy,letterSpacing:"-0.02em"}}>Work that ships. Results you can cite.</h2>
+        </div>
+        <div className="g3" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:20}}>
+          {cases.map((c,i) => (
+            <div key={i} style={{background:C.bgSoft,border:`1px solid ${C.border}`,borderRadius:16,padding:28,borderTop:`3px solid ${c.color}`}}>
+              <div style={{fontSize:10,fontWeight:700,fontFamily:F.m,color:c.color,letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>{c.sector}</div>
+              <div style={{fontSize:18,fontWeight:800,fontFamily:F.h,color:C.navy,marginBottom:6}}>{c.org}</div>
+              <div style={{fontSize:15,fontWeight:700,fontFamily:F.h,color:c.color,marginBottom:12,lineHeight:1.4}}>{c.result}</div>
+              <p style={{fontSize:13,color:C.textMuted,lineHeight:1.7,marginBottom:16}}>{c.detail}</p>
+              <div style={{display:"inline-block",padding:"4px 10px",borderRadius:6,background:c.color+"10",border:`1px solid ${c.color}22`,fontSize:10,fontWeight:700,fontFamily:F.m,color:c.color}}>{c.tag}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{textAlign:"center",marginTop:28}}>
+          <p style={{fontSize:12,color:C.textFaint,fontFamily:F.m}}>Named engagements only. No logos purchased. No unverified claims.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ VOICEGOV — Voice bot compliance scanner ═══════════════ */
+function VoiceGovSection() {
+  return (
+    <section id="voicegov" style={{padding:"80px 0",background:C.navy}}>
+      <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:60,alignItems:"center"}} className="g2">
+          <div>
+            <div style={{display:"inline-flex",alignItems:"center",gap:8,padding:"5px 14px",borderRadius:20,background:"rgba(34,211,238,.08)",border:"1px solid rgba(34,211,238,.15)",marginBottom:20}}>
+              <div style={{width:6,height:6,borderRadius:"50%",background:"#22D3EE",animation:"pulse 2s infinite"}} />
+              <span style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:"#22D3EE",letterSpacing:2}}>NEW · AUTOMATED VOICE AUDIT</span>
+            </div>
+            <h2 style={{fontSize:"clamp(26px,3vw,40px)",fontWeight:800,fontFamily:F.h,color:"#F9FAFB",lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:16}}>
+              Your voice bot called<br/>40,000 customers this month.<br/><span style={{color:"#22D3EE"}}>Do you know what it said?</span>
+            </h2>
+            <p style={{color:"#94A3B8",fontSize:15,lineHeight:1.7,marginBottom:24}}>
+              VoiceGov calls your IVR, scores it against TCPA, FTC AI Disclosure Guidelines, and FCC 2025 rules, and delivers a governance report in 24 hours. No access required. No installation.
+            </p>
+            <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:28}}>
+              {[
+                {label:"Escape Path", desc:"Can callers reach a human? — 40 pts"},
+                {label:"AI Disclosure", desc:"Does it identify as automated? — 35 pts"},
+                {label:"Resolution", desc:"Does it actually resolve issues? — 25 pts"},
+              ].map(item => (
+                <div key={item.label} style={{display:"flex",alignItems:"center",gap:12}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:"#22D3EE",flexShrink:0}} />
+                  <span style={{fontSize:13,color:"#F9FAFB",fontWeight:600}}>{item.label}</span>
+                  <span style={{fontSize:12,color:"#6B7280"}}>{item.desc}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+              <a href="https://voicegov.thebhtlabs.com" target="_blank" rel="noopener noreferrer"
+                style={{display:"inline-block",padding:"13px 28px",borderRadius:10,background:"#0E7490",color:"#fff",fontWeight:700,fontFamily:F.h,fontSize:14,textDecoration:"none",boxShadow:"0 4px 16px rgba(14,116,144,.4)"}}>
+                Get a VoiceGov Report →
+              </a>
+              <a href="https://voicegov.thebhtlabs.com/leaderboard" target="_blank" rel="noopener noreferrer"
+                style={{display:"inline-block",padding:"13px 28px",borderRadius:10,background:"transparent",color:"#22D3EE",fontWeight:700,fontFamily:F.h,fontSize:14,textDecoration:"none",border:"1px solid rgba(34,211,238,.25)"}}>
+                View Public Leaderboard
+              </a>
+            </div>
+          </div>
+          <div style={{background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.06)",borderRadius:16,padding:32,fontFamily:"'DM Mono',monospace"}}>
+            <div style={{fontSize:10,color:"#4B5563",letterSpacing:3,marginBottom:20}}>LIVE AUDIT · SAMPLE OUTPUT</div>
+            {[
+              {co:"Fortune 500 Insurance Co.", grade:"C", score:58, esc:20, dis:28, res:10, ann:74},
+              {co:"National Telecom Provider", grade:"D", score:38, esc:12, dis:16, res:10, ann:88},
+              {co:"Regional Healthcare System", grade:"B", score:72, esc:32, dis:30, res:10, ann:42},
+            ].map((r,i) => {
+              const gc = {A:"#10B981",B:"#22D3EE",C:"#F59E0B",D:"#EF4444",F:"#EF4444"}[r.grade];
+              return (
+                <div key={i} style={{padding:"14px 0",borderBottom:i<2?"1px solid rgba(255,255,255,.05)":"none"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <span style={{fontSize:12,color:"#9CA3AF"}}>{r.co}</span>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      <span style={{fontFamily:"'Syne',sans-serif",fontSize:20,fontWeight:800,color:gc}}>{r.grade}</span>
+                      <span style={{fontSize:11,color:"#6B7280"}}>{r.score}/100</span>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:4}}>
+                    {[[r.esc,40,"#22D3EE"],[r.dis,35,"#F59E0B"],[r.res,25,"#8B5CF6"]].map(([s,m,c],j) => (
+                      <div key={j} style={{flex:m,background:"rgba(255,255,255,.05)",borderRadius:3,height:4,overflow:"hidden"}}>
+                        <div style={{width:`${(s/m)*100}%`,height:"100%",background:c,borderRadius:3}} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{marginTop:16,padding:"10px 14px",background:"rgba(14,116,144,.1)",borderRadius:8,border:"1px solid rgba(14,116,144,.2)"}}>
+              <div style={{fontSize:10,color:"#22D3EE",fontWeight:700,letterSpacing:2,marginBottom:4}}>TCPA EXPOSURE ESTIMATE</div>
+              <div style={{fontSize:13,color:"#F9FAFB"}}>Grade D · 480K annual calls → <span style={{color:"#EF4444",fontWeight:700}}>$240M statutory minimum</span></div>
+              <div style={{fontSize:10,color:"#6B7280",marginTop:2}}>vs. $3,500 VoiceGov audit</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════ NITIN — The human behind the tools ═══════════════ */
+function NitinSection() {
+  return (
+    <section id="nitin" style={{padding:"80px 0",background:C.bgSoft,borderTop:`1px solid ${C.border}`}}>
+      <div style={{maxWidth:900,margin:"0 auto",padding:"0 24px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"200px 1fr",gap:48,alignItems:"start"}} className="g2">
+          <div style={{textAlign:"center"}}>
+            <div style={{width:140,height:140,borderRadius:"50%",background:`linear-gradient(135deg,${C.teal},${C.tealDark})`,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",boxShadow:`0 8px 32px ${C.teal}33`}}>
+              <span style={{fontSize:52,fontWeight:800,fontFamily:F.m,color:"#fff"}}>N</span>
+            </div>
+            <div style={{fontSize:16,fontWeight:800,fontFamily:F.h,color:C.navy}}>Nitin Nagar</div>
+            <div style={{fontSize:11,color:C.textFaint,fontFamily:F.m,marginTop:4}}>VP / CTO · BHT Solutions</div>
+            <a href="mailto:nitin@bhtsolutions.com" style={{display:"inline-block",marginTop:14,padding:"8px 20px",borderRadius:8,background:C.teal,color:"#fff",fontSize:12,fontWeight:700,fontFamily:F.h,textDecoration:"none"}}>
+              Email Nitin Directly
+            </a>
+          </div>
+          <div>
+            <div style={{fontSize:11,fontWeight:700,fontFamily:F.m,color:C.teal,letterSpacing:3,textTransform:"uppercase",marginBottom:12}}>The person who does the work</div>
+            <h2 style={{fontSize:26,fontWeight:800,fontFamily:F.h,color:C.navy,lineHeight:1.2,marginBottom:16}}>
+              Every engagement is run by someone who spent 20 years inside the systems it assesses.
+            </h2>
+            <p style={{fontSize:14,color:C.textMuted,lineHeight:1.8,marginBottom:20}}>
+              I built enterprise systems for Microsoft, bp, Eli Lilly, GE Power, iRobot, and Kroger before founding BHT Solutions. 
+              Every tool on this site — VoiceGov, TRACE, ARIA Score, the 35-point assessment — came from a real client problem I 
+              couldn't find a good answer to. So I built it.
+            </p>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:24}}>
+              {[
+                {cred:"Azure Solutions Architect",type:"Certification"},
+                {cred:"CyberAB Registered Practitioner",type:"Certification"},
+                {cred:"TS Eligible",type:"Personnel Security Determination"},
+                {cred:"SBA 8(a) · EDWOSB",type:"Federal Certifications"},
+                {cred:"City of Sanibel",type:"3 Copilot agents in production"},
+                {cred:"EPIC Insurance",type:"AI governance assessment lead"},
+              ].map((item,i) => (
+                <div key={i} style={{padding:"10px 14px",background:C.bg,border:`1px solid ${C.border}`,borderRadius:10}}>
+                  <div style={{fontSize:12,fontWeight:700,fontFamily:F.h,color:C.navy}}>{item.cred}</div>
+                  <div style={{fontSize:10,color:C.textFaint,fontFamily:F.m,marginTop:2}}>{item.type}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{padding:"16px 20px",background:C.tealBg,border:`1px solid ${C.teal}22`,borderRadius:12,fontSize:13,color:C.textMuted,lineHeight:1.7}}>
+              <strong style={{color:C.navy}}>CAGE: 7DBB9 · UEI: ZW6GMVL368J6</strong><br/>
+              Inquiries: <a href="mailto:info@bhtsolutions.com" style={{color:C.teal,textDecoration:"none"}}>info@bhtsolutions.com</a> · (513) 638-1986
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ProofBar() {
   const creds = [
     {v:"SBA 8(a)",l:"Sole Source Eligible"},
@@ -2423,7 +2614,7 @@ function ProofBar() {
     {v:"T4",l:"Clearance-Ready"},
     {v:"CAGE 7DBB9",l:"Active Contractor"},
   ];
-  const logos = ["DOJ","DHS","U.S. Army","McKesson","EY","PwC","IBM","Microsoft","Stryker","Gates Foundation"];
+  const logos = ["City of Sanibel","EPIC Insurance","McKesson","IBM","Microsoft","Deem","Hitachi Consulting","NTT Data","Eli Lilly","GE Power"];
   return (
     <section style={{padding:"32px 0",borderTop:`1px solid ${C.border}`,borderBottom:`1px solid ${C.border}`,background:C.bgSoft}}>
       <div style={{maxWidth:1100,margin:"0 auto",padding:"0 24px"}}>
